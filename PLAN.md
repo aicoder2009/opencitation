@@ -1,5 +1,59 @@
 # OpenCitation - Comprehensive Development Plan
 
+## Current Status
+
+### ✅ Completed
+- [x] Project documentation (CLAUDE.md, PLAN.md, README.md)
+- [x] MIT License added
+- [x] Git repository initialized
+
+### 🔲 Pending - Sprint 1: Wikipedia-Style UI Foundation
+- [ ] Initialize Next.js 16 project with React 19
+- [ ] Set up Tailwind CSS with retro design system (colors, typography, CSS variables)
+- [ ] Build base components: tabs, buttons, breadcrumbs, collapsible sections
+- [ ] Build main layout: white header, centered 960px content, tab navigation
+- [ ] Build citation page shell with placeholder content
+- [ ] Implement responsive breakpoints for mobile
+
+### 🔲 Pending - Sprint 2: Citation Engine Core
+- [ ] Define TypeScript types for all 12 source types + 5 access types
+- [ ] Create APA 7th formatter (`src/lib/citation/formatters/apa.ts`)
+- [ ] Create MLA 9th formatter
+- [ ] Create Chicago 17th formatter
+- [ ] Create Harvard formatter
+- [ ] Build URL metadata scraper API (OpenGraph/meta tags)
+- [ ] Build DOI lookup API (CrossRef)
+- [ ] Build ISBN lookup API (Google Books/Open Library)
+
+### 🔲 Pending - Sprint 3: UI + Engine Integration
+- [ ] Build Quick Add tab with URL/DOI/ISBN input
+- [ ] Build Manual Entry tab with dynamic forms per source type
+- [ ] Add access type selector to all forms
+- [ ] Build citation preview with style switcher
+- [ ] Copy to clipboard functionality
+
+### 🔲 Pending - Sprint 4: Database & Lists System
+- [ ] Set up Clerk authentication
+- [ ] Set up DynamoDB table (single-table design)
+- [ ] Create Lists API routes
+- [ ] Create Citations API routes (within lists)
+- [ ] Build Lists UI (create, rename, delete lists)
+
+### 🔲 Pending - Sprint 5: Projects & Sharing
+- [ ] Create Projects API routes
+- [ ] Build Projects UI (create, manage projects)
+- [ ] Add Lists to Projects functionality
+- [ ] Implement share links for Lists and Projects
+- [ ] Build public shared view pages
+
+### 🔲 Pending - Sprint 6: Export & Polish
+- [ ] Export to .txt file (single citation, list, or project)
+- [ ] Mobile responsiveness polish
+- [ ] Testing & bug fixes
+- [ ] Performance optimization
+
+---
+
 ## Project Vision
 A citation manager, generator, and sharing tool with a Wikipedia 2005-inspired UI. Primary audience: students, with support for researchers and professionals.
 

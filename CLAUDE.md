@@ -14,7 +14,7 @@ This file provides guidance for Claude Code when working with the OpenCitation p
 
 ## Project Status
 
-This is a new project in early development following a phased approach. See `plan.md` for the comprehensive development plan.
+This is a new project in early development following a phased approach. See `PLAN.md` for the comprehensive development plan and current status.
 
 ## Tech Stack
 
@@ -69,7 +69,7 @@ SHARE#<shareCode>     | META                    | {type, targetId, expiry}
 - Keep dependencies minimal
 
 ### UI Design Philosophy
-Early-mid 2000s Wikipedia aesthetic: clean, information-focused, utilitarian. Think Wikipedia circa 2005-2010 with generous whitespace. See `plan.md` for detailed design specs.
+Early-mid 2000s Wikipedia aesthetic: clean, information-focused, utilitarian. Think Wikipedia circa 2005-2010 with generous whitespace. See `PLAN.md` for detailed design specs.
 
 ### Testing
 - Write tests for citation formatting logic
@@ -101,7 +101,7 @@ opencitation/
 │   │   └── db/                    # DynamoDB client & queries
 │   └── types/                     # TypeScript types
 ├── CLAUDE.md
-├── plan.md
+├── PLAN.md
 ├── LICENSE
 └── README.md
 ```
@@ -137,4 +137,4 @@ npm run test       # Run tests
 5. **Sprint 5:** Projects & Sharing
 6. **Sprint 6:** Export & Polish
 
-See `plan.md` for detailed sprint breakdown.
+See `PLAN.md` for detailed sprint breakdown.

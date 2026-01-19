@@ -99,7 +99,7 @@ opencitation/
 │   │   ├── citation/        # Citation formatters
 │   │   └── db/              # Database utilities
 │   └── types/               # TypeScript definitions
-├── plan.md                  # Development plan
+├── PLAN.md                  # Development plan & status
 └── CLAUDE.md                # AI assistant guidelines
 ```
 
