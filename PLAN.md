@@ -16,7 +16,7 @@ A citation manager, generator, and sharing tool with a Wikipedia 2005-inspired U
 ### 1.1 Citation Engine (Priority: HIGH)
 **Location:** `src/lib/citation/`
 
-#### Source Types (MVP - 12 types)
+#### Source Types (MVP - 11 types)
 | Type | Description |
 |------|-------------|
 | Books | Physical and eBooks |
