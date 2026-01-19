@@ -33,7 +33,7 @@ This is a new project in early development following a phased approach. See `pla
 ### Citation Engine
 **Location:** `src/lib/citation/`
 
-- **Source Types (12):** Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episode, Miscellaneous
+- **Source Types (11):** Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episode, Miscellaneous
 - **Access Types (5):** Print, Database, Web, App, Archive
 - **Citation Styles (Core 4):** APA 7th, MLA 9th, Chicago 17th, Harvard
 
