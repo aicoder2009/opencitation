@@ -7,13 +7,13 @@
 - [x] MIT License added
 - [x] Git repository initialized
 
-### 🔲 Pending - Sprint 1: Wikipedia-Style UI Foundation
-- [ ] Initialize Next.js 16 project with React 19
-- [ ] Set up Tailwind CSS with retro design system (colors, typography, CSS variables)
-- [ ] Build base components: tabs, buttons, breadcrumbs, collapsible sections
-- [ ] Build main layout: white header, centered 960px content, tab navigation
-- [ ] Build citation page shell with placeholder content
-- [ ] Implement responsive breakpoints for mobile
+### ✅ Completed - Sprint 1: Wikipedia-Style UI Foundation
+- [x] Initialize Next.js 16 project with React 19
+- [x] Set up Tailwind CSS with retro design system (colors, typography, CSS variables)
+- [x] Build base components: tabs, buttons, breadcrumbs, collapsible sections
+- [x] Build main layout: white header, centered 960px content, tab navigation
+- [x] Build citation page shell with placeholder content
+- [x] Implement responsive breakpoints for mobile
 
 ### 🔲 Pending - Sprint 2: Citation Engine Core
 - [ ] Define TypeScript types for all 12 source types + 5 access types

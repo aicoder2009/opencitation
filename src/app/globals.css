@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* Wikipedia 2005 Era Design System */
+@theme {
+  /* Color Palette - Wikipedia 2005 Era */
+  --color-wiki-white: #ffffff;
+  --color-wiki-offwhite: #f8f8f8;
+  --color-wiki-border: #aaaaaa;
+  --color-wiki-border-light: #cccccc;
+  --color-wiki-link: #0645ad;
+  --color-wiki-link-visited: #0b0080;
+  --color-wiki-link-active: #ba0000;
+  --color-wiki-tab-bg: #f0f0f0;
+  --color-wiki-text: #202122;
+  --color-wiki-text-muted: #54595d;
+
+  /* Typography - Classic Web */
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-mono: "Courier New", Courier, monospace;
+
+  /* Spacing - Generous whitespace */
+  --spacing-section: 32px;
+  --spacing-paragraph: 16px;
+  --spacing-card: 24px;
+  --spacing-button: 12px;
+  --spacing-field: 20px;
+
+  /* Container */
+  --width-container: 960px;
+  --width-content: 800px;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-wiki-text);
+  background-color: var(--color-wiki-white);
+}
+
+/* Links - Wikipedia style */
+a {
+  color: var(--color-wiki-link);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: var(--color-wiki-link-visited);
+}
+
+a:active {
+  color: var(--color-wiki-link-active);
+}
+
+/* Focus outline - accessibility (dotted border like early web) */
+:focus-visible {
+  outline: 1px dotted var(--color-wiki-text);
+  outline-offset: 2px;
+}
+
+/* Form inputs - Simple 1px borders, generous padding */
+input,
+textarea,
+select {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  border: 1px solid var(--color-wiki-border-light);
+  padding: 12px;
+  background: var(--color-wiki-white);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-wiki-link);
+  outline: none;
+}
+
+/* Monospace for citations */
+.citation-text {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
