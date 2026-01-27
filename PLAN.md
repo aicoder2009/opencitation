@@ -15,15 +15,16 @@
 - [x] Build citation page shell with placeholder content
 - [x] Implement responsive breakpoints for mobile
 
-### 🔲 Pending - Sprint 2: Citation Engine Core
-- [ ] Define TypeScript types for all 12 source types + 5 access types
-- [ ] Create APA 7th formatter (`src/lib/citation/formatters/apa.ts`)
-- [ ] Create MLA 9th formatter
-- [ ] Create Chicago 17th formatter
-- [ ] Create Harvard formatter
-- [ ] Build URL metadata scraper API (OpenGraph/meta tags)
-- [ ] Build DOI lookup API (CrossRef)
-- [ ] Build ISBN lookup API (Google Books/Open Library)
+### ✅ Completed - Sprint 2: Citation Engine Core
+- [x] Define TypeScript types for all 11 source types + 5 access types (`src/types/`)
+- [x] Create APA 7th formatter (`src/lib/citation/formatters/apa.ts`)
+- [x] Create MLA 9th formatter (`src/lib/citation/formatters/mla.ts`)
+- [x] Create Chicago 17th formatter (`src/lib/citation/formatters/chicago.ts`)
+- [x] Create Harvard formatter (`src/lib/citation/formatters/harvard.ts`)
+- [x] Create citation engine index with formatter factory (`src/lib/citation/index.ts`)
+- [x] Build URL metadata scraper API (OpenGraph/meta tags) (`src/app/api/lookup/url/`)
+- [x] Build DOI lookup API (CrossRef) (`src/app/api/lookup/doi/`)
+- [x] Build ISBN lookup API (Open Library/Google Books) (`src/app/api/lookup/isbn/`)
 
 ### 🔲 Pending - Sprint 3: UI + Engine Integration
 - [ ] Build Quick Add tab with URL/DOI/ISBN input
@@ -117,9 +118,10 @@ A citation manager, generator, and sharing tool with a Wikipedia 2005-inspired U
    └── If complete → format citation ✓
 
    Step 2: AI Fallback (if crawler incomplete)
-   ├── Send page content to OpenAI GPT-4o
-   ├── AI extracts: author, title, date, publisher, etc.
-   └── Format citation with extracted data ✓
+   ├── Send page content to OpenAI GPT-4o-mini
+   ├── AI extracts ONLY: author, title, date, publisher, etc. (structured data)
+   ├── Return extracted fields as JSON/structured data
+   └── Citation formatter (APA/MLA/Chicago/Harvard) formats the citation text ✓
    ```
 
 2. **DOI/ISBN Lookup**
@@ -133,12 +135,15 @@ A citation manager, generator, and sharing tool with a Wikipedia 2005-inspired U
    - Auto-fill from Quick Add when available
 
 #### AI Model for Fallback
-- **OpenAI GPT-4o-mini** (cost-effective for parsing)
+- **OpenAI GPT-4o-mini** (cost-effective for data extraction only)
+- **AI Role:** Extract structured data (author, title, date, publisher, etc.) from page content
+- **AI Does NOT:** Format citation text - that's handled by citation formatters (APA/MLA/Chicago/Harvard)
 - Input: $0.15/1M tokens, Output: $0.60/1M tokens
 - Estimated: ~$0.005-0.02 per citation (only when crawler fails)
+- Usage: Only when web crawler fails to extract complete metadata (~20% of URLs)
 
 #### Future Enhancements
-- Paste raw citation text → AI parses into fields
+- Paste raw citation text → AI parses into structured fields (extraction only, not formatting)
 - ISSN lookup for journals
 - Batch URL processing
 
