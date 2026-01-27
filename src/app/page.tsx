@@ -1,30 +1,39 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
-import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 
 export default function Home() {
+  const router = useRouter();
+  const [quickAddInput, setQuickAddInput] = useState("");
+
+  const handleQuickAdd = () => {
+    if (quickAddInput.trim()) {
+      // Navigate to cite page with the input pre-filled
+      router.push(`/cite?input=${encodeURIComponent(quickAddInput.trim())}`);
+    } else {
+      router.push("/cite");
+    }
+  };
+
+  const handleSourceTypeClick = (sourceType: string) => {
+    router.push(`/cite?tab=manual&source=${sourceType}`);
+  };
+
   return (
     <WikiLayout>
       <WikiBreadcrumbs
         items={[
-          { label: "Home", href: "/" },
-          { label: "Cite", href: "/cite" },
+          { label: "Home" },
         ]}
       />
 
       <div className="mt-6">
-        <WikiTabs
-          tabs={[
-            { id: "article", label: "Article", active: true },
-            { id: "discussion", label: "Discussion" },
-            { id: "edit", label: "Edit" },
-            { id: "history", label: "History" },
-          ]}
-        />
-
-        <div className="border border-wiki-border-light border-t-0 bg-wiki-white p-6 md:p-8">
+        <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
           <h1 className="text-2xl font-bold mb-1">OpenCitation</h1>
           <p className="text-wiki-text-muted text-sm mb-8">
             From OpenCitation, the free citation tool
@@ -34,13 +43,13 @@ export default function Home() {
             <nav className="text-sm">
               <ol className="list-decimal list-inside space-y-1">
                 <li>
-                  <a href="#quick-add">Quick Add</a>
+                  <a href="#quick-add" className="text-wiki-link hover:underline">Quick Add</a>
                 </li>
                 <li>
-                  <a href="#manual-entry">Manual Entry</a>
+                  <a href="#manual-entry" className="text-wiki-link hover:underline">Manual Entry</a>
                 </li>
                 <li>
-                  <a href="#my-citations">My Citations</a>
+                  <a href="#my-citations" className="text-wiki-link hover:underline">My Citations</a>
                 </li>
               </ol>
             </nav>
@@ -58,8 +67,13 @@ export default function Home() {
                 type="text"
                 placeholder="Enter URL, DOI, or ISBN..."
                 className="flex-1"
+                value={quickAddInput}
+                onChange={(e) => setQuickAddInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
               />
-              <WikiButton variant="primary">Generate Citation</WikiButton>
+              <WikiButton variant="primary" onClick={handleQuickAdd}>
+                Generate Citation
+              </WikiButton>
             </div>
           </section>
 
@@ -71,13 +85,13 @@ export default function Home() {
               Select a source type and enter the citation details manually.
             </p>
             <div className="flex flex-wrap gap-2">
-              <WikiButton>Book</WikiButton>
-              <WikiButton>Journal</WikiButton>
-              <WikiButton>Website</WikiButton>
-              <WikiButton>Blog</WikiButton>
-              <WikiButton>Newspaper</WikiButton>
-              <WikiButton>Video</WikiButton>
-              <WikiButton>More...</WikiButton>
+              <WikiButton onClick={() => handleSourceTypeClick("book")}>Book</WikiButton>
+              <WikiButton onClick={() => handleSourceTypeClick("journal")}>Journal</WikiButton>
+              <WikiButton onClick={() => handleSourceTypeClick("website")}>Website</WikiButton>
+              <WikiButton onClick={() => handleSourceTypeClick("blog")}>Blog</WikiButton>
+              <WikiButton onClick={() => handleSourceTypeClick("newspaper")}>Newspaper</WikiButton>
+              <WikiButton onClick={() => handleSourceTypeClick("video")}>Video</WikiButton>
+              <WikiButton onClick={() => router.push("/cite?tab=manual")}>More...</WikiButton>
             </div>
           </section>
 
@@ -86,18 +100,10 @@ export default function Home() {
               My Citations
             </h2>
             <p className="text-wiki-text-muted">
-              <a href="/sign-in">Sign in</a> to save and organize your citations
+              <a href="/sign-in" className="text-wiki-link hover:underline">Sign in</a> to save and organize your citations
               into Lists and Projects.
             </p>
           </section>
-
-          <hr className="my-8 border-wiki-border-light" />
-
-          <div className="flex flex-wrap gap-3">
-            <WikiButton disabled>Copy</WikiButton>
-            <WikiButton disabled>Export</WikiButton>
-            <WikiButton disabled>Add to Project</WikiButton>
-          </div>
         </div>
       </div>
     </WikiLayout>

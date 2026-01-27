@@ -57,19 +57,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       );
     }
 
-    // Fetch the page
+    // Fetch the page with browser-like headers
     const response = await fetch(parsedUrl.toString(), {
       headers: {
-        'User-Agent': 'OpenCitation/1.0 (Citation Metadata Scraper)',
-        'Accept': 'text/html,application/xhtml+xml',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Cache-Control': 'no-cache',
       },
       // 10 second timeout
       signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
+      // Provide more helpful error messages
+      let errorMessage = `Failed to fetch URL: ${response.status}`;
+      if (response.status === 401 || response.status === 403) {
+        errorMessage = 'This website requires authentication or blocks automated access. Please use Manual Entry instead.';
+      } else if (response.status === 404) {
+        errorMessage = 'Page not found. Please check the URL.';
+      } else if (response.status >= 500) {
+        errorMessage = 'The website is currently unavailable. Please try again later.';
+      }
       return NextResponse.json(
-        { success: false, error: `Failed to fetch URL: ${response.status}` },
+        { success: false, error: errorMessage },
         { status: 502 }
       );
     }

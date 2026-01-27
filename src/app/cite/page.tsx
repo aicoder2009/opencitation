@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
@@ -82,6 +83,7 @@ const initialFormData: FormData = {
 };
 
 export default function CitePage() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("quick-add");
   const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
   const [selectedSourceType, setSelectedSourceType] = useState<SourceType>("website");
@@ -91,6 +93,26 @@ export default function CitePage() {
   const [generatedCitation, setGeneratedCitation] = useState<{ text: string; html: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Handle URL query parameters
+  useEffect(() => {
+    const inputParam = searchParams.get("input");
+    const tabParam = searchParams.get("tab");
+    const sourceParam = searchParams.get("source");
+
+    if (inputParam) {
+      setQuickAddInput(inputParam);
+      setActiveTab("quick-add");
+    }
+
+    if (tabParam === "manual") {
+      setActiveTab("manual");
+    }
+
+    if (sourceParam && SOURCE_TYPES.some(s => s.value === sourceParam)) {
+      setSelectedSourceType(sourceParam as SourceType);
+    }
+  }, [searchParams]);
 
   const updateFormData = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
