@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import * as db from "@/lib/db";
 
+// Base64 encoded OpenCitation logo (22x22)
+const LOGO_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAABgAAAAAQAAAGAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAABagAwAEAAAAAQAAABYAAAAAwPPrqgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAA/JJREFUOBHdVN9rI1UUPvM7k0maTCNNNtVVycJWECFYWCVqH4p/gE8t2C59EUphBUXcBx8WQUHxxWdhH3zwoQhuESn44pNUUwrW1rS0klTc6JqkyUymmd+TGc+JTOja7R+gA5M7ufee737n+849AP+rJ4oi/rKEcI29bI3mmUctYpC0tfX9O83mn+VSqXRzdnbWOjg4eLLdbt+WJKna7XZLnue8jOF/5POFO5VKpf5vnAvACCpsV6t3NV1bbjRO3lpbW/u02fz18VbL+NrzvHK/3wdB4KHX64FpWuB5bv369ZlX5+bmTs6DX0hnd3f3fXVSXbZtW5ufn/9yc3Oz8uCBfq3RaGRc13EFQQCO44DjeUinU5BIyKWj46ON7e3twnnghzTc29t7UdN6b4dhiMF8ulr98fbR8fGy0de5SuUlsVAoiK1WOwwCn2VQRdfzgWVZ4Fj2OYx9D4FvxeAPMbYs681c7jGp0+nAvXtfsTs7O7dM05woFqcFhmGCwcAMFEVhkCWkUgrIcgKy2QycnZ2BrutL1Wr16RiYiz/29/fzqOFHCTmRcmw7vHHjBQsDnKtPXLWXll4XWJYTM5mMoOsaw6MMmqaD7wcj+33Pg+EwTAwGg/2NjY2fCHMsBZo2E0FUsC0bVHWSLRaLqWw26+Ac1zg5iViG9Xme40VRBMd1ka2M+krQarWAQTkYLAPXdZ9HzLsEPJZCFLkpAu31ukAao3nIyEtEYShIoiSE4VDu9w2UIA2e6+GeIVi4JxgOgUczgyAAx7FyBErPGBjT9ohNoXBltAm1BYgwJV4gECYIhlGr9VdA5YY6k7nIkgElqYxIIFuMC71/YM9JwXHib2Ho+JZlCpZlR6QjMmYG5gBEUUKmKQb/YwEw4Pk+YPnB5KQKYRQCi4wFQQS8PL/HwGPG5XL5yDCMg/vNJiSVJIGgSQJeAG+UAeqLDFmm2+2BgayTSZkSAtuy4MwwiESUy+W+uwCMaTmKIn+RlJMQom7oMFDav9RqcHh4ONKTdJckkSoAGQqgaxruM8k0lCvaXVxc/CEGHlcFTUxMqJ8Zxv2bCPqs7TiQRqOemZkZadlpt/EgY+Q+/Zx2uxBgueFtpEOGU1P5O0jOioHHUtAENpt+JpN94/T0tGNhHyDW9HaxL5D7HMcCHUjyUFYOfg9xzGbVj1dWVr6JQWm80IRocn19/RU07fN0KvUU1jfdqpFBBOajcTzKgJcI0ORAVdUPV1dXP6CbSbHx80hgWqQ2WavV3sW6fg2r4Ar1Bmo+xNbCgsfa3pqenv5kYWHh2xjs/HgpcLwJwQv1er2MFXPNtk0xmUy18/n8z9j5DpGlH+/7749/AySmFeLGPZJbAAAAAElFTkSuQmCC";
+
 export async function GET() {
   try {
     const stats = await db.getStats();
@@ -21,10 +24,10 @@ export async function GET() {
     const badgeWidth = showCount ? 180 : 150;
     const textX = showCount ? 75 : 88;
 
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${badgeWidth}" height="26" viewBox="0 0 ${badgeWidth} 26">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${badgeWidth}" height="26" viewBox="0 0 ${badgeWidth} 26">
   <rect width="${badgeWidth}" height="26" fill="#f9f9f9" stroke="#a2a9b1" stroke-width="1"/>
-  <rect x="1" y="1" width="24" height="24" fill="#3366cc"/>
-  <text x="13" y="18" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">C</text>
+  <rect x="1" y="1" width="24" height="24" fill="#ffffff"/>
+  <image x="2" y="2" width="22" height="22" xlink:href="data:image/png;base64,${LOGO_BASE64}"/>
   <text x="${textX}" y="17" font-family="Arial, sans-serif" font-size="11" fill="#202122" text-anchor="middle">Cite with OpenCitation</text>
   ${showCount ? `<rect x="${badgeWidth - 35}" y="4" width="30" height="18" rx="2" fill="#3366cc"/>
   <text x="${badgeWidth - 20}" y="17" font-family="Arial, sans-serif" font-size="10" fill="white" text-anchor="middle">${countDisplay}</text>` : ""}
@@ -40,10 +43,10 @@ export async function GET() {
   } catch (error) {
     console.error("Error generating badge:", error);
     // Return simple badge on error
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="26" viewBox="0 0 150 26">
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="150" height="26" viewBox="0 0 150 26">
   <rect width="150" height="26" fill="#f9f9f9" stroke="#a2a9b1" stroke-width="1"/>
-  <rect x="1" y="1" width="24" height="24" fill="#3366cc"/>
-  <text x="13" y="18" font-family="Georgia, serif" font-size="14" font-weight="bold" fill="white" text-anchor="middle">C</text>
+  <rect x="1" y="1" width="24" height="24" fill="#ffffff"/>
+  <image x="2" y="2" width="22" height="22" xlink:href="data:image/png;base64,${LOGO_BASE64}"/>
   <text x="88" y="17" font-family="Arial, sans-serif" font-size="11" fill="#202122" text-anchor="middle">Cite with OpenCitation</text>
 </svg>`;
     return new NextResponse(svg, {
