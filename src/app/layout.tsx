@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { PWAProvider } from "@/components/pwa/pwa-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,6 +11,15 @@ export const metadata: Metadata = {
   creator: "OpenCitation",
   publisher: "OpenCitation",
   metadataBase: new URL("https://opencitation.vercel.app"),
+  applicationName: "OpenCitation",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "OpenCitation",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: "OpenCitation - Free Citation Generator",
     description: "Generate, organize, and share citations in APA, MLA, Chicago, and Harvard formats. Free, open source, no account required.",
@@ -39,6 +49,15 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#3366cc",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -48,11 +67,18 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <head>
-          <meta name="theme-color" content="#3366cc" />
+          <meta name="mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content="OpenCitation" />
           <link rel="manifest" href="/manifest.json" />
+          <link rel="apple-touch-icon" href="/apple-icon.png" />
+          <link rel="apple-touch-startup-image" href="/icons/icon-512.png" />
         </head>
         <body className="antialiased">
-          {children}
+          <PWAProvider>
+            {children}
+          </PWAProvider>
         </body>
       </html>
     </ClerkProvider>

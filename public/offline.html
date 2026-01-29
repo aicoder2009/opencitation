@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3366cc">
+  <title>Offline - OpenCitation</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" href="/apple-icon.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f9f9f9;
+      color: #202122;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Wikipedia 2005 style header */
+    .header {
+      background: linear-gradient(to bottom, #ffffff 0%, #f6f6f6 100%);
+      border-bottom: 1px solid #a7d7f9;
+      padding: 12px 24px;
+    }
+
+    .header-content {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #3366cc;
+      text-decoration: none;
+    }
+
+    .logo-subtitle {
+      font-size: 12px;
+      color: #72777d;
+      margin-left: 8px;
+    }
+
+    /* Main content */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .offline-icon {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+    }
+
+    .offline-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 500;
+      color: #202122;
+      margin-bottom: 16px;
+    }
+
+    .description {
+      font-size: 16px;
+      color: #54595d;
+      max-width: 480px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    .status-card {
+      background: #fff;
+      border: 1px solid #c8ccd1;
+      border-radius: 4px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #eaecf0;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .status-icon.warning {
+      background: #fc3;
+      color: #000;
+    }
+
+    .status-icon.info {
+      background: #3366cc;
+      color: #fff;
+    }
+
+    .status-text {
+      flex: 1;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #3366cc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .retry-btn:hover {
+      background: #2a4b8d;
+    }
+
+    .retry-btn:active {
+      background: #1a3668;
+    }
+
+    .secondary-link {
+      color: #3366cc;
+      text-decoration: none;
+      font-size: 14px;
+      margin-top: 16px;
+    }
+
+    .secondary-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    .footer {
+      background: #fff;
+      border-top: 1px solid #c8ccd1;
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: #72777d;
+    }
+
+    /* Animation */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .pulsing {
+      animation: pulse 2s infinite;
+    }
+
+    /* Pending sync indicator */
+    .pending-sync {
+      background: #fef6e7;
+      border: 1px solid #fc3;
+      border-radius: 4px;
+      padding: 16px;
+      margin-bottom: 24px;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .pending-sync-title {
+      font-weight: 600;
+      color: #7f4f24;
+      margin-bottom: 8px;
+    }
+
+    .pending-sync-text {
+      font-size: 14px;
+      color: #54595d;
+    }
+
+    #pending-count {
+      font-weight: 600;
+      color: #3366cc;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="logo">OpenCitation</a>
+      <span class="logo-subtitle">The Free Citation Generator</span>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="offline-icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 12C2 12 5 5 12 5C19 5 22 12 22 12C22 12 19 19 12 19C5 19 2 12 2 12Z" stroke="#c8ccd1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="12" cy="12" r="3" stroke="#c8ccd1" stroke-width="2"/>
+        <line x1="3" y1="21" x2="21" y2="3" stroke="#fc3" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <h1>You're offline</h1>
+    <p class="description">
+      It looks like you've lost your internet connection.
+      Don't worry - your work is saved locally and will sync when you're back online.
+    </p>
+
+    <div class="pending-sync" id="pending-sync" style="display: none;">
+      <div class="pending-sync-title">Pending changes</div>
+      <div class="pending-sync-text">
+        You have <span id="pending-count">0</span> citation(s) waiting to sync when you reconnect.
+      </div>
+    </div>
+
+    <div class="status-card">
+      <div class="status-item">
+        <div class="status-icon warning">!</div>
+        <div class="status-text">No internet connection detected</div>
+      </div>
+      <div class="status-item">
+        <div class="status-icon info">i</div>
+        <div class="status-text">Your citations are saved locally</div>
+      </div>
+      <div class="status-item">
+        <div class="status-icon info">i</div>
+        <div class="status-text">Changes will auto-sync when online</div>
+      </div>
+    </div>
+
+    <button class="retry-btn" onclick="window.location.reload()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M23 4V10H17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M1 20V14H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3.51 9C4.01717 7.56678 4.87913 6.28531 6.01547 5.27542C7.1518 4.26553 8.52547 3.55976 10.0083 3.22426C11.4911 2.88875 13.0348 2.93434 14.4952 3.35677C15.9556 3.77921 17.2853 4.56471 18.36 5.64L23 10M1 14L5.64 18.36C6.71475 19.4353 8.04437 20.2208 9.50481 20.6432C10.9652 21.0657 12.5089 21.1112 13.9917 20.7757C15.4745 20.4402 16.8482 19.7345 17.9845 18.7246C19.1209 17.7147 19.9828 16.4332 20.49 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Try again
+    </button>
+
+    <a href="/" class="secondary-link">Go to homepage</a>
+  </main>
+
+  <footer class="footer">
+    OpenCitation - Free, open source citation generator
+  </footer>
+
+  <script>
+    // Check for pending items in IndexedDB
+    async function checkPendingSync() {
+      try {
+        const dbRequest = indexedDB.open('opencitation-offline', 1);
+
+        dbRequest.onsuccess = function(event) {
+          const db = event.target.result;
+
+          if (!db.objectStoreNames.contains('sync_queue')) {
+            return;
+          }
+
+          const transaction = db.transaction(['sync_queue'], 'readonly');
+          const store = transaction.objectStore('sync_queue');
+          const countRequest = store.count();
+
+          countRequest.onsuccess = function() {
+            const count = countRequest.result;
+            if (count > 0) {
+              document.getElementById('pending-sync').style.display = 'block';
+              document.getElementById('pending-count').textContent = count;
+            }
+          };
+        };
+      } catch (e) {
+        console.log('Could not check pending sync');
+      }
+    }
+
+    // Check online status
+    function checkOnline() {
+      if (navigator.onLine) {
+        window.location.reload();
+      }
+    }
+
+    // Listen for online event
+    window.addEventListener('online', checkOnline);
+
+    // Check pending on load
+    checkPendingSync();
+
+    // Periodically check if we're back online
+    setInterval(checkOnline, 5000);
+  </script>
+</body>
+</html>
