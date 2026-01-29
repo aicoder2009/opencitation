@@ -9,6 +9,8 @@ import { WikiButton } from "@/components/wiki/wiki-button";
 export default function LandingPage() {
   const router = useRouter();
   const [quickAddInput, setQuickAddInput] = useState("");
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const handleQuickAdd = () => {
     if (quickAddInput.trim()) {
@@ -23,7 +25,7 @@ export default function LandingPage() {
   };
 
   return (
-    <WikiLayout>
+    <WikiLayout hideFooter>
       <div className="mt-6">
         {/* Hero Section */}
         <div className="border border-[#a7d7f9] bg-[#f5faff] p-6 md:p-8 mb-6">
@@ -42,6 +44,7 @@ export default function LandingPage() {
                 Try It Now
               </WikiButton>
               <WikiButton onClick={() => window.open("https://github.com/aicoder2009/opencitation", "_blank")}>
+                <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 View on GitHub
               </WikiButton>
             </div>
@@ -197,12 +200,15 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-3 mb-4">
               <WikiButton onClick={() => window.open("https://github.com/aicoder2009/opencitation", "_blank")}>
+                <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 Star on GitHub
               </WikiButton>
               <WikiButton onClick={() => window.open("https://github.com/aicoder2009/opencitation/issues", "_blank")}>
+                <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 Report an Issue
               </WikiButton>
               <WikiButton onClick={() => window.open("https://github.com/aicoder2009/opencitation/pulls", "_blank")}>
+                <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 Contribute
               </WikiButton>
             </div>
@@ -220,11 +226,147 @@ export default function LandingPage() {
               </Link>.
             </p>
             <p className="mt-1">
-              Made for students who hate citation generators with ads.
+              Made <b>by</b> a student, <b>for</b> students who hate citation generators with ads.
+            </p>
+            <p className="mt-2">
+              <button onClick={() => setShowPrivacy(true)} className="text-wiki-link hover:underline">Privacy Policy</button>
+              {" · "}
+              <button onClick={() => setShowTerms(true)} className="text-wiki-link hover:underline">Terms of Service</button>
             </p>
           </div>
         </div>
       </div>
+
+      {/* Privacy Policy Modal */}
+      {showPrivacy && (
+        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)}>
+          <div className="bg-wiki-white border border-wiki-border max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+            <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
+              <div>
+                <h2 className="text-xl font-bold">Privacy Policy</h2>
+                <p className="text-xs text-wiki-text-muted flex items-center gap-1">
+                  <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
+                </p>
+              </div>
+              <button onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
+              <p><b>Last updated:</b> January 2025</p>
+
+              <section>
+                <h3 className="font-bold mb-2">Overview</h3>
+                <p>OpenCitation is committed to protecting your privacy. This policy explains what data we collect and how we use it.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Data We Collect</h3>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li><b>Account Information:</b> If you create an account, we store your email address and display name via our authentication provider.</li>
+                  <li><b>Citations &amp; Lists:</b> Citations you save, lists you create, and projects you organize are stored to provide the service.</li>
+                  <li><b>Usage Data:</b> Basic analytics to improve the service (no personal tracking).</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Third-Party Services</h3>
+                <p className="mb-2">We use the following third-party services:</p>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li><b>Clerk</b> — Authentication and user management (<a href="https://clerk.com/privacy" target="_blank" className="text-wiki-link hover:underline">Privacy Policy</a>)</li>
+                  <li><b>Amazon Web Services (DynamoDB)</b> — Database storage (<a href="https://aws.amazon.com/privacy/" target="_blank" className="text-wiki-link hover:underline">Privacy Policy</a>)</li>
+                  <li><b>Vercel</b> — Hosting and deployment (<a href="https://vercel.com/legal/privacy-policy" target="_blank" className="text-wiki-link hover:underline">Privacy Policy</a>)</li>
+                  <li><b>CrossRef API</b> — DOI metadata lookup (no personal data shared)</li>
+                  <li><b>Open Library API</b> — ISBN metadata lookup (no personal data shared)</li>
+                  <li><b>Google Books API</b> — ISBN metadata fallback (no personal data shared)</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Data Retention</h3>
+                <p>Your data is retained as long as your account is active. You can delete your account and associated data at any time.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Your Rights</h3>
+                <p>You have the right to access, correct, or delete your personal data. For any privacy-related requests, contact us via GitHub issues.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Contact</h3>
+                <p>For privacy concerns, open an issue on our <a href="https://github.com/aicoder2009/opencitation/issues" target="_blank" className="text-wiki-link hover:underline">GitHub repository</a>.</p>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Service Modal */}
+      {showTerms && (
+        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)}>
+          <div className="bg-wiki-white border border-wiki-border max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+            <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
+              <div>
+                <h2 className="text-xl font-bold">Terms of Service</h2>
+                <p className="text-xs text-wiki-text-muted flex items-center gap-1">
+                  <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
+                </p>
+              </div>
+              <button onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
+              <p><b>Last updated:</b> January 2025</p>
+
+              <section>
+                <h3 className="font-bold mb-2">Acceptance of Terms</h3>
+                <p>By using OpenCitation, you agree to these terms. If you do not agree, please do not use the service.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Description of Service</h3>
+                <p>OpenCitation is a free, open-source citation generator and organizer. The service is provided &quot;as is&quot; without warranties of any kind.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">User Responsibilities</h3>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>You are responsible for the accuracy of citations you generate and use.</li>
+                  <li>You agree not to misuse the service or attempt to disrupt its operation.</li>
+                  <li>You are responsible for maintaining the security of your account credentials.</li>
+                </ul>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Intellectual Property</h3>
+                <p>OpenCitation is open-source software released under the MIT License. You retain ownership of any citations and content you create.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Limitation of Liability</h3>
+                <p>OpenCitation and its contributors shall not be liable for any damages arising from the use of this service, including but not limited to incorrect citations, data loss, or service interruptions.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Citation Accuracy</h3>
+                <p>While we strive for accuracy, citation formats may contain errors. Always verify citations against official style guides before submission. OpenCitation is a tool to assist, not replace, proper citation practices.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Modifications</h3>
+                <p>We reserve the right to modify these terms at any time. Continued use of the service constitutes acceptance of modified terms.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Termination</h3>
+                <p>We may terminate or suspend access to the service at any time, without notice, for conduct that violates these terms.</p>
+              </section>
+
+              <section>
+                <h3 className="font-bold mb-2">Contact</h3>
+                <p>For questions about these terms, open an issue on our <a href="https://github.com/aicoder2009/opencitation/issues" target="_blank" className="text-wiki-link hover:underline">GitHub repository</a>.</p>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
     </WikiLayout>
   );
 }

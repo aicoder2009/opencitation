@@ -8,9 +8,10 @@ import { WikiUserMenu } from "./wiki-user-menu";
 
 interface WikiLayoutProps {
   children: React.ReactNode;
+  hideFooter?: boolean;
 }
 
-export function WikiLayout({ children }: WikiLayoutProps) {
+export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -127,16 +128,18 @@ export function WikiLayout({ children }: WikiLayoutProps) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-wiki-border-light mt-12">
-        <div className="max-w-[960px] mx-auto px-4 py-6 text-sm text-wiki-text-muted">
-          <p>
-            OpenCitation is a free citation manager.{" "}
-            <a href="https://github.com/aicoder2009/opencitation" target="_blank" rel="noopener noreferrer" className="text-wiki-link hover:underline">
-              View source on GitHub
-            </a>
-          </p>
-        </div>
-      </footer>
+      {!hideFooter && (
+        <footer className="border-t border-wiki-border-light mt-12">
+          <div className="max-w-[960px] mx-auto px-4 py-6 text-sm text-wiki-text-muted">
+            <p>
+              OpenCitation is a free citation manager.{" "}
+              <a href="https://github.com/aicoder2009/opencitation" target="_blank" rel="noopener noreferrer" className="text-wiki-link hover:underline">
+                View source on GitHub
+              </a>
+            </p>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }
