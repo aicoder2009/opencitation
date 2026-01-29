@@ -1,0 +1,103 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.opencitation.app",
+  "productName": "OpenCitation",
+  "copyright": "Copyright © 2024 OpenCitation",
+  "directories": {
+    "output": "release",
+    "buildResources": "build"
+  },
+  "files": [
+    "dist-electron/**/*",
+    "out/**/*",
+    "public/**/*",
+    "!**/*.map"
+  ],
+  "extraResources": [
+    {
+      "from": "public/icons",
+      "to": "icons"
+    }
+  ],
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["universal"]
+      },
+      {
+        "target": "zip",
+        "arch": ["universal"]
+      }
+    ],
+    "icon": "public/icon.png",
+    "category": "public.app-category.education",
+    "hardenedRuntime": true,
+    "gatekeeperAssess": false,
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist",
+    "darkModeSupport": true,
+    "minimumSystemVersion": "10.15"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "public/icon.png",
+    "publisherName": "OpenCitation"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "public/icon.png",
+    "uninstallerIcon": "public/icon.png",
+    "installerHeaderIcon": "public/icon.png",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "OpenCitation"
+  },
+  "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64", "arm64"]
+      },
+      {
+        "target": "rpm",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "public/icons",
+    "category": "Education",
+    "synopsis": "Free Citation Generator",
+    "description": "Generate, organize, and share citations in APA, MLA, Chicago, and Harvard formats.",
+    "desktop": {
+      "Name": "OpenCitation",
+      "Comment": "Free Citation Generator",
+      "Categories": "Education;Utility;Office",
+      "Keywords": "citation;bibliography;reference;APA;MLA;Chicago;Harvard"
+    }
+  },
+  "protocols": [
+    {
+      "name": "OpenCitation URL",
+      "schemes": ["opencitation"]
+    }
+  ],
+  "publish": {
+    "provider": "github",
+    "owner": "opencitation",
+    "repo": "opencitation"
+  }
+}
