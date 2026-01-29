@@ -731,9 +731,21 @@ function CitePageContent() {
       />
 
       <div className="mt-6">
-        <h1 className="text-2xl font-bold mb-1">Create Citation</h1>
+        <div className="flex items-start justify-between mb-1">
+          <h1 className="text-2xl font-bold">Create Citation</h1>
+          {isSignedIn && (
+            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 border border-green-200">
+              Signed in - can save to lists
+            </span>
+          )}
+        </div>
         <p className="text-wiki-text-muted text-sm mb-6">
           Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry
+          {!isSignedIn && (
+            <span className="ml-1">
+              (<a href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</a> to save)
+            </span>
+          )}
         </p>
 
         {/* Citation Style Selector */}
@@ -927,9 +939,15 @@ function CitePageContent() {
                 >
                   Copy to Clipboard
                 </WikiButton>
-                <WikiButton onClick={openAddToListModal}>
-                  Add to List
-                </WikiButton>
+                {isSignedIn ? (
+                  <WikiButton onClick={openAddToListModal}>
+                    Add to List
+                  </WikiButton>
+                ) : (
+                  <WikiButton onClick={() => window.location.href = "/sign-in?redirect_url=/cite"}>
+                    Sign in to Save
+                  </WikiButton>
+                )}
                 <WikiButton onClick={exportCitation}>
                   Export .txt
                 </WikiButton>
