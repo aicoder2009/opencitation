@@ -12,6 +12,8 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.978.0",
+    "@aws-sdk/lib-dynamodb": "^3.978.0",
     "@clerk/nextjs": "^6.36.10",
     "next": "^16.0.0",
     "react": "^19.0.0",

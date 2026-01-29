@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
@@ -9,6 +10,11 @@ import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { formatCitation } from "@/lib/citation";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
+
+interface List {
+  id: string;
+  name: string;
+}
 
 const SOURCE_TYPES: { value: SourceType; label: string }[] = [
   { value: "book", label: "Book" },
@@ -84,6 +90,7 @@ const initialFormData: FormData = {
 
 function CitePageContent() {
   const searchParams = useSearchParams();
+  const { isSignedIn } = useUser();
   const [activeTab, setActiveTab] = useState("quick-add");
   const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
   const [selectedSourceType, setSelectedSourceType] = useState<SourceType>("website");
@@ -91,8 +98,16 @@ function CitePageContent() {
   const [quickAddInput, setQuickAddInput] = useState("");
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [generatedCitation, setGeneratedCitation] = useState<{ text: string; html: string } | null>(null);
+  const [citationFields, setCitationFields] = useState<CitationFields | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Add to List state
+  const [showListModal, setShowListModal] = useState(false);
+  const [lists, setLists] = useState<List[]>([]);
+  const [isLoadingLists, setIsLoadingLists] = useState(false);
+  const [isAddingToList, setIsAddingToList] = useState(false);
+  const [addToListSuccess, setAddToListSuccess] = useState<string | null>(null);
 
   // Handle URL query parameters
   useEffect(() => {
@@ -164,9 +179,11 @@ function CitePageContent() {
 
       // Map API response to form data and generate citation
       const {data} = result;
-      const citationFields = buildCitationFields(data, selectedSourceType, selectedAccessType);
-      const formatted = formatCitation(citationFields, selectedStyle);
+      const fields = buildCitationFields(data, selectedSourceType, selectedAccessType);
+      const formatted = formatCitation(fields, selectedStyle);
+      setCitationFields(fields);
       setGeneratedCitation(formatted);
+      setAddToListSuccess(null);
     } catch (err) {
       setError("Failed to fetch citation data. Please try again.");
       console.error(err);
@@ -183,9 +200,11 @@ function CitePageContent() {
       return;
     }
 
-    const citationFields = buildCitationFieldsFromForm();
-    const formatted = formatCitation(citationFields, selectedStyle);
+    const fields = buildCitationFieldsFromForm();
+    const formatted = formatCitation(fields, selectedStyle);
+    setCitationFields(fields);
     setGeneratedCitation(formatted);
+    setAddToListSuccess(null);
   };
 
   const buildCitationFields = (data: Record<string, unknown>, sourceType: SourceType, accessType: AccessType): CitationFields => {
@@ -352,6 +371,62 @@ function CitePageContent() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+  };
+
+  const openAddToListModal = async () => {
+    if (!isSignedIn) {
+      window.location.href = "/sign-in?redirect_url=/cite";
+      return;
+    }
+
+    setShowListModal(true);
+    setIsLoadingLists(true);
+
+    try {
+      const response = await fetch("/api/lists");
+      const result = await response.json();
+      if (result.success) {
+        setLists(result.data);
+      }
+    } catch (err) {
+      console.error("Error fetching lists:", err);
+    } finally {
+      setIsLoadingLists(false);
+    }
+  };
+
+  const addCitationToList = async (listId: string) => {
+    if (!generatedCitation || !citationFields) return;
+
+    setIsAddingToList(true);
+
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: citationFields,
+          style: selectedStyle,
+          formattedText: generatedCitation.text,
+          formattedHtml: generatedCitation.html,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const listName = lists.find((l) => l.id === listId)?.name || "list";
+        setAddToListSuccess(`Added to "${listName}"!`);
+        setShowListModal(false);
+      } else {
+        setError(result.error || "Failed to add citation");
+      }
+    } catch (err) {
+      console.error("Error adding citation:", err);
+      setError("Failed to add citation");
+    } finally {
+      setIsAddingToList(false);
     }
   };
 
@@ -852,12 +927,66 @@ function CitePageContent() {
                 >
                   Copy to Clipboard
                 </WikiButton>
-                <WikiButton disabled title="Coming soon - requires sign in">
+                <WikiButton onClick={openAddToListModal}>
                   Add to List
                 </WikiButton>
                 <WikiButton onClick={exportCitation}>
                   Export .txt
                 </WikiButton>
+              </div>
+              {addToListSuccess && (
+                <div className="mt-3 p-2 bg-green-50 border border-green-200 text-green-700 text-sm">
+                  {addToListSuccess}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Add to List Modal */}
+          {showListModal && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white border border-wiki-border-light max-w-md w-full mx-4 shadow-lg">
+                <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
+                  <h3 className="font-bold">Add to List</h3>
+                  <button
+                    onClick={() => setShowListModal(false)}
+                    className="text-wiki-text-muted hover:text-wiki-text"
+                  >
+                    [close]
+                  </button>
+                </div>
+                <div className="p-4">
+                  {isLoadingLists ? (
+                    <p className="text-center text-wiki-text-muted py-4">Loading lists...</p>
+                  ) : lists.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-wiki-text-muted mb-3">You don&apos;t have any lists yet.</p>
+                      <WikiButton
+                        variant="primary"
+                        onClick={() => {
+                          setShowListModal(false);
+                          window.location.href = "/lists";
+                        }}
+                      >
+                        Create a List
+                      </WikiButton>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-wiki-text-muted mb-3">Select a list:</p>
+                      {lists.map((list) => (
+                        <button
+                          key={list.id}
+                          onClick={() => addCitationToList(list.id)}
+                          disabled={isAddingToList}
+                          className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50"
+                        >
+                          {list.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
