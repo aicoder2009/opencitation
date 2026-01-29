@@ -1,14 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiButton } from "@/components/wiki/wiki-button";
 
+interface RecentCitation {
+  id: string;
+  title: string;
+  formattedText: string;
+  style: string;
+  createdAt: string;
+}
+
+const RECENT_CITATIONS_KEY = "opencitation_recent";
+
 export default function LandingPage() {
   const router = useRouter();
   const [quickAddInput, setQuickAddInput] = useState("");
+  const [recentCitations, setRecentCitations] = useState<RecentCitation[]>([]);
+  const [citationCount, setCitationCount] = useState<number | null>(null);
+
+  // Load recent citations from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(RECENT_CITATIONS_KEY);
+      if (stored) {
+        setRecentCitations(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error("Failed to load recent citations:", e);
+    }
+  }, []);
+
+  // Fetch citation count
+  useEffect(() => {
+    fetch("/api/stats")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.citationsGenerated > 0) {
+          setCitationCount(data.citationsGenerated);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const clearRecentCitations = () => {
+    localStorage.removeItem(RECENT_CITATIONS_KEY);
+    setRecentCitations([]);
+  };
+
+  const copyRecentCitation = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [showReportIssue, setShowReportIssue] = useState(false);
@@ -96,11 +141,16 @@ export default function LandingPage() {
             <p className="text-wiki-text-muted text-lg mb-4">
               The free, open source citation manager
             </p>
-            <p className="mb-6 max-w-xl mx-auto">
+            <p className="mb-4 max-w-xl mx-auto">
               Generate, organize, and share properly formatted citations.
               <br />
               No ads. No tracking. No account required.
             </p>
+            {citationCount !== null && citationCount > 0 && (
+              <p className="text-wiki-text-muted text-sm mb-6">
+                <span className="font-semibold text-wiki-link">{citationCount.toLocaleString()}</span> citations generated
+              </p>
+            )}
             <div className="flex flex-wrap justify-center gap-3">
               <WikiButton variant="primary" onClick={() => router.push("/cite")}>
                 Try It Now
@@ -248,6 +298,46 @@ export default function LandingPage() {
             </div>
           </section>
 
+          {/* Recent Citations */}
+          {recentCitations.length > 0 && (
+            <section className="mb-8">
+              <div className="flex items-center justify-between border-b border-wiki-border-light pb-2 mb-4">
+                <h2 className="text-xl font-bold">Recent Citations</h2>
+                <button
+                  onClick={clearRecentCitations}
+                  className="text-sm text-wiki-text-muted hover:text-wiki-link"
+                >
+                  Clear history
+                </button>
+              </div>
+              <div className="space-y-3">
+                {recentCitations.map((citation) => (
+                  <div
+                    key={citation.id}
+                    className="p-3 bg-wiki-offwhite border border-wiki-border-light"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-wiki-text-muted mb-1">
+                          {citation.style.toUpperCase()}
+                        </p>
+                        <p className="text-sm truncate" title={citation.formattedText}>
+                          {citation.formattedText}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => copyRecentCitation(citation.formattedText)}
+                        className="text-wiki-link text-sm hover:underline shrink-0"
+                      >
+                        [copy]
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* Open Source */}
           <section className="mb-8">
             <h2 className="text-xl font-bold border-b border-wiki-border-light pb-2 mb-4">
@@ -298,6 +388,7 @@ export default function LandingPage() {
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki" target="_blank" className="hover:text-wiki-link">Documentation</Link></li>
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki/API-Reference" target="_blank" className="hover:text-wiki-link">API Reference</Link></li>
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki/FAQ" target="_blank" className="hover:text-wiki-link">FAQ</Link></li>
+                  <li><Link href="/embed" className="hover:text-wiki-link">Embed Badge</Link></li>
                 </ul>
               </div>
 

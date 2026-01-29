@@ -10,11 +10,13 @@ const store: {
   projects: Map<string, Project>;
   citations: Map<string, Citation>;
   shareLinks: Map<string, ShareLink>;
+  stats: { citationsGenerated: number };
 } = {
   lists: new Map(),
   projects: new Map(),
   citations: new Map(),
   shareLinks: new Map(),
+  stats: { citationsGenerated: 0 },
 };
 
 // Export types for compatibility with queries.ts
@@ -43,6 +45,7 @@ export interface Citation {
   style: CitationStyle;
   formattedText: string;
   formattedHtml: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -182,11 +185,12 @@ export async function addCitation(
   fields: CitationFields,
   style: CitationStyle,
   formattedText: string,
-  formattedHtml: string
+  formattedHtml: string,
+  tags?: string[]
 ): Promise<Citation> {
   const id = generateId();
   const now = new Date().toISOString();
-  const citation: Citation = { id, listId, fields, style, formattedText, formattedHtml, createdAt: now, updatedAt: now };
+  const citation: Citation = { id, listId, fields, style, formattedText, formattedHtml, tags, createdAt: now, updatedAt: now };
   store.citations.set(`${listId}:${id}`, citation);
   return citation;
 }
@@ -208,7 +212,7 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
 export async function updateCitation(
   listId: string,
   citationId: string,
-  updates: { fields?: CitationFields; style?: CitationStyle; formattedText?: string; formattedHtml?: string }
+  updates: { fields?: CitationFields; style?: CitationStyle; formattedText?: string; formattedHtml?: string; tags?: string[] }
 ): Promise<Citation | null> {
   const key = `${listId}:${citationId}`;
   const citation = store.citations.get(key);
@@ -267,4 +271,14 @@ export async function findProjectById(projectId: string): Promise<Project | null
     if (project.id === projectId) found = project;
   });
   return found;
+}
+
+// ============ STATS ============
+
+export async function getStats(): Promise<{ citationsGenerated: number }> {
+  return { citationsGenerated: store.stats.citationsGenerated };
+}
+
+export async function incrementCitationCount(): Promise<void> {
+  store.stats.citationsGenerated += 1;
 }

@@ -74,15 +74,16 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { fields, style, formattedText, formattedHtml } = body as {
+    const { fields, style, formattedText, formattedHtml, tags } = body as {
       fields?: CitationFields;
       style?: CitationStyle;
       formattedText?: string;
       formattedHtml?: string;
+      tags?: string[];
     };
 
     // Validate that at least one field is being updated
-    if (!fields && !style && !formattedText && !formattedHtml) {
+    if (!fields && !style && !formattedText && !formattedHtml && tags === undefined) {
       return NextResponse.json(
         { success: false, error: "No updates provided" },
         { status: 400 }
@@ -94,6 +95,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       style,
       formattedText,
       formattedHtml,
+      tags,
     });
 
     if (!citation) {

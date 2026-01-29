@@ -9,6 +9,7 @@ import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { formatCitation } from "@/lib/citation";
+import { toBibTeX, toRIS } from "@/lib/citation/exporters";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
 
 interface List {
@@ -44,6 +45,42 @@ const ACCESS_TYPES: { value: AccessType; label: string }[] = [
   { value: "app", label: "App" },
   { value: "archive", label: "Archive" },
 ];
+
+interface RecentCitation {
+  id: string;
+  title: string;
+  formattedText: string;
+  style: string;
+  createdAt: string;
+}
+
+const RECENT_CITATIONS_KEY = "opencitation_recent";
+const MAX_RECENT_CITATIONS = 5;
+
+function saveToRecentCitations(title: string, formattedText: string, style: string) {
+  try {
+    const stored = localStorage.getItem(RECENT_CITATIONS_KEY);
+    const recent: RecentCitation[] = stored ? JSON.parse(stored) : [];
+
+    const newCitation: RecentCitation = {
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      title: title || "Untitled",
+      formattedText,
+      style,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Add to front, remove duplicates by text, limit to max
+    const updated = [
+      newCitation,
+      ...recent.filter(c => c.formattedText !== formattedText)
+    ].slice(0, MAX_RECENT_CITATIONS);
+
+    localStorage.setItem(RECENT_CITATIONS_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error("Failed to save recent citation:", e);
+  }
+}
 
 interface FormData {
   authorFirst: string;
@@ -110,6 +147,22 @@ function CitePageContent() {
   const [addToListSuccess, setAddToListSuccess] = useState<string | null>(null);
   const [newListName, setNewListName] = useState("");
   const [isCreatingList, setIsCreatingList] = useState(false);
+
+  // Duplicate detection state
+  const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
+  const [pendingListId, setPendingListId] = useState<string | null>(null);
+  const [duplicateInfo, setDuplicateInfo] = useState<string | null>(null);
+
+  // Bulk import state
+  const [bulkInput, setBulkInput] = useState("");
+  const [bulkResults, setBulkResults] = useState<Array<{
+    input: string;
+    success: boolean;
+    data?: Record<string, unknown>;
+    error?: string;
+  }>>([]);
+  const [isBulkLoading, setIsBulkLoading] = useState(false);
+  const [bulkError, setBulkError] = useState<string | null>(null);
 
   // Handle URL query parameters
   useEffect(() => {
@@ -186,6 +239,12 @@ function CitePageContent() {
       setCitationFields(fields);
       setGeneratedCitation(formatted);
       setAddToListSuccess(null);
+
+      // Save to recent citations
+      saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+
+      // Increment citation counter
+      fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
     } catch (err) {
       setError("Failed to fetch citation data. Please try again.");
       console.error(err);
@@ -207,6 +266,81 @@ function CitePageContent() {
     setCitationFields(fields);
     setGeneratedCitation(formatted);
     setAddToListSuccess(null);
+
+    // Save to recent citations
+    saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+
+    // Increment citation counter
+    fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
+  };
+
+  const handleBulkImport = async () => {
+    if (!bulkInput.trim()) {
+      setBulkError("Please enter at least one URL, DOI, or ISBN");
+      return;
+    }
+
+    // Parse input - split by newlines, filter empty lines
+    const items = bulkInput
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
+
+    if (items.length === 0) {
+      setBulkError("Please enter at least one URL, DOI, or ISBN");
+      return;
+    }
+
+    if (items.length > 20) {
+      setBulkError("Maximum 20 items allowed at once");
+      return;
+    }
+
+    setIsBulkLoading(true);
+    setBulkError(null);
+    setBulkResults([]);
+
+    try {
+      const response = await fetch("/api/lookup/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setBulkError(data.error || "Failed to process bulk import");
+        return;
+      }
+
+      setBulkResults(data.results || []);
+
+      // Increment counter for each successful result
+      const successCount = (data.results || []).filter((r: { success: boolean }) => r.success).length;
+      for (let i = 0; i < successCount; i++) {
+        fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
+      }
+    } catch (err) {
+      setBulkError("Network error. Please try again.");
+      console.error(err);
+    } finally {
+      setIsBulkLoading(false);
+    }
+  };
+
+  const handleBulkResultClick = (result: { success: boolean; data?: Record<string, unknown> }) => {
+    if (!result.success || !result.data) return;
+
+    // Build citation fields and switch to result view
+    const fields = buildCitationFields(result.data, selectedSourceType, selectedAccessType);
+    const formatted = formatCitation(fields, selectedStyle);
+    setCitationFields(fields);
+    setGeneratedCitation(formatted);
+    setAddToListSuccess(null);
+
+    // Save to recent citations
+    saveToRecentCitations(fields.title, formatted.text, selectedStyle);
   };
 
   const buildCitationFields = (data: Record<string, unknown>, sourceType: SourceType, accessType: AccessType): CitationFields => {
@@ -376,6 +510,36 @@ function CitePageContent() {
     }
   };
 
+  const exportBibTeX = () => {
+    if (citationFields) {
+      const bibtex = toBibTeX(citationFields);
+      const blob = new Blob([bibtex], { type: "application/x-bibtex" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `citation-${Date.now()}.bib`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
+  const exportRIS = () => {
+    if (citationFields) {
+      const ris = toRIS(citationFields);
+      const blob = new Blob([ris], { type: "application/x-research-info-systems" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `citation-${Date.now()}.ris`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const openAddToListModal = async () => {
     if (!isSignedIn) {
       window.location.href = "/sign-in?redirect_url=/cite";
@@ -398,12 +562,48 @@ function CitePageContent() {
     }
   };
 
-  const addCitationToList = async (listId: string) => {
+  const checkForDuplicates = (existingCitations: { formattedText: string }[], newText: string): string | null => {
+    // Normalize text for comparison (remove extra spaces, lowercase)
+    const normalize = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();
+    const normalizedNew = normalize(newText);
+
+    for (const existing of existingCitations) {
+      const normalizedExisting = normalize(existing.formattedText);
+      // Check for exact or very similar match
+      if (normalizedExisting === normalizedNew) {
+        return "This exact citation already exists in the list.";
+      }
+      // Check if significant portion matches (90%+ similarity by checking substring)
+      if (normalizedNew.length > 50 && normalizedExisting.includes(normalizedNew.substring(0, 50))) {
+        return "A very similar citation may already exist in the list.";
+      }
+    }
+    return null;
+  };
+
+  const addCitationToList = async (listId: string, skipDuplicateCheck = false) => {
     if (!generatedCitation || !citationFields) return;
 
     setIsAddingToList(true);
 
     try {
+      // Check for duplicates first (unless skipped)
+      if (!skipDuplicateCheck) {
+        const citationsResponse = await fetch(`/api/lists/${listId}/citations`);
+        const citationsResult = await citationsResponse.json();
+
+        if (citationsResult.success && citationsResult.data.length > 0) {
+          const duplicateMsg = checkForDuplicates(citationsResult.data, generatedCitation.text);
+          if (duplicateMsg) {
+            setPendingListId(listId);
+            setDuplicateInfo(duplicateMsg);
+            setShowDuplicateWarning(true);
+            setIsAddingToList(false);
+            return;
+          }
+        }
+      }
+
       const response = await fetch(`/api/lists/${listId}/citations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -421,6 +621,8 @@ function CitePageContent() {
         const listName = lists.find((l) => l.id === listId)?.name || "list";
         setAddToListSuccess(`Added to "${listName}"!`);
         setShowListModal(false);
+        setShowDuplicateWarning(false);
+        setPendingListId(null);
       } else {
         setError(result.error || "Failed to add citation");
       }
@@ -430,6 +632,18 @@ function CitePageContent() {
     } finally {
       setIsAddingToList(false);
     }
+  };
+
+  const handleAddDuplicateAnyway = () => {
+    if (pendingListId) {
+      addCitationToList(pendingListId, true);
+    }
+  };
+
+  const cancelDuplicateWarning = () => {
+    setShowDuplicateWarning(false);
+    setPendingListId(null);
+    setDuplicateInfo(null);
   };
 
   const createListAndAddCitation = async () => {
@@ -822,6 +1036,7 @@ function CitePageContent() {
           tabs={[
             { id: "quick-add", label: "Quick Add", active: activeTab === "quick-add" },
             { id: "manual", label: "Manual Entry", active: activeTab === "manual" },
+            { id: "bulk-import", label: "Bulk Import", active: activeTab === "bulk-import" },
           ]}
           onTabChange={setActiveTab}
         />
@@ -1004,6 +1219,12 @@ function CitePageContent() {
                 <WikiButton onClick={exportCitation}>
                   Export .txt
                 </WikiButton>
+                <WikiButton onClick={exportBibTeX}>
+                  Export .bib
+                </WikiButton>
+                <WikiButton onClick={exportRIS}>
+                  Export .ris
+                </WikiButton>
               </div>
               {addToListSuccess && (
                 <div className="mt-3 p-2 bg-green-50 border border-green-200 text-green-700 text-sm">
@@ -1099,6 +1320,137 @@ function CitePageContent() {
                       </div>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "bulk-import" && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">Bulk Import</h2>
+              <p className="mb-4 text-sm text-wiki-text-muted">
+                Paste multiple URLs, DOIs, or ISBNs (one per line) to import them all at once.
+                Maximum 20 items per batch.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    URLs, DOIs, or ISBNs (one per line)
+                  </label>
+                  <textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="https://example.com/article1
+10.1000/xyz123
+978-3-16-148410-0
+https://another-site.com/paper"
+                    rows={8}
+                    className="w-full font-mono text-sm"
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <WikiButton
+                    variant="primary"
+                    onClick={handleBulkImport}
+                    disabled={isBulkLoading || !bulkInput.trim()}
+                  >
+                    {isBulkLoading ? "Processing..." : "Import All"}
+                  </WikiButton>
+                  {bulkInput && (
+                    <WikiButton
+                      onClick={() => {
+                        setBulkInput("");
+                        setBulkResults([]);
+                        setBulkError(null);
+                      }}
+                    >
+                      Clear
+                    </WikiButton>
+                  )}
+                </div>
+
+                {bulkError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {bulkError}
+                  </div>
+                )}
+
+                {bulkResults.length > 0 && (
+                  <div className="border border-wiki-border-light">
+                    <div className="p-3 bg-wiki-tab-bg border-b border-wiki-border-light">
+                      <span className="font-medium">
+                        Results: {bulkResults.filter(r => r.success).length} successful,{" "}
+                        {bulkResults.filter(r => !r.success).length} failed
+                      </span>
+                    </div>
+                    <div className="divide-y divide-wiki-border-light max-h-64 overflow-y-auto">
+                      {bulkResults.map((result, index) => (
+                        <div
+                          key={index}
+                          className={`p-3 text-sm ${
+                            result.success
+                              ? "hover:bg-wiki-tab-bg cursor-pointer"
+                              : "bg-red-50"
+                          }`}
+                          onClick={() => handleBulkResultClick(result)}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span className={result.success ? "text-green-600" : "text-red-600"}>
+                              {result.success ? "\u2713" : "\u2717"}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate font-mono text-xs text-wiki-text-muted">
+                                {result.input}
+                              </div>
+                              {result.success && result.data ? (
+                                <div className="mt-1 truncate">
+                                  {(result.data.title as string) || "Untitled"}
+                                </div>
+                              ) : (
+                                <div className="mt-1 text-red-600">
+                                  {result.error}
+                                </div>
+                              )}
+                            </div>
+                            {result.success && (
+                              <span className="text-xs text-wiki-link">Click to view</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Duplicate Warning Modal */}
+          {showDuplicateWarning && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white border border-wiki-border-light max-w-sm w-full mx-4 shadow-lg">
+                <div className="p-4 border-b border-wiki-border-light">
+                  <h3 className="font-bold text-amber-700">Possible Duplicate</h3>
+                </div>
+                <div className="p-4">
+                  <p className="text-sm mb-4">{duplicateInfo}</p>
+                  <p className="text-sm text-wiki-text-muted mb-4">
+                    Do you want to add it anyway?
+                  </p>
+                  <div className="flex gap-3">
+                    <WikiButton
+                      variant="primary"
+                      onClick={handleAddDuplicateAnyway}
+                      disabled={isAddingToList}
+                    >
+                      {isAddingToList ? "Adding..." : "Add Anyway"}
+                    </WikiButton>
+                    <WikiButton onClick={cancelDuplicateWarning}>
+                      Cancel
+                    </WikiButton>
+                  </div>
                 </div>
               </div>
             </div>

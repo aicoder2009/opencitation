@@ -40,6 +40,10 @@ export const deleteShareLink = db.deleteShareLink;
 export const findListById = db.findListById;
 export const findProjectById = db.findProjectById;
 
+// ============ STATS ============
+export const getStats = db.getStats;
+export const incrementCitationCount = db.incrementCitationCount;
+
 // ============ TYPES ============
 export type { List, Project, Citation, ShareLink } from "./local-store";
 

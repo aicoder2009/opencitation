@@ -25,6 +25,7 @@ export interface Citation {
   style: CitationStyle;
   formattedText: string;
   formattedHtml: string;
+  tags?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -194,7 +195,8 @@ export async function addCitation(
   fields: CitationFields,
   style: CitationStyle,
   formattedText: string,
-  formattedHtml: string
+  formattedHtml: string,
+  tags?: string[]
 ): Promise<Citation> {
   const id = generateId();
   const now = new Date().toISOString();
@@ -206,6 +208,7 @@ export async function addCitation(
     style,
     formattedText,
     formattedHtml,
+    tags,
     createdAt: now,
     updatedAt: now,
   };
@@ -245,6 +248,7 @@ export async function getCitation(listId: string, citationId: string): Promise<C
     style: result.Item.style,
     formattedText: result.Item.formattedText,
     formattedHtml: result.Item.formattedHtml,
+    tags: result.Item.tags,
     createdAt: result.Item.createdAt,
     updatedAt: result.Item.updatedAt,
   };
@@ -269,6 +273,7 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
     style: item.style,
     formattedText: item.formattedText,
     formattedHtml: item.formattedHtml,
+    tags: item.tags,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
   }));
@@ -282,6 +287,7 @@ export async function updateCitation(
     style?: CitationStyle;
     formattedText?: string;
     formattedHtml?: string;
+    tags?: string[];
   }
 ): Promise<Citation | null> {
   const updateExpressions: string[] = ["#updatedAt = :updatedAt"];
@@ -312,6 +318,12 @@ export async function updateCitation(
     expressionValues[":formattedHtml"] = updates.formattedHtml;
   }
 
+  if (updates.tags !== undefined) {
+    updateExpressions.push("#tags = :tags");
+    expressionNames["#tags"] = "tags";
+    expressionValues[":tags"] = updates.tags;
+  }
+
   const result = await docClient.send(
     new UpdateCommand({
       TableName: TABLE_NAME,
@@ -335,6 +347,7 @@ export async function updateCitation(
     style: result.Attributes.style,
     formattedText: result.Attributes.formattedText,
     formattedHtml: result.Attributes.formattedHtml,
+    tags: result.Attributes.tags,
     createdAt: result.Attributes.createdAt,
     updatedAt: result.Attributes.updatedAt,
   };
@@ -570,6 +583,44 @@ export async function deleteShareLink(code: string): Promise<void> {
       Key: {
         PK: keys.share(code),
         SK: PREFIXES.META,
+      },
+    })
+  );
+}
+
+// ============ STATS ============
+
+export async function getStats(): Promise<{ citationsGenerated: number }> {
+  const result = await docClient.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `${PREFIXES.STATS}GLOBAL`,
+        SK: PREFIXES.COUNTERS,
+      },
+    })
+  );
+
+  if (!result.Item) {
+    return { citationsGenerated: 0 };
+  }
+
+  return { citationsGenerated: result.Item.citationsGenerated || 0 };
+}
+
+export async function incrementCitationCount(): Promise<void> {
+  await docClient.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: `${PREFIXES.STATS}GLOBAL`,
+        SK: PREFIXES.COUNTERS,
+      },
+      UpdateExpression: "SET citationsGenerated = if_not_exists(citationsGenerated, :zero) + :inc, updatedAt = :now",
+      ExpressionAttributeValues: {
+        ":inc": 1,
+        ":zero": 0,
+        ":now": new Date().toISOString(),
       },
     })
   );

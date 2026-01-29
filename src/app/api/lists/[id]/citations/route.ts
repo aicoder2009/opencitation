@@ -67,11 +67,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { fields, style, formattedText, formattedHtml } = body as {
+    const { fields, style, formattedText, formattedHtml, tags } = body as {
       fields: CitationFields;
       style: CitationStyle;
       formattedText: string;
       formattedHtml: string;
+      tags?: string[];
     };
 
     // Validate required fields
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const citation = await addCitation(listId, fields, style, formattedText, formattedHtml);
+    const citation = await addCitation(listId, fields, style, formattedText, formattedHtml, tags);
 
     return NextResponse.json({
       success: true,
