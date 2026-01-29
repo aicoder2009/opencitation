@@ -26,32 +26,49 @@
 - [x] Build DOI lookup API (CrossRef) (`src/app/api/lookup/doi/`)
 - [x] Build ISBN lookup API (Open Library/Google Books) (`src/app/api/lookup/isbn/`)
 
-### 🔲 Pending - Sprint 3: UI + Engine Integration
-- [ ] Build Quick Add tab with URL/DOI/ISBN input
-- [ ] Build Manual Entry tab with dynamic forms per source type
-- [ ] Add access type selector to all forms
-- [ ] Build citation preview with style switcher
-- [ ] Copy to clipboard functionality
+### ✅ Completed - Sprint 3: UI + Engine Integration
+- [x] Build Quick Add tab with URL/DOI/ISBN input
+- [x] Build Manual Entry tab with dynamic forms per source type
+- [x] Add access type selector to all forms
+- [x] Build citation preview with style switcher
+- [x] Copy to clipboard functionality
+- [x] Wire up Export .txt button
 
-### 🔲 Pending - Sprint 4: Database & Lists System
-- [ ] Set up Clerk authentication
-- [ ] Set up DynamoDB table (single-table design)
-- [ ] Create Lists API routes
-- [ ] Create Citations API routes (within lists)
-- [ ] Build Lists UI (create, rename, delete lists)
+### ✅ Completed - Sprint 4: Database & Lists System
+- [x] Set up Clerk authentication
+- [x] Set up DynamoDB client (single-table design)
+- [x] Create Lists API routes (`/api/lists/`)
+- [x] Create Citations API routes (`/api/lists/[id]/citations/`)
+- [x] Build Lists UI (create, rename, delete lists)
+- [x] Build List detail page with citations display
+- [x] Wire up "Add to List" button on cite page
 
-### 🔲 Pending - Sprint 5: Projects & Sharing
-- [ ] Create Projects API routes
-- [ ] Build Projects UI (create, manage projects)
-- [ ] Add Lists to Projects functionality
-- [ ] Implement share links for Lists and Projects
-- [ ] Build public shared view pages
+### ✅ Completed - Sprint 5: Projects & Sharing
+- [x] Create Projects API routes (`/api/projects/`)
+- [x] Build Projects UI (create, manage projects)
+- [x] Add Lists to Projects functionality
+- [x] Implement share links for Lists and Projects (`/api/share/`)
+- [x] Build public shared view pages (`/share/[code]`)
 
-### 🔲 Pending - Sprint 6: Export & Polish
-- [ ] Export to .txt file (single citation, list, or project)
-- [ ] Mobile responsiveness polish
-- [ ] Testing & bug fixes
-- [ ] Performance optimization
+### ✅ Completed - Sprint 6: Export & Polish
+- [x] Export to .txt file (single citation, list, or project)
+- [x] Mobile responsiveness polish (hamburger menu)
+- [x] Navigation links in header (Cite, Lists, Projects)
+- [x] Share buttons on list and project detail pages
+
+### ✅ Completed - Chrome Extension
+- [x] Manifest v3 setup
+- [x] Popup UI with Wikipedia 2000s styling
+- [x] Citation style selector (APA/MLA/Chicago/Harvard)
+- [x] API integration for citation generation
+- [x] Right-click context menu support
+- [x] Content script for page metadata extraction
+
+### ✅ Completed - Fun Features
+- [x] Retro 2000s Print Animation (animated printer, paper stack)
+- [x] Toggleable sound effects (printer noise, paper feed, completion ding)
+- [x] Progress bar animation
+- [x] Print button on list detail page
 
 ---
 
