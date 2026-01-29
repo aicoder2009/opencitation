@@ -18,42 +18,47 @@ This is a new project in early development following a phased approach. See `PLA
 
 **Current Implementation Status:**
 - ✅ Sprint 1 Complete: Wikipedia-style UI foundation (components, layout, cite page shell)
-- 🔲 Sprint 2-6: Pending (citation engine, database, API routes, etc.)
+- ✅ Sprint 2 Complete: Citation engine (APA, MLA, Chicago, Harvard), lookup APIs (URL, DOI, ISBN)
+- 🔲 Sprint 3-6: Pending (UI integration, database, projects, sharing, export)
 
 ## Tech Stack
 
 ### Currently Installed
 | Layer | Technology | Status |
 |-------|------------|--------|
-| Frontend | Next.js 16, React 19, Tailwind CSS | ✅ Installed |
+| Frontend | Next.js 16, React 19, Tailwind CSS 4.0 | ✅ Installed |
 | UI Components | Custom wiki components (tabs, buttons, breadcrumbs, collapsible, layout) | ✅ Implemented |
+| Citation Engine | 4 formatters (APA, MLA, Chicago, Harvard), 11 source types, 5 access types | ✅ Implemented |
+| Lookup APIs | URL (OpenGraph), DOI (CrossRef), ISBN (Open Library/Google Books) | ✅ Implemented |
+| Auth | Clerk (sign-in/sign-up pages, middleware) | ✅ Configured |
+| Testing | Vitest + Testing Library (82 tests passing) | ✅ Configured |
 
 ### Planned (Not Yet Installed)
 | Layer | Technology | Status |
 |-------|------------|--------|
-| UI Components | Radix UI, shadcn/ui (customized retro theme) | 🔲 Planned |
-| Forms | React Hook Form + Zod | 🔲 Planned |
-| Auth | Clerk | 🔲 Planned |
-| Database | DynamoDB (On-Demand) | 🔲 Planned |
-| AI Parsing | OpenAI GPT-4o-mini (data extraction only, fallback) | 🔲 Planned |
-| Hosting | Vercel | 🔲 Planned |
+| Database | DynamoDB (On-Demand) | 🔲 Sprint 4 |
+| AI Parsing | OpenAI GPT-4o-mini (data extraction fallback) | 🔲 Future |
+| Hosting | Vercel | 🔲 Ready to deploy |
 
 ## Architecture
 
 ### Citation Engine
-**Location:** `src/lib/citation/` (not yet created)
+**Location:** `src/lib/citation/` ✅ Implemented
 
 - **Source Types (11):** Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episode, Miscellaneous
 - **Access Types (5):** Print, Database, Web, App, Archive
 - **Citation Styles (Core 4):** APA 7th, MLA 9th, Chicago 17th, Harvard
 
-**AI Usage (Fallback Only):**
-- AI (OpenAI GPT-4o-mini) is used ONLY for data extraction when web crawler fails
-- AI extracts structured data (author, title, date, publisher, etc.) from page content
-- AI does NOT format citations - citation formatters (APA/MLA/Chicago/Harvard) handle all formatting
-- Usage: Only when web crawler fails (~20% of URLs)
+**Formatters:** Each style has a dedicated formatter (~700 lines each) handling all 11 source types with proper formatting rules.
 
-**Note:** Citation engine is planned for Sprint 2. Currently, the cite page has placeholder UI only.
+**Lookup APIs:**
+- `GET /api/lookup/url` - Extracts metadata from URLs via OpenGraph/meta tags
+- `GET /api/lookup/doi` - Queries CrossRef for DOI metadata
+- `GET /api/lookup/isbn` - Queries Open Library (with Google Books fallback)
+
+**AI Usage (Fallback Only - Future):**
+- AI (OpenAI GPT-4o-mini) will be used ONLY for data extraction when web crawler fails
+- Not yet integrated; APIs currently use web scraping only
 
 ### Data Hierarchy
 ```
@@ -100,10 +105,16 @@ Early-mid 2000s Wikipedia aesthetic: clean, information-focused, utilitarian. Th
 opencitation/
 ├── src/
 │   ├── app/
-│   │   ├── cite/                  # ✅ Citation page (placeholder UI)
+│   │   ├── cite/page.tsx          # ✅ Citation page (interactive)
 │   │   ├── page.tsx               # ✅ Home page
-│   │   ├── layout.tsx             # ✅ Root layout
-│   │   └── globals.css            # ✅ Tailwind + wiki styles
+│   │   ├── layout.tsx             # ✅ Root layout with Clerk
+│   │   ├── globals.css            # ✅ Tailwind + wiki styles
+│   │   ├── sign-in/               # ✅ Clerk sign-in page
+│   │   ├── sign-up/               # ✅ Clerk sign-up page
+│   │   └── api/lookup/            # ✅ Lookup APIs
+│   │       ├── url/route.ts       # ✅ URL metadata extraction
+│   │       ├── doi/route.ts       # ✅ CrossRef DOI lookup
+│   │       └── isbn/route.ts      # ✅ Open Library/Google Books
 │   ├── components/
 │   │   └── wiki/                  # ✅ Wikipedia-style design system
 │   │       ├── wiki-tabs.tsx      # ✅
@@ -112,6 +123,19 @@ opencitation/
 │   │       ├── wiki-collapsible.tsx # ✅
 │   │       ├── wiki-layout.tsx    # ✅
 │   │       └── index.ts           # ✅
+│   ├── lib/citation/              # ✅ Citation engine
+│   │   ├── formatters/            # ✅ Style formatters
+│   │   │   ├── apa.ts             # ✅ APA 7th (~670 lines)
+│   │   │   ├── mla.ts             # ✅ MLA 9th (~694 lines)
+│   │   │   ├── chicago.ts         # ✅ Chicago 17th (~696 lines)
+│   │   │   └── harvard.ts         # ✅ Harvard (~740 lines)
+│   │   ├── utils.ts               # ✅ Citation utilities
+│   │   └── index.ts               # ✅ Formatter factory
+│   ├── types/                     # ✅ TypeScript types
+│   │   ├── citation.ts            # ✅ Citation types
+│   │   ├── source-types.ts        # ✅ 11 source types
+│   │   └── access-types.ts        # ✅ 5 access types
+│   └── middleware.ts              # ✅ Clerk auth middleware
 ├── CLAUDE.md                      # ✅
 ├── PLAN.md                        # ✅
 ├── LICENSE                        # ✅
@@ -123,23 +147,17 @@ opencitation/
 opencitation/
 ├── src/
 │   ├── app/
-│   │   ├── api/                   # 🔲 API routes (Sprint 4+)
-│   │   │   ├── projects/          # Project CRUD
-│   │   │   ├── lists/             # Lists & Citations CRUD
-│   │   │   ├── lookup/            # ISBN, DOI, URL lookup
-│   │   │   ├── export/            # Export functionality
-│   │   │   └── share/             # Sharing system
-│   │   ├── (auth)/                # Sign-in/Sign-up pages
-│   │   ├── (dashboard)/           # Lists/Projects UI
-│   │   └── share/[code]/          # Public shared views
+│   │   ├── api/
+│   │   │   ├── projects/          # 🔲 Project CRUD (Sprint 5)
+│   │   │   ├── lists/             # 🔲 Lists & Citations CRUD (Sprint 4)
+│   │   │   ├── export/            # 🔲 Export functionality (Sprint 6)
+│   │   │   └── share/             # 🔲 Sharing system (Sprint 5)
+│   │   ├── lists/                 # 🔲 Lists page (Sprint 4)
+│   │   └── share/[code]/          # 🔲 Public shared views (Sprint 5)
 │   ├── components/
-│   │   ├── citation/              # Citation-specific components
-│   │   └── lists/                 # Lists UI components
-│   ├── lib/
-│   │   ├── citation/
-│   │   │   └── formatters/        # APA, MLA, Chicago, Harvard
-│   │   └── db/                    # DynamoDB client & queries
-│   └── types/                     # TypeScript types
+│   │   ├── citation/              # 🔲 Citation components
+│   │   └── lists/                 # 🔲 Lists UI components
+│   └── lib/db/                    # 🔲 DynamoDB client (Sprint 4)
 ```
 
 ## Common Tasks
@@ -162,18 +180,18 @@ npm install        # Install dependencies
 npm run dev        # Start development server (✅ works)
 npm run build      # Build for production (✅ works)
 npm run lint       # Run ESLint (✅ works)
-# npm run test     # Not yet configured
+npm run test       # Run Vitest tests (✅ 82 tests passing)
 ```
 
-**Note:** Test suite not yet set up. Testing will be added in Sprint 6.
+**Testing:** Vitest + Testing Library configured. Tests cover citation utilities, all 4 formatters, and all 3 lookup APIs.
 
 ## Implementation Phases
 
-1. **Sprint 1:** Wikipedia-Style UI Foundation
-2. **Sprint 2:** Citation Engine Core
-3. **Sprint 3:** UI + Engine Integration
-4. **Sprint 4:** Database & Lists System
-5. **Sprint 5:** Projects & Sharing
-6. **Sprint 6:** Export & Polish
+1. **Sprint 1:** Wikipedia-Style UI Foundation ✅
+2. **Sprint 2:** Citation Engine Core ✅
+3. **Sprint 3:** UI + Engine Integration 🔲
+4. **Sprint 4:** Database & Lists System 🔲
+5. **Sprint 5:** Projects & Sharing 🔲
+6. **Sprint 6:** Export & Polish 🔲
 
 See `PLAN.md` for detailed sprint breakdown.

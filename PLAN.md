@@ -95,11 +95,11 @@ A citation manager, generator, and sharing tool with a Wikipedia 2005-inspired U
 | App | Mobile/desktop application |
 | Archive | Internet Archive, Wayback Machine, etc. |
 
-#### Citation Styles (Core 4)
-- **APA 7th Edition** (exists: `src/lib/citation/formatters/apa.ts`)
-- **MLA 9th Edition** (to create)
-- **Chicago 17th Edition** (to create)
-- **Harvard** (to create)
+#### Citation Styles (Core 4) ✅ All Implemented
+- **APA 7th Edition** (`src/lib/citation/formatters/apa.ts`)
+- **MLA 9th Edition** (`src/lib/citation/formatters/mla.ts`)
+- **Chicago 17th Edition** (`src/lib/citation/formatters/chicago.ts`)
+- **Harvard** (`src/lib/citation/formatters/harvard.ts`)
 
 #### Input Modes (MVP)
 

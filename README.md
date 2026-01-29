@@ -18,16 +18,30 @@ An open source citation manager, generator, and sharing tool. Ad-free, easy to u
 ### Supported Source Types
 Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episodes, and more.
 
+## Development Status
+
+| Feature | Status |
+|---------|--------|
+| Citation Engine (4 styles, 11 types) | ✅ Complete |
+| URL/DOI/ISBN Lookup APIs | ✅ Complete |
+| Wikipedia-style UI | ✅ Complete |
+| Authentication (Clerk) | ✅ Configured |
+| Test Suite (82 tests) | ✅ Passing |
+| Lists & Projects | 🔲 In Progress |
+| Sharing | 🔲 Planned |
+| Export | 🔲 Planned |
+
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 16, React 19, Tailwind CSS |
-| UI Components | Radix UI, shadcn/ui |
-| Auth | Clerk |
-| Database | DynamoDB |
-| AI Parsing | OpenAI GPT-4o-mini (fallback) |
-| Hosting | Vercel |
+| Layer | Technology | Status |
+|-------|------------|--------|
+| Frontend | Next.js 16, React 19, Tailwind CSS 4.0 | ✅ |
+| UI Components | Custom Wikipedia-style design system | ✅ |
+| Auth | Clerk | ✅ |
+| Testing | Vitest + Testing Library | ✅ |
+| Database | DynamoDB | 🔲 |
+| AI Parsing | OpenAI GPT-4o-mini (fallback) | 🔲 |
+| Hosting | Vercel | 🔲 |
 
 ## Getting Started
 
