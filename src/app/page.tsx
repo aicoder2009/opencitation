@@ -278,22 +278,62 @@ export default function LandingPage() {
             </p>
           </section>
 
-          {/* Footer text */}
-          <div className="border-t border-wiki-border-light pt-4 text-center text-sm text-wiki-text-muted">
-            <p>
-              OpenCitation is free software.{" "}
-              <Link href="https://github.com/aicoder2009/opencitation" className="text-wiki-link hover:underline" target="_blank">
-                View source on GitHub
-              </Link>.
-            </p>
-            <p className="mt-1">
-              Made <b>by</b> a student, <b>for</b> students who hate citation generators with ads.
-            </p>
-            <p className="mt-2">
-              <button onClick={() => setShowPrivacy(true)} className="text-wiki-link hover:underline">Privacy Policy</button>
-              {" · "}
-              <button onClick={() => setShowTerms(true)} className="text-wiki-link hover:underline">Terms of Service</button>
-            </p>
+          {/* Footer */}
+          <div className="border-t border-wiki-border-light pt-6 mt-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
+              {/* Product */}
+              <div>
+                <h4 className="font-bold mb-2">Product</h4>
+                <ul className="space-y-1 text-wiki-text-muted">
+                  <li><Link href="/cite" className="hover:text-wiki-link">Cite</Link></li>
+                  <li><Link href="/lists" className="hover:text-wiki-link">Lists</Link></li>
+                  <li><Link href="/projects" className="hover:text-wiki-link">Projects</Link></li>
+                </ul>
+              </div>
+
+              {/* Resources */}
+              <div>
+                <h4 className="font-bold mb-2">Resources</h4>
+                <ul className="space-y-1 text-wiki-text-muted">
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki" target="_blank" className="hover:text-wiki-link">Documentation</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/API-Reference" target="_blank" className="hover:text-wiki-link">API Reference</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/FAQ" target="_blank" className="hover:text-wiki-link">FAQ</Link></li>
+                </ul>
+              </div>
+
+              {/* Community */}
+              <div>
+                <h4 className="font-bold mb-2">Community</h4>
+                <ul className="space-y-1 text-wiki-text-muted">
+                  <li><Link href="https://github.com/aicoder2009/opencitation" target="_blank" className="hover:text-wiki-link">GitHub</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/releases" target="_blank" className="hover:text-wiki-link">Changelog</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/Contributing" target="_blank" className="hover:text-wiki-link">Contributing</Link></li>
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div>
+                <h4 className="font-bold mb-2">Legal</h4>
+                <ul className="space-y-1">
+                  <li><button onClick={() => setShowPrivacy(true)} className="text-wiki-link hover:underline">Privacy Policy</button></li>
+                  <li><button onClick={() => setShowTerms(true)} className="text-wiki-link hover:underline">Terms of Service</button></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/blob/main/LICENSE" target="_blank" className="text-wiki-link hover:underline">MIT License</Link></li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom line */}
+            <div className="border-t border-wiki-border-light pt-4 text-center text-sm text-wiki-text-muted">
+              <p>
+                OpenCitation is free software.{" "}
+                <Link href="https://github.com/aicoder2009/opencitation" className="text-wiki-link hover:underline" target="_blank">
+                  View source on GitHub
+                </Link>.
+              </p>
+              <p className="mt-1">
+                Made <b>by</b> a student, <b>for</b> students who hate citation generators with ads.
+              </p>
+            </div>
           </div>
         </div>
       </div>
