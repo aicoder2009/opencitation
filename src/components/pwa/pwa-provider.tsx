@@ -4,6 +4,7 @@ import { useEffect, ReactNode } from 'react';
 import { pwaManager } from '@/lib/pwa/pwa-utils';
 import { syncManager } from '@/lib/pwa/sync-manager';
 import { OfflineIndicator } from './offline-indicator';
+import { SafariInstallBanner } from './safari-install-banner';
 
 interface PWAProviderProps {
   children: ReactNode;
@@ -28,6 +29,7 @@ export function PWAProvider({ children }: PWAProviderProps) {
     <>
       {children}
       <OfflineIndicator position="bottom" showSyncStatus />
+      <SafariInstallBanner />
     </>
   );
 }
