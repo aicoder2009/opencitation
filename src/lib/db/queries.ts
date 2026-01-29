@@ -29,6 +29,15 @@ export interface Citation {
   updatedAt: string;
 }
 
+export interface Project {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ShareLink {
   code: string;
   type: "list" | "project";
@@ -341,6 +350,154 @@ export async function deleteCitation(listId: string, citationId: string): Promis
       },
     })
   );
+}
+
+// ============ PROJECTS ============
+
+export async function createProject(userId: string, name: string, description?: string): Promise<Project> {
+  const id = generateId();
+  const now = new Date().toISOString();
+
+  const project: Project = {
+    id,
+    userId,
+    name,
+    description,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  await docClient.send(
+    new PutCommand({
+      TableName: TABLE_NAME,
+      Item: {
+        PK: keys.user(userId),
+        SK: keys.project(id),
+        ...project,
+        entityType: "PROJECT",
+      },
+    })
+  );
+
+  return project;
+}
+
+export async function getProject(userId: string, projectId: string): Promise<Project | null> {
+  const result = await docClient.send(
+    new GetCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: keys.user(userId),
+        SK: keys.project(projectId),
+      },
+    })
+  );
+
+  if (!result.Item) return null;
+
+  return {
+    id: result.Item.id,
+    userId: result.Item.userId,
+    name: result.Item.name,
+    description: result.Item.description,
+    createdAt: result.Item.createdAt,
+    updatedAt: result.Item.updatedAt,
+  };
+}
+
+export async function getUserProjects(userId: string): Promise<Project[]> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": keys.user(userId),
+        ":sk": PREFIXES.PROJECT,
+      },
+    })
+  );
+
+  return (result.Items || []).map((item) => ({
+    id: item.id,
+    userId: item.userId,
+    name: item.name,
+    description: item.description,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  }));
+}
+
+export async function updateProject(
+  userId: string,
+  projectId: string,
+  updates: { name?: string; description?: string }
+): Promise<Project | null> {
+  const updateExpressions: string[] = ["#updatedAt = :updatedAt"];
+  const expressionNames: Record<string, string> = { "#updatedAt": "updatedAt" };
+  const expressionValues: Record<string, unknown> = { ":updatedAt": new Date().toISOString() };
+
+  if (updates.name !== undefined) {
+    updateExpressions.push("#name = :name");
+    expressionNames["#name"] = "name";
+    expressionValues[":name"] = updates.name;
+  }
+
+  if (updates.description !== undefined) {
+    updateExpressions.push("#description = :description");
+    expressionNames["#description"] = "description";
+    expressionValues[":description"] = updates.description || null;
+  }
+
+  const result = await docClient.send(
+    new UpdateCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: keys.user(userId),
+        SK: keys.project(projectId),
+      },
+      UpdateExpression: `SET ${updateExpressions.join(", ")}`,
+      ExpressionAttributeNames: expressionNames,
+      ExpressionAttributeValues: expressionValues,
+      ReturnValues: "ALL_NEW",
+    })
+  );
+
+  if (!result.Attributes) return null;
+
+  return {
+    id: result.Attributes.id,
+    userId: result.Attributes.userId,
+    name: result.Attributes.name,
+    description: result.Attributes.description,
+    createdAt: result.Attributes.createdAt,
+    updatedAt: result.Attributes.updatedAt,
+  };
+}
+
+export async function deleteProject(userId: string, projectId: string): Promise<void> {
+  // First remove project association from all lists
+  const lists = await getUserLists(userId);
+  for (const list of lists) {
+    if (list.projectId === projectId) {
+      await updateList(userId, list.id, { projectId: undefined });
+    }
+  }
+
+  // Then delete the project
+  await docClient.send(
+    new DeleteCommand({
+      TableName: TABLE_NAME,
+      Key: {
+        PK: keys.user(userId),
+        SK: keys.project(projectId),
+      },
+    })
+  );
+}
+
+export async function getProjectLists(userId: string, projectId: string): Promise<List[]> {
+  const lists = await getUserLists(userId);
+  return lists.filter((list) => list.projectId === projectId);
 }
 
 // ============ SHARE LINKS ============
