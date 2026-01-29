@@ -108,6 +108,8 @@ function CitePageContent() {
   const [isLoadingLists, setIsLoadingLists] = useState(false);
   const [isAddingToList, setIsAddingToList] = useState(false);
   const [addToListSuccess, setAddToListSuccess] = useState<string | null>(null);
+  const [newListName, setNewListName] = useState("");
+  const [isCreatingList, setIsCreatingList] = useState(false);
 
   // Handle URL query parameters
   useEffect(() => {
@@ -430,6 +432,64 @@ function CitePageContent() {
     }
   };
 
+  const createListAndAddCitation = async () => {
+    if (!generatedCitation || !citationFields) return;
+    if (!newListName.trim()) {
+      setError("Please enter a name for your list");
+      return;
+    }
+
+    setIsCreatingList(true);
+    setError(null);
+
+    try {
+      // Step 1: Create the new list
+      const createListResponse = await fetch("/api/lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newListName.trim() }),
+      });
+
+      const createListResult = await createListResponse.json();
+
+      if (!createListResult.success) {
+        setError(createListResult.error || "Failed to create list");
+        return;
+      }
+
+      const newList = createListResult.data;
+
+      // Step 2: Add citation to the new list
+      const addCitationResponse = await fetch(`/api/lists/${newList.id}/citations`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: citationFields,
+          style: selectedStyle,
+          formattedText: generatedCitation.text,
+          formattedHtml: generatedCitation.html,
+        }),
+      });
+
+      const addCitationResult = await addCitationResponse.json();
+
+      if (addCitationResult.success) {
+        setAddToListSuccess(`Created "${newList.name}" and added citation!`);
+        setShowListModal(false);
+        setNewListName("");
+        // Add the new list to our local state so it appears next time
+        setLists((prev) => [newList, ...prev]);
+      } else {
+        setError(addCitationResult.error || "Failed to add citation to new list");
+      }
+    } catch (err) {
+      console.error("Error creating list and adding citation:", err);
+      setError("Failed to create list");
+    } finally {
+      setIsCreatingList(false);
+    }
+  };
+
   const getStyleLabel = (value: CitationStyle) =>
     CITATION_STYLES.find(s => s.value === value)?.label || value;
 
@@ -731,19 +791,12 @@ function CitePageContent() {
       />
 
       <div className="mt-6">
-        <div className="flex items-start justify-between mb-1">
-          <h1 className="text-2xl font-bold">Create Citation</h1>
-          {isSignedIn && (
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 border border-green-200">
-              Signed in - can save to lists
-            </span>
-          )}
-        </div>
+        <h1 className="text-2xl font-bold mb-1">Create Citation</h1>
         <p className="text-wiki-text-muted text-sm mb-6">
-          Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry
+          Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry.
           {!isSignedIn && (
             <span className="ml-1">
-              (<a href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</a> to save)
+              <a href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</a> to save citations to lists.
             </span>
           )}
         </p>
@@ -977,31 +1030,73 @@ function CitePageContent() {
                   {isLoadingLists ? (
                     <p className="text-center text-wiki-text-muted py-4">Loading lists...</p>
                   ) : lists.length === 0 ? (
-                    <div className="text-center py-4">
-                      <p className="text-wiki-text-muted mb-3">You don&apos;t have any lists yet.</p>
-                      <WikiButton
-                        variant="primary"
-                        onClick={() => {
-                          setShowListModal(false);
-                          window.location.href = "/lists";
-                        }}
-                      >
-                        Create a List
-                      </WikiButton>
+                    <div className="py-2">
+                      <p className="text-wiki-text-muted mb-4">
+                        Create your first list to save this citation:
+                      </p>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium mb-1">List Name</label>
+                          <input
+                            type="text"
+                            value={newListName}
+                            onChange={(e) => setNewListName(e.target.value)}
+                            placeholder="e.g., Research Paper, History Essay..."
+                            className="w-full"
+                            onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
+                            autoFocus
+                          />
+                        </div>
+                        {error && (
+                          <div className="p-2 bg-red-50 border border-red-200 text-red-700 text-sm">
+                            {error}
+                          </div>
+                        )}
+                        <WikiButton
+                          variant="primary"
+                          onClick={createListAndAddCitation}
+                          disabled={isCreatingList || !newListName.trim()}
+                          className="w-full"
+                        >
+                          {isCreatingList ? "Creating..." : "Create List & Add Citation"}
+                        </WikiButton>
+                      </div>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <p className="text-sm text-wiki-text-muted mb-3">Select a list:</p>
-                      {lists.map((list) => (
-                        <button
-                          key={list.id}
-                          onClick={() => addCitationToList(list.id)}
-                          disabled={isAddingToList}
-                          className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50"
-                        >
-                          {list.name}
-                        </button>
-                      ))}
+                    <div className="space-y-3">
+                      <p className="text-sm text-wiki-text-muted">Select a list:</p>
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {lists.map((list) => (
+                          <button
+                            key={list.id}
+                            onClick={() => addCitationToList(list.id)}
+                            disabled={isAddingToList}
+                            className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50"
+                          >
+                            {list.name}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="pt-3 border-t border-wiki-border-light">
+                        <p className="text-sm text-wiki-text-muted mb-2">Or create a new list:</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={newListName}
+                            onChange={(e) => setNewListName(e.target.value)}
+                            placeholder="New list name..."
+                            className="flex-1"
+                            onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
+                          />
+                          <WikiButton
+                            variant="primary"
+                            onClick={createListAndAddCitation}
+                            disabled={isCreatingList || !newListName.trim()}
+                          >
+                            {isCreatingList ? "..." : "Create & Add"}
+                          </WikiButton>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

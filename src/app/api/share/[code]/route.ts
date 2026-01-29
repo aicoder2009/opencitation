@@ -4,10 +4,10 @@ import {
   getShareLink,
   deleteShareLink,
   getListCitations,
+  findListById,
+  findProjectById,
   getUserLists,
 } from "@/lib/db";
-import { QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { docClient, TABLE_NAME, PREFIXES, keys } from "@/lib/db/dynamodb";
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -28,22 +28,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     if (shareLink.type === "list") {
-      // Get list details - need to scan since we don't have userId
-      const listResult = await docClient.send(
-        new QueryCommand({
-          TableName: TABLE_NAME,
-          IndexName: "GSI1", // Assumes GSI on entityType
-          KeyConditionExpression: "entityType = :type",
-          FilterExpression: "id = :id",
-          ExpressionAttributeValues: {
-            ":type": "LIST",
-            ":id": shareLink.targetId,
-          },
-        })
-      );
-
-      // If no GSI, try scanning by list key
-      let listData = listResult.Items?.[0];
+      // Get list details using helper function
+      const listData = await findListById(shareLink.targetId);
 
       if (!listData) {
         // Fallback: Get citations directly using list prefix
@@ -84,20 +70,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     } else {
       // Project sharing - get project with all its lists and citations
-      const projectResult = await docClient.send(
-        new QueryCommand({
-          TableName: TABLE_NAME,
-          IndexName: "GSI1",
-          KeyConditionExpression: "entityType = :type",
-          FilterExpression: "id = :id",
-          ExpressionAttributeValues: {
-            ":type": "PROJECT",
-            ":id": shareLink.targetId,
-          },
-        })
-      );
-
-      const projectData = projectResult.Items?.[0];
+      const projectData = await findProjectById(shareLink.targetId);
 
       if (!projectData) {
         return NextResponse.json({
@@ -112,21 +85,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
 
       // Get all lists in project
-      const listsResult = await docClient.send(
-        new QueryCommand({
-          TableName: TABLE_NAME,
-          KeyConditionExpression: "PK = :pk AND begins_with(SK, :sk)",
-          FilterExpression: "projectId = :projectId",
-          ExpressionAttributeValues: {
-            ":pk": keys.user(projectData.userId),
-            ":sk": PREFIXES.LIST,
-            ":projectId": shareLink.targetId,
-          },
-        })
-      );
+      const allLists = await getUserLists(projectData.userId);
+      const projectLists = allLists.filter((list) => list.projectId === shareLink.targetId);
 
       const listsWithCitations = await Promise.all(
-        (listsResult.Items || []).map(async (list) => {
+        projectLists.map(async (list) => {
           const citations = await getListCitations(list.id);
           return {
             id: list.id,
