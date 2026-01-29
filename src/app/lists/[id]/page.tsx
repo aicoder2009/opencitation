@@ -36,6 +36,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -147,6 +149,35 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     URL.revokeObjectURL(url);
   };
 
+  const handleShare = async () => {
+    try {
+      setIsSharing(true);
+      const response = await fetch("/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "list",
+          targetId: listId,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const url = `${window.location.origin}/share/${result.data.code}`;
+        setShareUrl(url);
+        navigator.clipboard.writeText(url);
+      } else {
+        setError(result.error || "Failed to create share link");
+      }
+    } catch (err) {
+      console.error("Error sharing:", err);
+      setError("Failed to create share link");
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
   if (!isLoaded || (isLoaded && !isSignedIn)) {
     return (
       <WikiLayout>
@@ -233,10 +264,28 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                 {citations.length} citation{citations.length !== 1 ? "s" : ""}
               </p>
             </div>
-            <WikiButton variant="primary" onClick={() => router.push("/cite")}>
-              Add Citation
-            </WikiButton>
+            <div className="flex gap-2">
+              <WikiButton onClick={handleShare} disabled={isSharing}>
+                {isSharing ? "Sharing..." : "Share"}
+              </WikiButton>
+              <WikiButton variant="primary" onClick={() => router.push("/cite")}>
+                Add Citation
+              </WikiButton>
+            </div>
           </div>
+
+          {/* Share URL */}
+          {shareUrl && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm">
+              Share link copied to clipboard: {shareUrl}
+              <button
+                onClick={() => setShareUrl(null)}
+                className="ml-2 text-green-500 hover:text-green-700"
+              >
+                [dismiss]
+              </button>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (

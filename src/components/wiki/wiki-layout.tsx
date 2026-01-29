@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
@@ -8,6 +9,8 @@ interface WikiLayoutProps {
 }
 
 export function WikiLayout({ children }: WikiLayoutProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
     <div className="min-h-screen bg-wiki-white">
       {/* Header */}
@@ -16,13 +19,18 @@ export function WikiLayout({ children }: WikiLayoutProps) {
           <Link href="/" className="text-xl font-bold text-wiki-text hover:no-underline">
             OpenCitation
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
+
+          {/* Desktop Nav */}
+          <nav className="hidden sm:flex items-center gap-4 text-sm">
             <SignedOut>
+              <Link href="/cite" className="text-wiki-link hover:underline">Cite</Link>
               <Link href="/sign-in" className="text-wiki-link hover:underline">Sign In</Link>
               <Link href="/sign-up" className="text-wiki-link hover:underline">Create Account</Link>
             </SignedOut>
             <SignedIn>
-              <Link href="/lists" className="text-wiki-link hover:underline">My Lists</Link>
+              <Link href="/cite" className="text-wiki-link hover:underline">Cite</Link>
+              <Link href="/lists" className="text-wiki-link hover:underline">Lists</Link>
+              <Link href="/projects" className="text-wiki-link hover:underline">Projects</Link>
               <UserButton
                 afterSignOutUrl="/"
                 appearance={{
@@ -33,7 +41,81 @@ export function WikiLayout({ children }: WikiLayoutProps) {
               />
             </SignedIn>
           </nav>
+
+          {/* Mobile Nav Toggle */}
+          <div className="flex sm:hidden items-center gap-3">
+            <SignedIn>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "w-7 h-7"
+                  }
+                }}
+              />
+            </SignedIn>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-1 text-wiki-text"
+              aria-label="Toggle menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="sm:hidden border-t border-wiki-border-light bg-wiki-offwhite">
+            <nav className="max-w-[960px] mx-auto px-4 py-3 flex flex-col gap-2 text-sm">
+              <Link
+                href="/cite"
+                className="text-wiki-link hover:underline py-1"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Cite
+              </Link>
+              <SignedOut>
+                <Link
+                  href="/sign-in"
+                  className="text-wiki-link hover:underline py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="text-wiki-link hover:underline py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Create Account
+                </Link>
+              </SignedOut>
+              <SignedIn>
+                <Link
+                  href="/lists"
+                  className="text-wiki-link hover:underline py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Lists
+                </Link>
+                <Link
+                  href="/projects"
+                  className="text-wiki-link hover:underline py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  My Projects
+                </Link>
+              </SignedIn>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
