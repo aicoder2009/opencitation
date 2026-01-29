@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import Image from "next/image";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { WikiUserMenu } from "./wiki-user-menu";
 
 interface WikiLayoutProps {
   children: React.ReactNode;
@@ -16,7 +18,14 @@ export function WikiLayout({ children }: WikiLayoutProps) {
       {/* Header */}
       <header className="border-b border-wiki-border bg-wiki-white">
         <div className="max-w-[960px] mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-wiki-text hover:no-underline">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-wiki-text hover:no-underline">
+            <Image
+              src="/logo.png"
+              alt="OpenCitation"
+              width={24}
+              height={24}
+              className=""
+            />
             OpenCitation
           </Link>
 
@@ -31,28 +40,14 @@ export function WikiLayout({ children }: WikiLayoutProps) {
               <Link href="/cite" className="text-wiki-link hover:underline">Cite</Link>
               <Link href="/lists" className="text-wiki-link hover:underline">Lists</Link>
               <Link href="/projects" className="text-wiki-link hover:underline">Projects</Link>
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8"
-                  }
-                }}
-              />
+              <WikiUserMenu size="md" />
             </SignedIn>
           </nav>
 
           {/* Mobile Nav Toggle */}
           <div className="flex sm:hidden items-center gap-3">
             <SignedIn>
-              <UserButton
-                afterSignOutUrl="/"
-                appearance={{
-                  elements: {
-                    avatarBox: "w-7 h-7"
-                  }
-                }}
-              />
+              <WikiUserMenu size="sm" />
             </SignedIn>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
