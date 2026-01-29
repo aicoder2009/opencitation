@@ -37,6 +37,7 @@ export function WikiLayout({ children }: WikiLayoutProps) {
               <Link href="/sign-up" className="text-wiki-link hover:underline">Create Account</Link>
             </SignedOut>
             <SignedIn>
+              <Link href="/home" className="text-wiki-link hover:underline">Dashboard</Link>
               <Link href="/cite" className="text-wiki-link hover:underline">Cite</Link>
               <Link href="/lists" className="text-wiki-link hover:underline">Lists</Link>
               <Link href="/projects" className="text-wiki-link hover:underline">Projects</Link>
@@ -93,6 +94,13 @@ export function WikiLayout({ children }: WikiLayoutProps) {
                 </Link>
               </SignedOut>
               <SignedIn>
+                <Link
+                  href="/home"
+                  className="text-wiki-link hover:underline py-1"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
                 <Link
                   href="/lists"
                   className="text-wiki-link hover:underline py-1"
