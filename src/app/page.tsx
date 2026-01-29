@@ -11,6 +11,14 @@ export default function LandingPage() {
   const [quickAddInput, setQuickAddInput] = useState("");
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showReportIssue, setShowReportIssue] = useState(false);
+  const [reportMode, setReportMode] = useState<"choice" | "form">("choice");
+  const [issueTitle, setIssueTitle] = useState("");
+  const [issueDescription, setIssueDescription] = useState("");
+  const [issueType, setIssueType] = useState("Bug");
+  const [issueEmail, setIssueEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string; issueUrl?: string } | null>(null);
 
   const handleQuickAdd = () => {
     if (quickAddInput.trim()) {
@@ -22,6 +30,60 @@ export default function LandingPage() {
 
   const handleSourceTypeClick = (sourceType: string) => {
     router.push(`/cite?tab=manual&source=${sourceType}`);
+  };
+
+  const handleReportIssue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!issueTitle.trim() || !issueDescription.trim()) return;
+
+    setIsSubmitting(true);
+    setSubmitResult(null);
+
+    try {
+      const response = await fetch("/api/report-issue", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: issueTitle,
+          description: issueDescription,
+          issueType,
+          email: issueEmail || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSubmitResult({
+          success: true,
+          message: `Issue #${data.issueNumber} created successfully!`,
+          issueUrl: data.issueUrl,
+        });
+        // Reset form
+        setIssueTitle("");
+        setIssueDescription("");
+        setIssueType("Bug");
+        setIssueEmail("");
+      } else {
+        setSubmitResult({
+          success: false,
+          message: data.error || "Failed to submit issue. Please try again.",
+        });
+      }
+    } catch {
+      setSubmitResult({
+        success: false,
+        message: "Network error. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const closeReportModal = () => {
+    setShowReportIssue(false);
+    setReportMode("choice");
+    setSubmitResult(null);
   };
 
   return (
@@ -203,8 +265,7 @@ export default function LandingPage() {
                 <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 Star on GitHub
               </WikiButton>
-              <WikiButton onClick={() => window.open("https://github.com/aicoder2009/opencitation/issues", "_blank")}>
-                <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              <WikiButton onClick={() => setShowReportIssue(true)}>
                 Report an Issue
               </WikiButton>
               <WikiButton onClick={() => window.open("https://github.com/aicoder2009/opencitation/pulls", "_blank")}>
@@ -363,6 +424,147 @@ export default function LandingPage() {
                 <h3 className="font-bold mb-2">Contact</h3>
                 <p>For questions about these terms, open an issue on our <a href="https://github.com/aicoder2009/opencitation/issues" target="_blank" className="text-wiki-link hover:underline">GitHub repository</a>.</p>
               </section>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Issue Modal */}
+      {showReportIssue && (
+        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={closeReportModal}>
+          <div className="bg-wiki-white border border-wiki-border max-w-lg w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
+              <div>
+                <h2 className="text-xl font-bold">Report an Issue</h2>
+                <p className="text-xs text-wiki-text-muted">Help us improve OpenCitation</p>
+              </div>
+              <button onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+            </div>
+            <div className="p-4 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
+              {/* Choice Screen */}
+              {reportMode === "choice" && !submitResult && (
+                <div className="space-y-4">
+                  <p className="text-sm text-wiki-text-muted mb-4">Choose how you&apos;d like to report your issue:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* GitHub Option */}
+                    <button
+                      onClick={() => window.open("https://github.com/aicoder2009/opencitation/issues/new", "_blank")}
+                      className="border border-wiki-border-light p-4 text-left hover:bg-wiki-offwhite transition-colors"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        <span className="font-bold">GitHub Issues</span>
+                      </div>
+                      <p className="text-xs text-wiki-text-muted">Open an issue directly on GitHub. Best for developers or detailed bug reports.</p>
+                    </button>
+
+                    {/* Form Option */}
+                    <button
+                      onClick={() => setReportMode("form")}
+                      className="border border-wiki-border-light p-4 text-left hover:bg-wiki-offwhite transition-colors"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span className="font-bold">Quick Form</span>
+                      </div>
+                      <p className="text-xs text-wiki-text-muted">Use our simple form. No GitHub account needed — we&apos;ll create the issue for you.</p>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Form Screen */}
+              {reportMode === "form" && !submitResult && (
+                <form onSubmit={handleReportIssue} className="space-y-4">
+                  <button
+                    type="button"
+                    onClick={() => setReportMode("choice")}
+                    className="text-sm text-wiki-link hover:underline mb-2"
+                  >
+                    ← Back to options
+                  </button>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1">Issue Type</label>
+                    <select
+                      value={issueType}
+                      onChange={(e) => setIssueType(e.target.value)}
+                      className="w-full border border-wiki-border-light p-2 text-sm bg-wiki-white"
+                    >
+                      <option value="Bug">Bug Report</option>
+                      <option value="Feature">Feature Request</option>
+                      <option value="Citation">Citation Format Issue</option>
+                      <option value="Question">Question</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1">Title <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={issueTitle}
+                      onChange={(e) => setIssueTitle(e.target.value)}
+                      placeholder="Brief summary of the issue"
+                      className="w-full border border-wiki-border-light p-2 text-sm"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1">Description <span className="text-red-500">*</span></label>
+                    <textarea
+                      value={issueDescription}
+                      onChange={(e) => setIssueDescription(e.target.value)}
+                      placeholder="Please describe the issue in detail. Include steps to reproduce if reporting a bug."
+                      rows={5}
+                      className="w-full border border-wiki-border-light p-2 text-sm resize-none"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-1">Email <span className="text-wiki-text-muted font-normal">(optional)</span></label>
+                    <input
+                      type="email"
+                      value={issueEmail}
+                      onChange={(e) => setIssueEmail(e.target.value)}
+                      placeholder="For follow-up questions"
+                      className="w-full border border-wiki-border-light p-2 text-sm"
+                    />
+                    <p className="text-xs text-wiki-text-muted mt-1"><b>Note:</b> This is a public repo — your email will be visible on GitHub if provided.</p>
+                  </div>
+
+                  <div className="flex gap-3 pt-2">
+                    <WikiButton type="submit" variant="primary" disabled={isSubmitting || !issueTitle.trim() || !issueDescription.trim()}>
+                      {isSubmitting ? "Submitting..." : "Submit Issue"}
+                    </WikiButton>
+                    <WikiButton type="button" onClick={closeReportModal}>
+                      Cancel
+                    </WikiButton>
+                  </div>
+                </form>
+              )}
+
+              {/* Success/Error Result */}
+              {submitResult && (
+                <div className={`p-4 border ${submitResult.success ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
+                  <p className={`font-bold ${submitResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                    {submitResult.success ? 'Success!' : 'Error'}
+                  </p>
+                  <p className="mt-1">{submitResult.message}</p>
+                  {submitResult.issueUrl && (
+                    <p className="mt-2">
+                      <a href={submitResult.issueUrl} target="_blank" className="text-wiki-link hover:underline">
+                        View issue on GitHub →
+                      </a>
+                    </p>
+                  )}
+                  <div className="mt-4">
+                    <WikiButton onClick={closeReportModal}>Close</WikiButton>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
