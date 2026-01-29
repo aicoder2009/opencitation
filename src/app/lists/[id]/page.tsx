@@ -7,6 +7,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
+import { PrintAnimation } from "@/components/retro/print-animation";
 
 interface List {
   id: string;
@@ -38,6 +39,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [editName, setEditName] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [showPrintAnimation, setShowPrintAnimation] = useState(false);
+  const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -309,6 +312,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <WikiButton onClick={exportAllCitations}>
                 Export .txt
               </WikiButton>
+              <WikiButton onClick={() => setShowPrintAnimation(true)}>
+                Print
+              </WikiButton>
             </div>
           )}
 
@@ -363,6 +369,20 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
       </div>
+
+      {/* Print Animation Modal */}
+      <PrintAnimation
+        isOpen={showPrintAnimation}
+        onClose={() => setShowPrintAnimation(false)}
+        onComplete={() => {
+          setShowPrintAnimation(false);
+          exportAllCitations();
+        }}
+        itemCount={citations.length || 1}
+        fileName={`${list?.name || "citations"}.txt`}
+        soundEnabled={printSoundEnabled}
+        onSoundToggle={setPrintSoundEnabled}
+      />
     </WikiLayout>
   );
 }
