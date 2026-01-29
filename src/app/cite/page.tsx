@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
@@ -82,7 +82,7 @@ const initialFormData: FormData = {
   platform: "",
 };
 
-export default function CitePage() {
+function CitePageContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("quick-add");
   const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
@@ -338,6 +338,20 @@ export default function CitePage() {
   const copyToClipboard = () => {
     if (generatedCitation) {
       navigator.clipboard.writeText(generatedCitation.text);
+    }
+  };
+
+  const exportCitation = () => {
+    if (generatedCitation) {
+      const blob = new Blob([generatedCitation.text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `citation-${selectedStyle}-${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -838,13 +852,31 @@ export default function CitePage() {
                 >
                   Copy to Clipboard
                 </WikiButton>
-                <WikiButton disabled>Add to List</WikiButton>
-                <WikiButton disabled>Export</WikiButton>
+                <WikiButton disabled title="Coming soon - requires sign in">
+                  Add to List
+                </WikiButton>
+                <WikiButton onClick={exportCitation}>
+                  Export .txt
+                </WikiButton>
               </div>
             </div>
           )}
         </div>
       </div>
     </WikiLayout>
+  );
+}
+
+export default function CitePage() {
+  return (
+    <Suspense fallback={
+      <WikiLayout>
+        <div className="flex items-center justify-center py-12">
+          <p className="text-wiki-text-muted">Loading...</p>
+        </div>
+      </WikiLayout>
+    }>
+      <CitePageContent />
+    </Suspense>
   );
 }

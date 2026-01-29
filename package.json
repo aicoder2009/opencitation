@@ -12,6 +12,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.36.10",
     "next": "^16.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

@@ -35,8 +35,33 @@ export default function Home() {
       <div className="mt-6">
         <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
           <h1 className="text-2xl font-bold mb-1">OpenCitation</h1>
-          <p className="text-wiki-text-muted text-sm mb-8">
+          <p className="text-wiki-text-muted text-sm border-b border-wiki-border-light pb-4 mb-6">
             From OpenCitation, the free citation tool
+          </p>
+
+          {/* Welcome box - 2000s Wikipedia portal style */}
+          <div className="border border-[#a7d7f9] bg-[#f5faff] p-4 mb-6">
+            <div className="text-center mb-3">
+              <span className="text-lg font-bold">Welcome to OpenCitation</span>
+            </div>
+            <div className="text-center text-sm mb-4">
+              The free, ad-free citation generator for students and researchers.
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm">
+              <span><b>4</b> citation styles</span>
+              <span><b>11</b> source types</span>
+              <span><b>3</b> lookup methods</span>
+            </div>
+          </div>
+
+          {/* Brief intro */}
+          <p className="mb-4 text-sm">
+            <b>OpenCitation</b> generates properly formatted citations from URLs, DOIs, and ISBNs.
+            Supports <a href="/cite" className="text-wiki-link hover:underline">APA</a>,{" "}
+            <a href="/cite" className="text-wiki-link hover:underline">MLA</a>,{" "}
+            <a href="/cite" className="text-wiki-link hover:underline">Chicago</a>, and{" "}
+            <a href="/cite" className="text-wiki-link hover:underline">Harvard</a> styles.
+            No ads. No account required. <a href="https://github.com/aicoder2009/opencitation" className="text-wiki-link hover:underline" target="_blank" rel="noopener">Open source</a>.
           </p>
 
           <WikiCollapsible title="Contents" defaultOpen>
