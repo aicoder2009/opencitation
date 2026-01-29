@@ -114,3 +114,20 @@ select:focus {
 .cl-formButtonPrimary:hover {
   background: #e0e0e0 !important;
 }
+
+/* PWA - Safe Area Insets for iOS */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* iOS Banner - Backdrop blur support */
+@supports (backdrop-filter: blur(20px)) {
+  .ios-blur {
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  }
+}

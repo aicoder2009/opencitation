@@ -344,11 +344,16 @@ class OfflineStore {
   }
 
   // Utility methods
+  private async getUnsynced<T extends { _synced?: boolean }>(storeName: string): Promise<T[]> {
+    const all = await this.getAll<T>(storeName);
+    return all.filter(item => item._synced !== true);
+  }
+
   async getUnsyncedCount(): Promise<{ lists: number; citations: number; projects: number; total: number }> {
     const [lists, citations, projects] = await Promise.all([
-      this.getAllByIndex<OfflineList>(STORES.LISTS, '_synced', false),
-      this.getAllByIndex<OfflineCitation>(STORES.CITATIONS, '_synced', false),
-      this.getAllByIndex<OfflineProject>(STORES.PROJECTS, '_synced', false),
+      this.getUnsynced<OfflineList>(STORES.LISTS),
+      this.getUnsynced<OfflineCitation>(STORES.CITATIONS),
+      this.getUnsynced<OfflineProject>(STORES.PROJECTS),
     ]);
     return {
       lists: lists.length,
