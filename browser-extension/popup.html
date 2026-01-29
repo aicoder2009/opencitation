@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenCitation</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1 class="title">OpenCitation</h1>
+      <p class="subtitle">Cite this page</p>
+    </header>
+
+    <!-- Loading State -->
+    <div id="loading" class="loading hidden">
+      <div class="loading-spinner"></div>
+      <p>Generating citation...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="error hidden">
+      <p id="error-message">An error occurred</p>
+      <button id="retry-btn" class="btn">Retry</button>
+    </div>
+
+    <!-- Style Selector -->
+    <div id="style-selector" class="style-selector">
+      <label class="label">Citation Style:</label>
+      <div class="style-tabs">
+        <button class="style-tab active" data-style="apa">APA</button>
+        <button class="style-tab" data-style="mla">MLA</button>
+        <button class="style-tab" data-style="chicago">Chicago</button>
+        <button class="style-tab" data-style="harvard">Harvard</button>
+      </div>
+    </div>
+
+    <!-- Citation Result -->
+    <div id="citation-result" class="citation-result hidden">
+      <div class="citation-box">
+        <p id="citation-text" class="citation-text"></p>
+      </div>
+      <div class="actions">
+        <button id="copy-btn" class="btn btn-primary">Copy Citation</button>
+        <button id="open-btn" class="btn">Open in App</button>
+      </div>
+      <p id="copy-feedback" class="feedback hidden">Copied to clipboard!</p>
+    </div>
+
+    <!-- Generate Button -->
+    <div id="generate-section">
+      <button id="generate-btn" class="btn btn-primary btn-large">
+        Generate Citation
+      </button>
+    </div>
+
+    <!-- Page Info -->
+    <div id="page-info" class="page-info">
+      <p class="page-title" id="page-title-display">Loading page info...</p>
+      <p class="page-url" id="page-url-display"></p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <a href="https://opencitation.org" target="_blank" class="footer-link">
+        opencitation.org
+      </a>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

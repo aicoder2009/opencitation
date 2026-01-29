@@ -1,0 +1,247 @@
+/* Wikipedia 2000s Style - OpenCitation Extension */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #202122;
+  background: #ffffff;
+  width: 360px;
+  min-height: 200px;
+}
+
+.container {
+  padding: 12px;
+}
+
+/* Header */
+.header {
+  border-bottom: 1px solid #a2a9b1;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #202122;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #54595d;
+  margin-top: 2px;
+}
+
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #a2a9b1;
+  border-top-color: #0645ad;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading p {
+  color: #54595d;
+  font-size: 12px;
+}
+
+/* Error */
+.error {
+  background: #fee7e6;
+  border: 1px solid #d33;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.error p {
+  color: #d33;
+  margin-bottom: 8px;
+}
+
+/* Style Selector */
+.style-selector {
+  margin-bottom: 12px;
+}
+
+.label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.style-tabs {
+  display: flex;
+  border: 1px solid #a2a9b1;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.style-tab {
+  flex: 1;
+  padding: 6px 8px;
+  background: #f8f9fa;
+  border: none;
+  border-right: 1px solid #a2a9b1;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  color: #0645ad;
+  transition: background 0.1s;
+}
+
+.style-tab:last-child {
+  border-right: none;
+}
+
+.style-tab:hover {
+  background: #eaecf0;
+}
+
+.style-tab.active {
+  background: #ffffff;
+  color: #202122;
+  font-weight: bold;
+  cursor: default;
+}
+
+/* Citation Result */
+.citation-result {
+  margin-bottom: 12px;
+}
+
+.citation-box {
+  background: #f8f9fa;
+  border: 1px solid #a2a9b1;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.citation-text {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.citation-text em {
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.feedback {
+  font-size: 11px;
+  color: #14866d;
+  margin-top: 6px;
+  text-align: center;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  border: 1px solid #a2a9b1;
+  background: #f8f9fa;
+  color: #202122;
+  transition: background 0.1s;
+}
+
+.btn:hover {
+  background: #eaecf0;
+}
+
+.btn:active {
+  background: #c8ccd1;
+}
+
+.btn-primary {
+  background: #0645ad;
+  color: #ffffff;
+  border-color: #0645ad;
+}
+
+.btn-primary:hover {
+  background: #0b0080;
+  border-color: #0b0080;
+}
+
+.btn-large {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+/* Page Info */
+.page-info {
+  background: #f8f9fa;
+  border: 1px solid #eaecf0;
+  padding: 8px;
+  margin-top: 12px;
+  font-size: 11px;
+}
+
+.page-title {
+  font-weight: bold;
+  color: #202122;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.page-url {
+  color: #54595d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+/* Footer */
+.footer {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #eaecf0;
+  text-align: center;
+}
+
+.footer-link {
+  color: #0645ad;
+  text-decoration: none;
+  font-size: 11px;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
