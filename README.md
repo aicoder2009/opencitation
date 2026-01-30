@@ -7,7 +7,7 @@ An open source citation manager, generator, and sharing tool. Ad-free, easy to u
 - **Generate Citations** - Create properly formatted citations from URLs, DOIs, ISBNs, or manual entry
 - **Organize** - Save citations to Lists, organize Lists into Projects
 - **Share** - Share Lists or Projects via public links
-- **Export** - Copy to clipboard or download in multiple formats
+- **Export** - Copy to clipboard or download as text, BibTeX, or RIS
 
 ### Supported Citation Styles
 - APA 7th Edition
@@ -16,38 +16,34 @@ An open source citation manager, generator, and sharing tool. Ad-free, easy to u
 - Harvard
 
 ### Supported Source Types
-Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episodes, and more.
+Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episodes, and Miscellaneous.
 
-## Development Status
+## Platforms
 
-| Feature | Status |
-|---------|--------|
-| Citation Engine (4 styles, 11 types) | ✅ Complete |
-| URL/DOI/ISBN Lookup APIs | ✅ Complete |
-| Wikipedia-style UI | ✅ Complete |
-| Authentication (Clerk) | ✅ Configured |
-| Test Suite (82 tests) | ✅ Passing |
-| Lists & Projects | 🔲 In Progress |
-| Sharing | 🔲 Planned |
-| Export | 🔲 Planned |
+| Platform | Status |
+|----------|--------|
+| Web App | Ready |
+| Chrome Extension | Ready |
+| PWA (installable) | Ready |
+| Electron Desktop | Ready |
 
 ## Tech Stack
 
-| Layer | Technology | Status |
-|-------|------------|--------|
-| Frontend | Next.js 16, React 19, Tailwind CSS 4.0 | ✅ |
-| UI Components | Custom Wikipedia-style design system | ✅ |
-| Auth | Clerk | ✅ |
-| Testing | Vitest + Testing Library | ✅ |
-| Database | DynamoDB | 🔲 |
-| AI Parsing | OpenAI GPT-4o-mini (fallback) | 🔲 |
-| Hosting | Vercel | 🔲 |
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16, React 19, Tailwind CSS 4.0 |
+| UI | Custom Wikipedia-style design system |
+| Auth | Clerk |
+| Database | DynamoDB (AWS SDK v3, single-table) |
+| Testing | Vitest + Testing Library (225 tests) |
+| Desktop | Electron |
+| Extension | Chrome Manifest v3 |
 
 ## Getting Started
 
 ### Prerequisites
 - Node.js 18+
-- npm or yarn
+- npm, yarn, or pnpm
 
 ### Installation
 
@@ -74,47 +70,62 @@ npm run dev
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
 CLERK_SECRET_KEY=
 
-# AWS DynamoDB
+# AWS DynamoDB (optional - uses local store if not set)
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_REGION=
+```
 
-# OpenAI (for AI fallback parsing)
-OPENAI_API_KEY=
+### Commands
+
+```bash
+npm run dev        # Start dev server
+npm run build      # Production build
+npm run lint       # ESLint
+npm run test       # Run tests (225 tests)
 ```
 
 ## How It Works
 
 ### Citation Generation
-1. **Quick Add (URL-Based):** Paste a URL, select source type and citation style
-   - Web crawler extracts OpenGraph/meta tags (free)
-   - AI fallback if crawler is incomplete (~$0.01 per citation)
-2. **DOI/ISBN Lookup:** Direct lookup via CrossRef and Open Library APIs
-3. **Manual Entry:** Form-based entry for full control
+1. **Quick Add:** Paste a URL, DOI, or ISBN - metadata is extracted automatically
+2. **Manual Entry:** Form-based entry for full control over all fields
+3. **Style Selection:** Choose from APA, MLA, Chicago, or Harvard
 
 ### Organization
 - **Lists:** Collections of citations (like a bibliography)
 - **Projects:** Containers for multiple Lists (like a semester or thesis)
-- **Sharing:** Generate public links for Lists or Projects
+- **Tags:** Color-coded tags for categorization
+
+### Sharing & Export
+- Generate public links for Lists or Projects
+- Export as plain text, BibTeX (.bib), or RIS (.ris)
+- Embed badge on external sites
 
 ## Project Structure
 
 ```
 opencitation/
 ├── src/
-│   ├── app/                 # Next.js App Router
-│   │   ├── api/             # API routes
-│   │   ├── cite/            # Citation creation
-│   │   └── share/           # Public shared views
-│   ├── components/          # React components
-│   │   ├── wiki/            # Wikipedia-style design system
-│   │   └── citation/        # Citation components
+│   ├── app/                 # Next.js pages & API routes
+│   │   ├── cite/            # Citation generator
+│   │   ├── lists/           # Lists management
+│   │   ├── projects/        # Projects management
+│   │   ├── share/[code]/    # Public share pages
+│   │   ├── embed/           # Embed badge page
+│   │   └── api/             # REST endpoints
+│   ├── components/
+│   │   ├── wiki/            # Wikipedia-style UI
+│   │   ├── pwa/             # PWA components
+│   │   └── retro/           # Retro print animation
 │   ├── lib/
-│   │   ├── citation/        # Citation formatters
-│   │   └── db/              # Database utilities
+│   │   ├── citation/        # Formatters & exporters
+│   │   ├── db/              # DynamoDB client
+│   │   └── pwa/             # Service worker utilities
 │   └── types/               # TypeScript definitions
-├── PLAN.md                  # Development plan & status
-└── CLAUDE.md                # AI assistant guidelines
+├── browser-extension/       # Chrome extension
+├── electron/                # Desktop app
+└── public/                  # Static assets
 ```
 
 ## Contributing
@@ -134,4 +145,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 
 - Design inspired by Wikipedia circa 2005-2010
-- Built with love for students everywhere who hate citation generators with ads
+- Built for students who hate citation generators with ads
