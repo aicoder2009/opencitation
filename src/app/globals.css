@@ -2,12 +2,13 @@
 
 /* Wikipedia 2005 Era Design System */
 @theme {
-  /* Color Palette - Wikipedia 2005 Era */
+  /* Color Palette - Wikipedia 2005 Era (Light Mode) */
   --color-wiki-white: #ffffff;
   --color-wiki-offwhite: #f8f8f8;
   --color-wiki-border: #aaaaaa;
   --color-wiki-border-light: #cccccc;
   --color-wiki-link: #0645ad;
+  --color-wiki-link-hover: #0b3d91;
   --color-wiki-link-visited: #0b0080;
   --color-wiki-link-active: #ba0000;
   --color-wiki-tab-bg: #f0f0f0;
@@ -30,6 +31,21 @@
   --width-content: 800px;
 }
 
+/* Dark Mode Colors - Early 2000s CRT aesthetic */
+.dark {
+  --color-wiki-white: #1a1a2e;
+  --color-wiki-offwhite: #16213e;
+  --color-wiki-border: #4a4a6a;
+  --color-wiki-border-light: #3a3a5a;
+  --color-wiki-link: #6db3f2;
+  --color-wiki-link-hover: #8ec5f6;
+  --color-wiki-link-visited: #a78bfa;
+  --color-wiki-link-active: #f87171;
+  --color-wiki-tab-bg: #1f2041;
+  --color-wiki-text: #e2e8f0;
+  --color-wiki-text-muted: #94a3b8;
+}
+
 /* Base styles */
 body {
   font-family: var(--font-sans);
@@ -37,6 +53,19 @@ body {
   line-height: 1.6;
   color: var(--color-wiki-text);
   background-color: var(--color-wiki-white);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark mode body */
+.dark body,
+body.dark {
+  color: var(--color-wiki-text);
+  background-color: var(--color-wiki-white);
+}
+
+/* Apply dark mode to html for proper cascading */
+html.dark {
+  color-scheme: dark;
 }
 
 /* Links - Wikipedia style */
@@ -72,6 +101,8 @@ select {
   border: 1px solid var(--color-wiki-border-light);
   padding: 12px;
   background: var(--color-wiki-white);
+  color: var(--color-wiki-text);
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 input:focus,
@@ -79,6 +110,20 @@ textarea:focus,
 select:focus {
   border-color: var(--color-wiki-link);
   outline: none;
+}
+
+/* Dark mode inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background: var(--color-wiki-offwhite);
+  border-color: var(--color-wiki-border-light);
+  color: var(--color-wiki-text);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--color-wiki-text-muted);
 }
 
 /* Monospace for citations */

@@ -1,13 +1,31 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
-import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
+import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { PrintAnimation } from "@/components/retro/print-animation";
+import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
+import { formatCitation } from "@/lib/citation";
+import type { CitationStyle, SourceType, AccessType } from "@/types";
 
 interface List {
   id: string;
@@ -17,12 +35,24 @@ interface List {
   updatedAt: string;
 }
 
+interface CitationFields {
+  sourceType?: SourceType;
+  accessType?: AccessType;
+  title?: string;
+  authors?: Array<{ firstName?: string; lastName: string }>;
+  publicationDate?: { year?: number; month?: number; day?: number };
+  url?: string;
+  doi?: string;
+  [key: string]: unknown;
+}
+
 interface Citation {
   id: string;
   listId: string;
   style: string;
   formattedText: string;
   formattedHtml: string;
+  fields?: CitationFields;
   tags?: string[];
   createdAt: string;
   updatedAt: string;
@@ -63,6 +93,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [editingTagsCitationId, setEditingTagsCitationId] = useState<string | null>(null);
   const [newTagInput, setNewTagInput] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
+  const [editingCitationId, setEditingCitationId] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Get all unique tags from citations
   const allTags = Array.from(
@@ -80,6 +113,63 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     const query = searchQuery.toLowerCase();
     return citation.formattedText.toLowerCase().includes(query);
   });
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(
+    {
+      j: () => {
+        // Move selection down
+        if (filteredCitations.length === 0) return;
+        setSelectedIndex((prev) =>
+          prev < filteredCitations.length - 1 ? prev + 1 : prev
+        );
+      },
+      k: () => {
+        // Move selection up
+        if (filteredCitations.length === 0) return;
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      },
+      e: () => {
+        // Edit selected citation
+        if (selectedIndex >= 0 && selectedIndex < filteredCitations.length) {
+          setEditingCitationId(filteredCitations[selectedIndex].id);
+        }
+      },
+      d: () => {
+        // Delete selected citation
+        if (selectedIndex >= 0 && selectedIndex < filteredCitations.length) {
+          handleDeleteCitation(filteredCitations[selectedIndex].id);
+        }
+      },
+      c: () => {
+        // Copy selected citation
+        if (selectedIndex >= 0 && selectedIndex < filteredCitations.length) {
+          navigator.clipboard.writeText(filteredCitations[selectedIndex].formattedText);
+        }
+      },
+      "/": () => {
+        // Focus search
+        searchInputRef.current?.focus();
+      },
+      escape: () => {
+        // Clear selection or blur search
+        if (document.activeElement === searchInputRef.current) {
+          searchInputRef.current?.blur();
+        } else {
+          setSelectedIndex(-1);
+          setEditingCitationId(null);
+        }
+      },
+    },
+    [filteredCitations, selectedIndex]
+  );
+
+  // Reset selection when citations change
+  useEffect(() => {
+    if (selectedIndex >= filteredCitations.length) {
+      setSelectedIndex(filteredCitations.length - 1);
+    }
+  }, [filteredCitations.length, selectedIndex]);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -299,6 +389,115 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = citations.findIndex((c) => c.id === active.id);
+      const newIndex = citations.findIndex((c) => c.id === over.id);
+
+      const newCitations = arrayMove(citations, oldIndex, newIndex);
+      setCitations(newCitations);
+
+      // Save new order to backend
+      try {
+        await fetch(`/api/lists/${listId}/citations/reorder`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            citationIds: newCitations.map((c) => c.id),
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to save order:", err);
+        // Revert on error
+        setCitations(citations);
+      }
+    }
+  };
+
+  const handleEditCitation = async (
+    citationId: string,
+    editFields: { title: string; authorFirst: string; authorLast: string; year: string; url: string }
+  ) => {
+    const citation = citations.find((c) => c.id === citationId);
+    if (!citation) return;
+
+    // Build updated fields
+    const updatedFields: CitationFields = {
+      ...(citation.fields || {}),
+      title: editFields.title || citation.fields?.title,
+      url: editFields.url || citation.fields?.url,
+    };
+
+    // Update author if provided
+    if (editFields.authorLast) {
+      updatedFields.authors = [{
+        firstName: editFields.authorFirst || undefined,
+        lastName: editFields.authorLast,
+      }];
+    }
+
+    // Update year if provided
+    if (editFields.year) {
+      updatedFields.publicationDate = {
+        ...(citation.fields?.publicationDate || {}),
+        year: parseInt(editFields.year, 10),
+      };
+    }
+
+    // Regenerate formatted citation
+    const style = citation.style as CitationStyle;
+    // Use type assertion for citation fields since we're working with partial data
+    const formatted = formatCitation(updatedFields as Parameters<typeof formatCitation>[0], style);
+
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fields: updatedFields,
+          formattedText: formatted.text,
+          formattedHtml: formatted.html,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setCitations((prev) =>
+          prev.map((c) =>
+            c.id === citationId
+              ? {
+                  ...c,
+                  fields: updatedFields,
+                  formattedText: formatted.text,
+                  formattedHtml: formatted.html,
+                }
+              : c
+          )
+        );
+      } else {
+        throw new Error(result.error || "Failed to update citation");
+      }
+    } catch (err) {
+      console.error("Error updating citation:", err);
+      throw err;
+    }
+  };
+
   if (!isLoaded || (isLoaded && !isSignedIn)) {
     return (
       <WikiLayout>
@@ -442,8 +641,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               {/* Search */}
               <div className="flex gap-2">
                 <input
+                  ref={searchInputRef}
                   type="text"
-                  placeholder="Search citations..."
+                  placeholder="Search citations... (press / to focus)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 max-w-sm"
@@ -528,101 +728,39 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               </p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {filteredCitations.map((citation, index) => (
-                <WikiCollapsible
-                  key={citation.id}
-                  title={`Citation ${index + 1} (${citation.style.toUpperCase()})`}
-                  defaultOpen={index === 0}
-                >
-                  <div className="p-4 bg-wiki-offwhite border border-wiki-border-light">
-                    <p
-                      className="citation-text mb-4"
-                      dangerouslySetInnerHTML={{ __html: citation.formattedHtml }}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={filteredCitations.map((c) => c.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-4">
+                  {filteredCitations.map((citation, index) => (
+                    <SortableCitation
+                      key={citation.id}
+                      citation={citation}
+                      index={index}
+                      isSelected={selectedIndex === index}
+                      isEditing={editingCitationId === citation.id}
+                      onSelect={() => setSelectedIndex(index)}
+                      onCopy={(text) => navigator.clipboard.writeText(text)}
+                      onDelete={handleDeleteCitation}
+                      onEdit={handleEditCitation}
+                      onAddTag={handleAddTag}
+                      onRemoveTag={handleRemoveTag}
+                      editingTagsId={editingTagsCitationId}
+                      setEditingTagsId={setEditingTagsCitationId}
+                      newTagInput={newTagInput}
+                      setNewTagInput={setNewTagInput}
+                      onEditDone={() => setEditingCitationId(null)}
                     />
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      <button
-                        onClick={() => navigator.clipboard.writeText(citation.formattedText)}
-                        className="text-wiki-link text-sm hover:underline"
-                      >
-                        [copy]
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCitation(citation.id)}
-                        className="text-red-600 text-sm hover:underline"
-                      >
-                        [delete]
-                      </button>
-                    </div>
-                    {/* Tags Section */}
-                    <div className="pt-3 border-t border-wiki-border-light">
-                      <div className="flex flex-wrap items-center gap-2">
-                        {(citation.tags || []).map((tag) => {
-                          const color = getTagColor(tag);
-                          return (
-                            <span
-                              key={tag}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
-                            >
-                              {tag}
-                              <button
-                                onClick={() => handleRemoveTag(citation.id, tag)}
-                                className="hover:text-red-600"
-                                title="Remove tag"
-                              >
-                                &times;
-                              </button>
-                            </span>
-                          );
-                        })}
-                        {editingTagsCitationId === citation.id ? (
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="text"
-                              value={newTagInput}
-                              onChange={(e) => setNewTagInput(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  handleAddTag(citation.id, newTagInput);
-                                } else if (e.key === "Escape") {
-                                  setEditingTagsCitationId(null);
-                                  setNewTagInput("");
-                                }
-                              }}
-                              placeholder="tag name"
-                              className="w-24 px-1 py-0.5 text-xs border border-wiki-border-light"
-                              autoFocus
-                            />
-                            <button
-                              onClick={() => handleAddTag(citation.id, newTagInput)}
-                              className="text-wiki-link text-xs hover:underline"
-                            >
-                              add
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingTagsCitationId(null);
-                                setNewTagInput("");
-                              }}
-                              className="text-wiki-text-muted text-xs hover:underline"
-                            >
-                              cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => setEditingTagsCitationId(citation.id)}
-                            className="text-wiki-link text-xs hover:underline"
-                          >
-                            [+ add tag]
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </WikiCollapsible>
-              ))}
-            </div>
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           )}
 
           {/* Back Link */}
@@ -647,6 +785,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         soundEnabled={printSoundEnabled}
         onSoundToggle={setPrintSoundEnabled}
       />
+
+      {/* Keyboard Shortcuts Help - press ? to show */}
+      <ShortcutHelp scope="list" />
     </WikiLayout>
   );
 }

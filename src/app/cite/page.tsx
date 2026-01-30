@@ -8,7 +8,9 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { TemplatePicker } from "@/components/wiki/template-picker";
 import { formatCitation } from "@/lib/citation";
+import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS } from "@/lib/citation/exporters";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
 
@@ -794,6 +796,22 @@ function CitePageContent() {
   const _getAccessLabel = (value: AccessType) =>
     ACCESS_TYPES.find(s => s.value === value)?.label || value;
 
+  const handleSelectTemplate = (template: CitationTemplate) => {
+    // Apply template settings
+    setSelectedSourceType(template.sourceType);
+    setSelectedAccessType(template.accessType);
+
+    // Populate form fields from template
+    setFormData({
+      ...initialFormData,
+      siteName: template.fields.siteName || "",
+      journalTitle: template.fields.journalTitle || "",
+      publisher: template.fields.publisher || "",
+      channelName: template.fields.channelName || "",
+      platform: template.fields.platform || "",
+    });
+  };
+
   // Render fields based on source type
   const renderSourceFields = () => {
     const commonFields = (
@@ -1342,6 +1360,19 @@ function CitePageContent() {
                     ))}
                   </div>
                 </div>
+
+                <TemplatePicker
+                  sourceType={selectedSourceType}
+                  accessType={selectedAccessType}
+                  currentFields={{
+                    siteName: formData.siteName || undefined,
+                    journalTitle: formData.journalTitle || undefined,
+                    publisher: formData.publisher || undefined,
+                    channelName: formData.channelName || undefined,
+                    platform: formData.platform || undefined,
+                  }}
+                  onSelectTemplate={handleSelectTemplate}
+                />
 
                 <WikiCollapsible
                   title={`${getSourceLabel(selectedSourceType)} Fields`}

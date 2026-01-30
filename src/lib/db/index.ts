@@ -30,6 +30,7 @@ export const getCitation = db.getCitation;
 export const getListCitations = db.getListCitations;
 export const updateCitation = db.updateCitation;
 export const deleteCitation = db.deleteCitation;
+export const reorderCitations = db.reorderCitations;
 
 // ============ SHARE LINKS ============
 export const createShareLink = db.createShareLink;

@@ -95,6 +95,7 @@ export interface Citation {
   formattedText: string;
   formattedHtml: string;
   tags?: string[];
+  sortOrder?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -473,11 +474,18 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
     formattedText: item.formattedText,
     formattedHtml: item.formattedHtml,
     tags: item.tags,
+    sortOrder: item.sortOrder,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
   }));
 
-  return citations.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  // Sort by sortOrder if available, otherwise by createdAt (newest first)
+  return citations.sort((a, b) => {
+    if (a.sortOrder !== undefined && b.sortOrder !== undefined) {
+      return a.sortOrder - b.sortOrder;
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 }
 
 export async function updateCitation(
@@ -554,6 +562,30 @@ export async function deleteCitation(listId: string, citationId: string): Promis
         SK: keys.citation(citationId),
       },
     })
+  );
+}
+
+export async function reorderCitations(listId: string, citationIds: string[]): Promise<void> {
+  const now = new Date().toISOString();
+
+  // Update each citation with its new sortOrder
+  await Promise.all(
+    citationIds.map((citationId, index) =>
+      docClient.send(
+        new UpdateCommand({
+          TableName: TABLE_NAME,
+          Key: {
+            PK: keys.list(listId),
+            SK: keys.citation(citationId),
+          },
+          UpdateExpression: "SET sortOrder = :sortOrder, updatedAt = :updatedAt",
+          ExpressionAttributeValues: {
+            ":sortOrder": index,
+            ":updatedAt": now,
+          },
+        })
+      )
+    )
   );
 }
 
