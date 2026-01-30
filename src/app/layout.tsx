@@ -27,11 +27,20 @@ export const metadata: Metadata = {
     siteName: "OpenCitation",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "OpenCitation - Free and Open Source Citation Generator",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "OpenCitation - Free Citation Generator",
     description: "Generate, organize, and share citations in APA, MLA, Chicago, and Harvard formats. Free, open source, no account required.",
+    images: ["/og-image.png"],
   },
   manifest: "/manifest.json",
   icons: {
