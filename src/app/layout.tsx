@@ -27,25 +27,22 @@ export const metadata: Metadata = {
     siteName: "OpenCitation",
     type: "website",
     locale: "en_US",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "OpenCitation - Free Citation Generator",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "OpenCitation - Free Citation Generator",
     description: "Generate, organize, and share citations in APA, MLA, Chicago, and Harvard formats. Free, open source, no account required.",
-    images: ["/og-image.png"],
   },
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png",
+    icon: [
+      { url: "/icon.png", sizes: "32x32", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
