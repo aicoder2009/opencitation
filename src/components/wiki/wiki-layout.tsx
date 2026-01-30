@@ -19,12 +19,12 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
       {/* Header */}
       <header className="border-b border-wiki-border bg-wiki-white">
         <div className="max-w-[960px] mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-wiki-text hover:no-underline">
+          <Link href="/" className="flex items-center gap-3 text-xl font-bold text-wiki-text hover:no-underline">
             <Image
               src="/logo.png"
               alt="OpenCitation"
-              width={24}
-              height={24}
+              width={48}
+              height={48}
               className=""
             />
             OpenCitation
