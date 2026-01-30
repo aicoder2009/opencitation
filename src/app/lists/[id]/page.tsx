@@ -56,6 +56,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [editName, setEditName] = useState("");
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const [showPrintAnimation, setShowPrintAnimation] = useState(false);
   const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -255,6 +256,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const handleShare = async () => {
     try {
       setIsSharing(true);
+      setCopySuccess(false);
       const response = await fetch("/api/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -269,7 +271,12 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       if (result.success) {
         const url = `${window.location.origin}/share/${result.data.code}`;
         setShareUrl(url);
-        navigator.clipboard.writeText(url);
+        try {
+          await navigator.clipboard.writeText(url);
+          setCopySuccess(true);
+        } catch {
+          // Clipboard failed, user can manually copy
+        }
       } else {
         setError(result.error || "Failed to create share link");
       }
@@ -278,6 +285,17 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       setError("Failed to create share link");
     } finally {
       setIsSharing(false);
+    }
+  };
+
+  const copyShareUrl = async () => {
+    if (shareUrl) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopySuccess(true);
+      } catch {
+        // Fallback: select text for manual copy
+      }
     }
   };
 
@@ -380,9 +398,24 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           {/* Share URL */}
           {shareUrl && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm">
-              Share link copied to clipboard: {shareUrl}
+              {copySuccess ? "Copied! " : "Share link: "}
               <button
-                onClick={() => setShareUrl(null)}
+                onClick={copyShareUrl}
+                className="text-green-800 hover:underline font-medium"
+                title="Click to copy"
+              >
+                {shareUrl}
+              </button>
+              {!copySuccess && (
+                <button
+                  onClick={copyShareUrl}
+                  className="ml-2 text-green-600 hover:text-green-800"
+                >
+                  [copy]
+                </button>
+              )}
+              <button
+                onClick={() => { setShareUrl(null); setCopySuccess(false); }}
                 className="ml-2 text-green-500 hover:text-green-700"
               >
                 [dismiss]
