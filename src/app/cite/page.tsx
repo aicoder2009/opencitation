@@ -164,6 +164,12 @@ function CitePageContent() {
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
 
+  // Research lookup state
+  const [researchInput, setResearchInput] = useState("");
+  const [researchType, setResearchType] = useState<"pmid" | "arxiv" | "wikipedia">("pmid");
+  const [isResearchLoading, setIsResearchLoading] = useState(false);
+  const [researchError, setResearchError] = useState<string | null>(null);
+
   // Handle URL query parameters
   useEffect(() => {
     const inputParam = searchParams.get("input");
@@ -341,6 +347,81 @@ function CitePageContent() {
 
     // Save to recent citations
     saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+  };
+
+  const handleResearchLookup = async () => {
+    if (!researchInput.trim()) {
+      setResearchError("Please enter a valid identifier");
+      return;
+    }
+
+    setIsResearchLoading(true);
+    setResearchError(null);
+
+    try {
+      let apiEndpoint: string;
+      let body: object;
+      let sourceType: SourceType = "journal";
+
+      switch (researchType) {
+        case "pmid":
+          apiEndpoint = "/api/lookup/pubmed";
+          body = { pmid: researchInput.trim() };
+          sourceType = "journal";
+          break;
+        case "arxiv":
+          apiEndpoint = "/api/lookup/arxiv";
+          body = { arxivId: researchInput.trim() };
+          sourceType = "journal";
+          break;
+        case "wikipedia":
+          apiEndpoint = "/api/lookup/wikipedia";
+          // Support both URL and title
+          const input = researchInput.trim();
+          if (input.includes("wikipedia.org")) {
+            body = { url: input };
+          } else {
+            body = { title: input };
+          }
+          sourceType = "website";
+          break;
+      }
+
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setResearchError(result.error || "Failed to fetch citation data");
+        setIsResearchLoading(false);
+        return;
+      }
+
+      // Map API response to citation fields
+      const { data } = result;
+      setSelectedSourceType(sourceType);
+
+      const fields = buildCitationFields(data, sourceType, "web");
+      const formatted = formatCitation(fields, selectedStyle);
+      setCitationFields(fields);
+      setGeneratedCitation(formatted);
+      setAddToListSuccess(null);
+
+      // Save to recent citations
+      saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+
+      // Increment citation counter
+      fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
+    } catch (err) {
+      setResearchError("Failed to fetch citation data. Please try again.");
+      console.error(err);
+    } finally {
+      setIsResearchLoading(false);
+    }
   };
 
   const buildCitationFields = (data: Record<string, unknown>, sourceType: SourceType, accessType: AccessType): CitationFields => {
@@ -1035,6 +1116,7 @@ function CitePageContent() {
         <WikiTabs
           tabs={[
             { id: "quick-add", label: "Quick Add", active: activeTab === "quick-add" },
+            { id: "research-lookup", label: "Research Lookup", active: activeTab === "research-lookup" },
             { id: "manual", label: "Manual Entry", active: activeTab === "manual" },
             { id: "bulk-import", label: "Bulk Import", active: activeTab === "bulk-import" },
           ]}
@@ -1092,6 +1174,99 @@ function CitePageContent() {
                   disabled={isLoading}
                 >
                   {isLoading ? "Loading..." : "Generate Citation"}
+                </WikiButton>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "research-lookup" && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">Research Lookup</h2>
+              <p className="mb-4 text-sm text-wiki-text-muted">
+                Look up citations from academic databases using PubMed ID, arXiv ID, or Wikipedia article.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Source Type
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    <WikiButton
+                      variant={researchType === "pmid" ? "primary" : "default"}
+                      onClick={() => {
+                        setResearchType("pmid");
+                        setResearchInput("");
+                        setResearchError(null);
+                      }}
+                      className={researchType === "pmid" ? "border-wiki-link" : ""}
+                    >
+                      PubMed (PMID)
+                    </WikiButton>
+                    <WikiButton
+                      variant={researchType === "arxiv" ? "primary" : "default"}
+                      onClick={() => {
+                        setResearchType("arxiv");
+                        setResearchInput("");
+                        setResearchError(null);
+                      }}
+                      className={researchType === "arxiv" ? "border-wiki-link" : ""}
+                    >
+                      arXiv
+                    </WikiButton>
+                    <WikiButton
+                      variant={researchType === "wikipedia" ? "primary" : "default"}
+                      onClick={() => {
+                        setResearchType("wikipedia");
+                        setResearchInput("");
+                        setResearchError(null);
+                      }}
+                      className={researchType === "wikipedia" ? "border-wiki-link" : ""}
+                    >
+                      Wikipedia
+                    </WikiButton>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    {researchType === "pmid" && "PubMed ID (PMID)"}
+                    {researchType === "arxiv" && "arXiv ID"}
+                    {researchType === "wikipedia" && "Wikipedia URL or Article Title"}
+                  </label>
+                  <input
+                    type="text"
+                    value={researchInput}
+                    onChange={(e) => setResearchInput(e.target.value)}
+                    placeholder={
+                      researchType === "pmid"
+                        ? "12345678 or PMID:12345678 or pubmed.ncbi.nlm.nih.gov/12345678"
+                        : researchType === "arxiv"
+                        ? "2301.00001 or arXiv:2301.00001 or hep-th/9901001"
+                        : "https://en.wikipedia.org/wiki/... or Article_Name"
+                    }
+                    className="w-full"
+                    onKeyDown={(e) => e.key === "Enter" && handleResearchLookup()}
+                  />
+                  <p className="mt-1 text-xs text-wiki-text-muted">
+                    {researchType === "pmid" && "Enter a PubMed ID to fetch journal article citation data."}
+                    {researchType === "arxiv" && "Enter an arXiv ID to fetch preprint citation data."}
+                    {researchType === "wikipedia" && "Enter a Wikipedia URL or article title to generate a website citation."}
+                  </p>
+                </div>
+
+                {researchError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {researchError}
+                  </div>
+                )}
+
+                <WikiButton
+                  variant="primary"
+                  onClick={handleResearchLookup}
+                  disabled={isResearchLoading || !researchInput.trim()}
+                >
+                  {isResearchLoading ? "Looking up..." : "Generate Citation"}
                 </WikiButton>
               </div>
             </div>
