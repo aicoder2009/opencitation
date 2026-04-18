@@ -720,7 +720,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                         key={tag}
                         className={`relative inline-flex items-stretch text-xs border ${
                           isActive
-                            ? "bg-wiki-link text-white border-wiki-link"
+                            ? `${color.activeBg} ${color.activeText} ${color.activeBorder}`
                             : `${color.bg} ${color.text} ${color.border}`
                         }`}
                       >
@@ -730,8 +730,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                             e.stopPropagation();
                             setTagColorPickerOpen(isPickerOpen ? null : tag);
                           }}
-                          className={`flex items-center justify-center px-1.5 border-r ${
-                            isActive ? "border-white/40 hover:bg-wiki-link-hover" : `${color.border} hover:opacity-80`
+                          className={`flex items-center justify-center px-1.5 border-r hover:opacity-80 ${
+                            isActive ? "border-white/40" : color.border
                           }`}
                           title="Change color"
                           aria-haspopup="dialog"

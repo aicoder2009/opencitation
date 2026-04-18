@@ -7,19 +7,22 @@ export interface TagColor {
   bg: string;
   text: string;
   border: string;
+  activeBg: string;
+  activeText: string;
+  activeBorder: string;
 }
 
 export const TAG_COLORS: TagColor[] = [
-  { name: "gray",   bg: "bg-gray-100",   text: "text-gray-700",   border: "border-gray-200" },
-  { name: "red",    bg: "bg-red-100",    text: "text-red-700",    border: "border-red-200" },
-  { name: "orange", bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200" },
-  { name: "yellow", bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-200" },
-  { name: "green",  bg: "bg-green-100",  text: "text-green-700",  border: "border-green-200" },
-  { name: "teal",   bg: "bg-teal-100",   text: "text-teal-700",   border: "border-teal-200" },
-  { name: "blue",   bg: "bg-blue-100",   text: "text-blue-700",   border: "border-blue-200" },
-  { name: "indigo", bg: "bg-indigo-100", text: "text-indigo-700", border: "border-indigo-200" },
-  { name: "purple", bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
-  { name: "pink",   bg: "bg-pink-100",   text: "text-pink-700",   border: "border-pink-200" },
+  { name: "gray",   bg: "bg-gray-100",   text: "text-gray-700",   border: "border-gray-200",   activeBg: "bg-gray-600",   activeText: "text-white", activeBorder: "border-gray-700" },
+  { name: "red",    bg: "bg-red-100",    text: "text-red-700",    border: "border-red-200",    activeBg: "bg-red-600",    activeText: "text-white", activeBorder: "border-red-700" },
+  { name: "orange", bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200", activeBg: "bg-orange-600", activeText: "text-white", activeBorder: "border-orange-700" },
+  { name: "yellow", bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-200", activeBg: "bg-yellow-500", activeText: "text-white", activeBorder: "border-yellow-600" },
+  { name: "green",  bg: "bg-green-100",  text: "text-green-700",  border: "border-green-200",  activeBg: "bg-green-600",  activeText: "text-white", activeBorder: "border-green-700" },
+  { name: "teal",   bg: "bg-teal-100",   text: "text-teal-700",   border: "border-teal-200",   activeBg: "bg-teal-600",   activeText: "text-white", activeBorder: "border-teal-700" },
+  { name: "blue",   bg: "bg-blue-100",   text: "text-blue-700",   border: "border-blue-200",   activeBg: "bg-blue-600",   activeText: "text-white", activeBorder: "border-blue-700" },
+  { name: "indigo", bg: "bg-indigo-100", text: "text-indigo-700", border: "border-indigo-200", activeBg: "bg-indigo-600", activeText: "text-white", activeBorder: "border-indigo-700" },
+  { name: "purple", bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200", activeBg: "bg-purple-600", activeText: "text-white", activeBorder: "border-purple-700" },
+  { name: "pink",   bg: "bg-pink-100",   text: "text-pink-700",   border: "border-pink-200",   activeBg: "bg-pink-600",   activeText: "text-white", activeBorder: "border-pink-700" },
 ];
 
 const STORAGE_KEY = "opencitation:tag-colors";
