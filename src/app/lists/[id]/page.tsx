@@ -831,6 +831,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                       index={index}
                       isSelected={selectedIndex === index}
                       isEditing={editingCitationId === citation.id}
+                      availableTags={allTags}
                       onSelect={() => setSelectedIndex(index)}
                       onCopy={(text) => navigator.clipboard.writeText(text)}
                       onDelete={handleDeleteCitation}

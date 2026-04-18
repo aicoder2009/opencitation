@@ -41,6 +41,7 @@ interface SortableCitationProps {
   index: number;
   isSelected?: boolean;
   isEditing?: boolean;
+  availableTags?: string[];
   onSelect?: () => void;
   onCopy: (text: string) => void;
   onDelete: (id: string) => void;
@@ -59,6 +60,7 @@ export function SortableCitation({
   index,
   isSelected = false,
   isEditing: externalIsEditing = false,
+  availableTags = [],
   onSelect,
   onCopy,
   onDelete,
@@ -310,7 +312,7 @@ export function SortableCitation({
               );
             })}
             {editingTagsId === citation.id ? (
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
                 <input
                   type="text"
                   value={newTagInput}
@@ -342,6 +344,34 @@ export function SortableCitation({
                 >
                   cancel
                 </button>
+                {(() => {
+                  const existing = new Set(citation.tags || []);
+                  const query = newTagInput.trim().toLowerCase();
+                  const suggestions = availableTags
+                    .filter((t) => !existing.has(t))
+                    .filter((t) => !query || t.includes(query))
+                    .slice(0, 8);
+                  if (suggestions.length === 0) return null;
+                  return (
+                    <>
+                      <span className="text-xs text-wiki-text-muted ml-1">or reuse:</span>
+                      {suggestions.map((tag) => {
+                        const color = getColor(tag);
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => onAddTag(citation.id, tag)}
+                            className={`inline-flex items-center px-2 py-0.5 text-xs border hover:opacity-80 ${color.bg} ${color.text} ${color.border}`}
+                            title={`Add "${tag}"`}
+                          >
+                            + {tag}
+                          </button>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <button
