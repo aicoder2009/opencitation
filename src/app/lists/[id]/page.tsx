@@ -90,7 +90,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [editingCitationId, setEditingCitationId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { getColor: getTagColor, setColor: setTagColor } = useTagColors();
+  const { getColor: getTagColor, setColor: setTagColor, clearColor: clearTagColor } = useTagColors();
   const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(null);
 
   // Get all unique tags from citations
@@ -697,10 +697,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   </button>
                 )}
               </div>
-              {/* Tag Filter */}
+              {/* Tag Filter + Colors */}
               {allTags.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-wiki-text-muted">Filter by tag:</span>
+                  <span className="text-sm text-wiki-text-muted">Tags:</span>
                   <button
                     onClick={() => setFilterTag(null)}
                     className={`px-2 py-0.5 text-xs border ${
@@ -714,46 +714,52 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   {allTags.map((tag) => {
                     const color = getTagColor(tag);
                     const isActive = filterTag === tag;
+                    const isPickerOpen = tagColorPickerOpen === tag;
                     return (
-                      <button
+                      <span
                         key={tag}
-                        onClick={() => setFilterTag(isActive ? null : tag)}
-                        className={`px-2 py-0.5 text-xs border ${
+                        className={`relative inline-flex items-stretch text-xs border ${
                           isActive
                             ? "bg-wiki-link text-white border-wiki-link"
-                            : `${color.bg} ${color.text} ${color.border} hover:opacity-80`
+                            : `${color.bg} ${color.text} ${color.border}`
                         }`}
                       >
-                        {tag}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-              {/* Tag Colors */}
-              {allTags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-wiki-text-muted">Tag colors:</span>
-                  {allTags.map((tag) => {
-                    const color = getTagColor(tag);
-                    const isOpen = tagColorPickerOpen === tag;
-                    return (
-                      <span key={tag} className="relative inline-block">
                         <button
                           type="button"
-                          onClick={() => setTagColorPickerOpen(isOpen ? null : tag)}
-                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border} hover:opacity-80`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setTagColorPickerOpen(isPickerOpen ? null : tag);
+                          }}
+                          className={`flex items-center justify-center px-1.5 border-r ${
+                            isActive ? "border-white/40 hover:bg-wiki-link-hover" : `${color.border} hover:opacity-80`
+                          }`}
                           title="Change color"
                           aria-haspopup="dialog"
-                          aria-expanded={isOpen}
+                          aria-expanded={isPickerOpen}
+                          aria-label={`Change color for ${tag}`}
                         >
-                          <span className={`w-2.5 h-2.5 rounded-full border ${color.bg} ${color.border}`} aria-hidden />
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full border ${
+                              isActive ? "bg-white border-white" : `${color.bg} ${color.border}`
+                            }`}
+                            aria-hidden
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFilterTag(isActive ? null : tag)}
+                          className="px-2 py-0.5 hover:opacity-80"
+                          aria-pressed={isActive}
+                          title={isActive ? "Clear filter" : `Filter by ${tag}`}
+                        >
                           {tag}
                         </button>
-                        {isOpen && (
+                        {isPickerOpen && (
                           <TagColorPicker
+                            tagName={tag}
                             currentColor={color.name}
                             onPick={(name) => setTagColor(tag, name)}
+                            onReset={() => clearTagColor(tag)}
                             onClose={() => setTagColorPickerOpen(null)}
                           />
                         )}
