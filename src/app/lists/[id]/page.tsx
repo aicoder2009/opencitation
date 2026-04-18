@@ -21,7 +21,9 @@ import {
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
 import { SortableCitation } from "@/components/wiki/sortable-citation";
+import { TagColorPicker } from "@/components/wiki/tag-color-picker";
 import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
 import { formatCitation } from "@/lib/citation";
@@ -88,7 +90,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [editingCitationId, setEditingCitationId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { getColor: getTagColor } = useTagColors();
+  const { getColor: getTagColor, setColor: setTagColor } = useTagColors();
+  const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(null);
 
   // Get all unique tags from citations
   const allTags = Array.from(
@@ -727,6 +730,38 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   })}
                 </div>
               )}
+              {/* Tag Colors */}
+              {allTags.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-wiki-text-muted">Tag colors:</span>
+                  {allTags.map((tag) => {
+                    const color = getTagColor(tag);
+                    const isOpen = tagColorPickerOpen === tag;
+                    return (
+                      <span key={tag} className="relative inline-block">
+                        <button
+                          type="button"
+                          onClick={() => setTagColorPickerOpen(isOpen ? null : tag)}
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border} hover:opacity-80`}
+                          title="Change color"
+                          aria-haspopup="dialog"
+                          aria-expanded={isOpen}
+                        >
+                          <span className={`w-2.5 h-2.5 rounded-full border ${color.bg} ${color.border}`} aria-hidden />
+                          {tag}
+                        </button>
+                        {isOpen && (
+                          <TagColorPicker
+                            currentColor={color.name}
+                            onPick={(name) => setTagColor(tag, name)}
+                            onClose={() => setTagColorPickerOpen(null)}
+                          />
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               {(searchQuery || filterTag) && (
                 <p className="text-sm text-wiki-text-muted">
                   Showing {filteredCitations.length} of {citations.length} citations
@@ -741,24 +776,17 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                 <WikiButton onClick={() => setShowPrintAnimation(true)}>
                   Print
                 </WikiButton>
-                <WikiButton onClick={exportAllCitations}>
-                  Export .txt
-                </WikiButton>
-                <WikiButton onClick={exportMarkdown}>
-                  Export .md
-                </WikiButton>
-                <WikiButton onClick={exportHTML}>
-                  Export .html
-                </WikiButton>
-                <WikiButton onClick={exportBibTeX}>
-                  Export .bib
-                </WikiButton>
-                <WikiButton onClick={exportRIS}>
-                  Export .ris
-                </WikiButton>
-                <WikiButton onClick={exportCSLJSON}>
-                  Export CSL JSON
-                </WikiButton>
+                <WikiDropdown
+                  label="Export"
+                  items={[
+                    { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
+                    { label: "Markdown", hint: ".md", onClick: exportMarkdown },
+                    { label: "HTML", hint: ".html", onClick: exportHTML },
+                    { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
+                    { label: "RIS (Zotero, EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
+                    { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
+                  ]}
+                />
               </div>
             </div>
           )}
