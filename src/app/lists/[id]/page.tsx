@@ -25,6 +25,7 @@ import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
 import { formatCitation } from "@/lib/citation";
+import { useTagColors } from "@/lib/tag-colors";
 import type { CitationStyle, SourceType, AccessType } from "@/types";
 
 interface List {
@@ -58,22 +59,6 @@ interface Citation {
   updatedAt: string;
 }
 
-// Predefined tag colors
-const TAG_COLORS = [
-  { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200" },
-  { bg: "bg-green-100", text: "text-green-700", border: "border-green-200" },
-  { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
-  { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200" },
-  { bg: "bg-pink-100", text: "text-pink-700", border: "border-pink-200" },
-  { bg: "bg-teal-100", text: "text-teal-700", border: "border-teal-200" },
-];
-
-function getTagColor(tag: string) {
-  // Generate consistent color based on tag name
-  const hash = tag.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return TAG_COLORS[hash % TAG_COLORS.length];
-}
-
 export default function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: listId } = use(params);
   const router = useRouter();
@@ -96,6 +81,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [editingCitationId, setEditingCitationId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { getColor: getTagColor } = useTagColors();
 
   // Get all unique tags from citations
   const allTags = Array.from(
