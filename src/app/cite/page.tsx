@@ -9,7 +9,7 @@ import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { TemplatePicker } from "@/components/wiki/template-picker";
-import { formatCitation } from "@/lib/citation";
+import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS } from "@/lib/citation/exporters";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
@@ -577,6 +577,14 @@ function CitePageContent() {
     if (generatedCitation) {
       navigator.clipboard.writeText(generatedCitation.text);
     }
+  };
+
+  const copyInTextCitations = () => {
+    if (!citationFields) return;
+    const lines = CITATION_STYLES.map(
+      ({ value, label }) => `${label}: ${generateInTextCitation(citationFields, value)}`
+    );
+    navigator.clipboard.writeText(lines.join("\n"));
   };
 
   const exportCitation = () => {
@@ -1412,6 +1420,9 @@ function CitePageContent() {
                   onClick={copyToClipboard}
                 >
                   Copy to Clipboard
+                </WikiButton>
+                <WikiButton onClick={copyInTextCitations}>
+                  Copy In-text Citations
                 </WikiButton>
                 {isSignedIn ? (
                   <WikiButton onClick={openAddToListModal}>
