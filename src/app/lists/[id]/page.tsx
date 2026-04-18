@@ -25,8 +25,15 @@ import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
 import { formatCitation } from "@/lib/citation";
+import {
+  toBibTeXMultiple,
+  toRISMultiple,
+  toMarkdown,
+  toHTML,
+  toCSLJSON,
+} from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
-import type { CitationStyle, SourceType, AccessType } from "@/types";
+import type { CitationStyle, SourceType, AccessType, CitationFields as FullCitationFields } from "@/types";
 
 interface List {
   id: string;
@@ -316,17 +323,61 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     navigator.clipboard.writeText(allText);
   };
 
-  const exportAllCitations = () => {
-    const allText = citations.map((c) => c.formattedText).join("\n\n");
-    const blob = new Blob([allText], { type: "text/plain" });
+  const downloadFile = (content: string, extension: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${list?.name || "citations"}-${Date.now()}.txt`;
+    a.download = `${list?.name || "citations"}-${Date.now()}.${extension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const exportAllCitations = () => {
+    const allText = citations.map((c) => c.formattedText).join("\n\n");
+    downloadFile(allText, "txt", "text/plain");
+  };
+
+  const exportMarkdown = () => {
+    downloadFile(toMarkdown(citations, list?.name), "md", "text/markdown");
+  };
+
+  const exportHTML = () => {
+    downloadFile(toHTML(citations, list?.name), "html", "text/html");
+  };
+
+  const citationsWithFields = (): FullCitationFields[] =>
+    citations
+      .map((c) => c.fields)
+      .filter(Boolean) as unknown as FullCitationFields[];
+
+  const exportBibTeX = () => {
+    const fieldsList = citationsWithFields();
+    if (fieldsList.length === 0) {
+      setError("No citations with structured fields to export as BibTeX.");
+      return;
+    }
+    downloadFile(toBibTeXMultiple(fieldsList), "bib", "application/x-bibtex");
+  };
+
+  const exportRIS = () => {
+    const fieldsList = citationsWithFields();
+    if (fieldsList.length === 0) {
+      setError("No citations with structured fields to export as RIS.");
+      return;
+    }
+    downloadFile(toRISMultiple(fieldsList), "ris", "application/x-research-info-systems");
+  };
+
+  const exportCSLJSON = () => {
+    const fieldsList = citationsWithFields();
+    if (fieldsList.length === 0) {
+      setError("No citations with structured fields to export as CSL JSON.");
+      return;
+    }
+    downloadFile(toCSLJSON(fieldsList), "json", "application/vnd.citationstyles.csl+json");
   };
 
   const handleShare = async () => {
@@ -687,11 +738,26 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                 <WikiButton onClick={copyAllCitations}>
                   Copy All
                 </WikiButton>
+                <WikiButton onClick={() => setShowPrintAnimation(true)}>
+                  Print
+                </WikiButton>
                 <WikiButton onClick={exportAllCitations}>
                   Export .txt
                 </WikiButton>
-                <WikiButton onClick={() => setShowPrintAnimation(true)}>
-                  Print
+                <WikiButton onClick={exportMarkdown}>
+                  Export .md
+                </WikiButton>
+                <WikiButton onClick={exportHTML}>
+                  Export .html
+                </WikiButton>
+                <WikiButton onClick={exportBibTeX}>
+                  Export .bib
+                </WikiButton>
+                <WikiButton onClick={exportRIS}>
+                  Export .ris
+                </WikiButton>
+                <WikiButton onClick={exportCSLJSON}>
+                  Export CSL JSON
                 </WikiButton>
               </div>
             </div>
