@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTagColors } from "@/lib/tag-colors";
-import { TagColorPicker } from "./tag-color-picker";
 
 interface CitationFields {
   title?: string;
@@ -73,8 +72,7 @@ export function SortableCitation({
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
   const [isSaving, setIsSaving] = useState(false);
-  const [colorPickerTag, setColorPickerTag] = useState<string | null>(null);
-  const { getColor, setColor } = useTagColors();
+  const { getColor } = useTagColors();
   const [editFields, setEditFields] = useState<EditableFields>({
     title: "",
     authorFirst: "",
@@ -277,38 +275,19 @@ export function SortableCitation({
           <div className="flex flex-wrap items-center gap-2">
             {(citation.tags || []).map((tag) => {
               const color = getColor(tag);
-              const isPicking = colorPickerTag === tag;
               return (
-                <span key={tag} className="relative inline-block">
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
+                <span
+                  key={tag}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
+                >
+                  <span>{tag}</span>
+                  <button
+                    onClick={() => onRemoveTag(citation.id, tag)}
+                    className="hover:text-red-600"
+                    title="Remove tag"
                   >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setColorPickerTag(isPicking ? null : tag);
-                      }}
-                      className="cursor-pointer hover:underline"
-                      title="Change color"
-                    >
-                      {tag}
-                    </button>
-                    <button
-                      onClick={() => onRemoveTag(citation.id, tag)}
-                      className="hover:text-red-600"
-                      title="Remove tag"
-                    >
-                      &times;
-                    </button>
-                  </span>
-                  {isPicking && (
-                    <TagColorPicker
-                      currentColor={color.name}
-                      onPick={(name) => setColor(tag, name)}
-                      onClose={() => setColorPickerTag(null)}
-                    />
-                  )}
+                    &times;
+                  </button>
                 </span>
               );
             })}
