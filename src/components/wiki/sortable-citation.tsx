@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { useTagColors } from "@/lib/tag-colors";
+import { TagColorPicker } from "./tag-color-picker";
 
 interface CitationFields {
   title?: string;
@@ -23,21 +25,6 @@ interface Citation {
   tags?: string[];
   createdAt: string;
   updatedAt: string;
-}
-
-// Predefined tag colors
-const TAG_COLORS = [
-  { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200" },
-  { bg: "bg-green-100", text: "text-green-700", border: "border-green-200" },
-  { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200" },
-  { bg: "bg-orange-100", text: "text-orange-700", border: "border-orange-200" },
-  { bg: "bg-pink-100", text: "text-pink-700", border: "border-pink-200" },
-  { bg: "bg-teal-100", text: "text-teal-700", border: "border-teal-200" },
-];
-
-function getTagColor(tag: string) {
-  const hash = tag.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return TAG_COLORS[hash % TAG_COLORS.length];
 }
 
 interface EditableFields {
@@ -86,6 +73,8 @@ export function SortableCitation({
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
   const [isSaving, setIsSaving] = useState(false);
+  const [colorPickerTag, setColorPickerTag] = useState<string | null>(null);
+  const { getColor, setColor } = useTagColors();
   const [editFields, setEditFields] = useState<EditableFields>({
     title: "",
     authorFirst: "",
@@ -287,20 +276,39 @@ export function SortableCitation({
         <div className="pt-3 border-t border-wiki-border-light">
           <div className="flex flex-wrap items-center gap-2">
             {(citation.tags || []).map((tag) => {
-              const color = getTagColor(tag);
+              const color = getColor(tag);
+              const isPicking = colorPickerTag === tag;
               return (
-                <span
-                  key={tag}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
-                >
-                  {tag}
-                  <button
-                    onClick={() => onRemoveTag(citation.id, tag)}
-                    className="hover:text-red-600"
-                    title="Remove tag"
+                <span key={tag} className="relative inline-block">
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
                   >
-                    &times;
-                  </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setColorPickerTag(isPicking ? null : tag);
+                      }}
+                      className="cursor-pointer hover:underline"
+                      title="Change color"
+                    >
+                      {tag}
+                    </button>
+                    <button
+                      onClick={() => onRemoveTag(citation.id, tag)}
+                      className="hover:text-red-600"
+                      title="Remove tag"
+                    >
+                      &times;
+                    </button>
+                  </span>
+                  {isPicking && (
+                    <TagColorPicker
+                      currentColor={color.name}
+                      onPick={(name) => setColor(tag, name)}
+                      onClose={() => setColorPickerTag(null)}
+                    />
+                  )}
                 </span>
               );
             })}
