@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTagColors } from "@/lib/tag-colors";
+import { generateInTextCitation } from "@/lib/citation";
+import type { CitationFields as FullCitationFields, CitationStyle } from "@/types";
 
 interface CitationFields {
   title?: string;
@@ -254,6 +256,22 @@ export function SortableCitation({
               >
                 [copy]
               </button>
+              {citation.fields && (
+                <button
+                  onClick={() =>
+                    onCopy(
+                      generateInTextCitation(
+                        citation.fields as unknown as FullCitationFields,
+                        citation.style as CitationStyle
+                      )
+                    )
+                  }
+                  className="text-wiki-link text-sm hover:underline"
+                  title={`In-text citation (${citation.style.toUpperCase()})`}
+                >
+                  [copy in-text]
+                </button>
+              )}
               <button
                 onClick={startEditing}
                 className="text-wiki-link text-sm hover:underline"
