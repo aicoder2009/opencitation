@@ -579,12 +579,9 @@ function CitePageContent() {
     }
   };
 
-  const copyInTextCitations = () => {
+  const copyInTextCitation = () => {
     if (!citationFields) return;
-    const lines = CITATION_STYLES.map(
-      ({ value, label }) => `${label}: ${generateInTextCitation(citationFields, value)}`
-    );
-    navigator.clipboard.writeText(lines.join("\n"));
+    navigator.clipboard.writeText(generateInTextCitation(citationFields, selectedStyle));
   };
 
   const exportCitation = () => {
@@ -1421,8 +1418,8 @@ function CitePageContent() {
                 >
                   Copy to Clipboard
                 </WikiButton>
-                <WikiButton onClick={copyInTextCitations}>
-                  Copy In-text Citations
+                <WikiButton onClick={copyInTextCitation}>
+                  Copy In-text Citation
                 </WikiButton>
                 {isSignedIn ? (
                   <WikiButton onClick={openAddToListModal}>
