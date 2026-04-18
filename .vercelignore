@@ -1,0 +1,14 @@
+# Desktop + extension bundles — not served from Vercel
+electron/
+dist-electron/
+out/
+browser-extension/
+
+# Tests — not needed at build/runtime
+**/*.test.ts
+**/*.test.tsx
+vitest.config.ts
+vitest.setup.ts
+
+# Local dev artifacts
+scripts/test-dynamodb.ts
