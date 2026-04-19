@@ -36,6 +36,8 @@ export const reorderCitations = db.reorderCitations;
 export const createShareLink = db.createShareLink;
 export const getShareLink = db.getShareLink;
 export const deleteShareLink = db.deleteShareLink;
+export const listUserShares = db.listUserShares;
+export const deleteSharesForTarget = db.deleteSharesForTarget;
 
 // ============ HELPERS ============
 export const findListById = db.findListById;

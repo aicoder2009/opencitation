@@ -20,13 +20,49 @@ interface SharedList {
   citations: SharedCitation[];
 }
 
+interface ShareMeta {
+  createdAt: string;
+  expiresAt?: string;
+}
+
 interface SharedData {
   type: "list" | "project";
   id: string;
   name: string;
   description?: string;
+  share?: ShareMeta;
   citations?: SharedCitation[];
   lists?: SharedList[];
+}
+
+function formatShareFooter(share: ShareMeta | undefined): string | null {
+  if (!share) return null;
+  const parts: string[] = [];
+  try {
+    const created = new Date(share.createdAt);
+    if (!Number.isNaN(created.getTime())) {
+      parts.push(`Shared ${created.toLocaleDateString()}`);
+    }
+  } catch {
+    // ignore
+  }
+  if (share.expiresAt) {
+    try {
+      const expires = new Date(share.expiresAt);
+      if (!Number.isNaN(expires.getTime())) {
+        const ms = expires.getTime() - Date.now();
+        if (ms > 0) {
+          const days = Math.max(1, Math.round(ms / (24 * 60 * 60 * 1000)));
+          parts.push(`expires in ${days} day${days === 1 ? "" : "s"}`);
+        } else {
+          parts.push("expired");
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return parts.length ? parts.join(" · ") : null;
 }
 
 export default function SharePage({ params }: { params: Promise<{ code: string }> }) {
@@ -34,33 +70,61 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
   const [data, setData] = useState<SharedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
+    const fetchSharedContent = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/share/${code}`);
+        const result = await response.json();
+
+        if (cancelled) return;
+
+        if (result.success) {
+          setData(result.data);
+          setError(null);
+        } else {
+          setError(result.error || "Share link not found or expired");
+        }
+      } catch (err) {
+        console.error("Error fetching shared content:", err);
+        if (!cancelled) setError("Failed to load shared content");
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
     fetchSharedContent();
+    return () => {
+      cancelled = true;
+    };
   }, [code]);
 
-  const fetchSharedContent = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`/api/share/${code}`);
-      const result = await response.json();
+  const flashCopy = (message: string) => {
+    setCopyFeedback(message);
+    window.setTimeout(() => setCopyFeedback((m) => (m === message ? null : m)), 1600);
+  };
 
-      if (result.success) {
-        setData(result.data);
-      } else {
-        setError(result.error || "Share link not found or expired");
-      }
-    } catch (err) {
-      console.error("Error fetching shared content:", err);
-      setError("Failed to load shared content");
-    } finally {
-      setIsLoading(false);
+  const copyAllCitations = async (citations: SharedCitation[]) => {
+    const allText = citations.map((c) => c.formattedText).join("\n\n");
+    try {
+      await navigator.clipboard.writeText(allText);
+      flashCopy(`Copied ${citations.length} citation${citations.length === 1 ? "" : "s"}`);
+    } catch {
+      flashCopy("Copy failed");
     }
   };
 
-  const copyAllCitations = (citations: SharedCitation[]) => {
-    const allText = citations.map((c) => c.formattedText).join("\n\n");
-    navigator.clipboard.writeText(allText);
+  const copyOne = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      flashCopy("Copied");
+    } catch {
+      flashCopy("Copy failed");
+    }
   };
 
   const exportCitations = (citations: SharedCitation[], name: string) => {
@@ -69,7 +133,8 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${name}-${Date.now()}.txt`;
+    const safeName = name.replace(/[^a-z0-9-_ ]/gi, "_").trim() || "citations";
+    a.download = `${safeName}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -79,8 +144,17 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
   if (isLoading) {
     return (
       <WikiLayout>
-        <div className="flex items-center justify-center py-12">
-          <p className="text-wiki-text-muted">Loading shared content...</p>
+        <WikiBreadcrumbs
+          items={[{ label: "Home", href: "/" }, { label: "Loading..." }]}
+        />
+        <div className="mt-6 border border-wiki-border-light bg-wiki-white p-6 md:p-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-3 w-24 bg-wiki-border-light" />
+            <div className="h-6 w-1/2 bg-wiki-border-light" />
+            <div className="h-3 w-32 bg-wiki-border-light" />
+            <div className="h-24 w-full bg-wiki-offwhite border border-wiki-border-light mt-6" />
+            <div className="h-24 w-full bg-wiki-offwhite border border-wiki-border-light" />
+          </div>
         </div>
       </WikiLayout>
     );
@@ -101,7 +175,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
             <p className="text-wiki-text-muted mb-6">
               {error || "This share link may have expired or been removed."}
             </p>
-            <WikiButton onClick={() => window.location.href = "/"}>
+            <WikiButton onClick={() => (window.location.href = "/")}>
               Go to Home
             </WikiButton>
           </div>
@@ -109,6 +183,8 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
       </WikiLayout>
     );
   }
+
+  const shareFooter = formatShareFooter(data.share);
 
   if (data.type === "list") {
     return (
@@ -120,6 +196,12 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
           ]}
         />
 
+        {copyFeedback && (
+          <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm shadow-sm">
+            {copyFeedback}
+          </div>
+        )}
+
         <div className="mt-6">
           <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
             {/* Header */}
@@ -130,7 +212,9 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                 </div>
                 <h1 className="text-2xl font-bold mb-1">{data.name}</h1>
                 <p className="text-wiki-text-muted text-sm">
-                  {data.citations?.length || 0} citation{(data.citations?.length || 0) !== 1 ? "s" : ""}
+                  {data.citations?.length || 0} citation
+                  {(data.citations?.length || 0) !== 1 ? "s" : ""}
+                  {shareFooter ? ` · ${shareFooter}` : ""}
                 </p>
               </div>
             </div>
@@ -150,9 +234,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
             {/* Citations */}
             {!data.citations || data.citations.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-wiki-text-muted">
-                  This list has no citations.
-                </p>
+                <p className="text-wiki-text-muted">This list has no citations.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -168,7 +250,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                         dangerouslySetInnerHTML={{ __html: citation.formattedHtml }}
                       />
                       <button
-                        onClick={() => navigator.clipboard.writeText(citation.formattedText)}
+                        onClick={() => copyOne(citation.formattedText)}
                         className="text-wiki-link text-sm hover:underline"
                       >
                         [copy]
@@ -184,7 +266,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
               <p className="text-wiki-text-muted text-sm mb-4">
                 This list was shared via OpenCitation
               </p>
-              <WikiButton variant="primary" onClick={() => window.location.href = "/cite"}>
+              <WikiButton variant="primary" onClick={() => (window.location.href = "/cite")}>
                 Create Your Own Citations
               </WikiButton>
             </div>
@@ -195,6 +277,9 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
   }
 
   // Project view
+  const totalCitations =
+    data.lists?.reduce((sum, list) => sum + list.citations.length, 0) || 0;
+
   return (
     <WikiLayout>
       <WikiBreadcrumbs
@@ -203,6 +288,12 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
           { label: "Shared Project" },
         ]}
       />
+
+      {copyFeedback && (
+        <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm shadow-sm">
+          {copyFeedback}
+        </div>
+      )}
 
       <div className="mt-6">
         <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
@@ -217,15 +308,16 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
             )}
             <p className="text-wiki-text-muted text-sm">
               {data.lists?.length || 0} list{(data.lists?.length || 0) !== 1 ? "s" : ""}
+              {" · "}
+              {totalCitations} citation{totalCitations !== 1 ? "s" : ""}
+              {shareFooter ? ` · ${shareFooter}` : ""}
             </p>
           </div>
 
           {/* Lists */}
           {!data.lists || data.lists.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-wiki-text-muted">
-                This project has no lists.
-              </p>
+              <p className="text-wiki-text-muted">This project has no lists.</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -235,7 +327,8 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                     <div>
                       <h2 className="font-bold">{list.name}</h2>
                       <p className="text-wiki-text-muted text-sm">
-                        {list.citations.length} citation{list.citations.length !== 1 ? "s" : ""}
+                        {list.citations.length} citation
+                        {list.citations.length !== 1 ? "s" : ""}
                       </p>
                     </div>
                     {list.citations.length > 0 && (
@@ -251,11 +344,16 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                   </div>
                   <div className="p-4">
                     {list.citations.length === 0 ? (
-                      <p className="text-wiki-text-muted text-sm">No citations in this list.</p>
+                      <p className="text-wiki-text-muted text-sm">
+                        No citations in this list.
+                      </p>
                     ) : (
                       <div className="space-y-3">
-                        {list.citations.map((citation, index) => (
-                          <div key={citation.id} className="p-3 bg-wiki-offwhite border border-wiki-border-light">
+                        {list.citations.map((citation) => (
+                          <div
+                            key={citation.id}
+                            className="p-3 bg-wiki-offwhite border border-wiki-border-light"
+                          >
                             <div className="text-xs text-wiki-text-muted mb-1">
                               {citation.style.toUpperCase()}
                             </div>
@@ -264,7 +362,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                               dangerouslySetInnerHTML={{ __html: citation.formattedHtml }}
                             />
                             <button
-                              onClick={() => navigator.clipboard.writeText(citation.formattedText)}
+                              onClick={() => copyOne(citation.formattedText)}
                               className="text-wiki-link text-xs hover:underline mt-2"
                             >
                               [copy]
@@ -284,7 +382,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
             <p className="text-wiki-text-muted text-sm mb-4">
               This project was shared via OpenCitation
             </p>
-            <WikiButton variant="primary" onClick={() => window.location.href = "/cite"}>
+            <WikiButton variant="primary" onClick={() => (window.location.href = "/cite")}>
               Create Your Own Citations
             </WikiButton>
           </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { POST } from "./route";
+import { GET, POST } from "./route";
 import { NextRequest } from "next/server";
 
 // Mock Clerk auth
@@ -12,15 +12,28 @@ vi.mock("@/lib/db", () => ({
   createShareLink: vi.fn(),
   getList: vi.fn(),
   getProject: vi.fn(),
+  getUserLists: vi.fn(),
+  getUserProjects: vi.fn(),
+  listUserShares: vi.fn(),
 }));
 
 import { auth } from "@clerk/nextjs/server";
-import { createShareLink, getList, getProject } from "@/lib/db";
+import {
+  createShareLink,
+  getList,
+  getProject,
+  getUserLists,
+  getUserProjects,
+  listUserShares,
+} from "@/lib/db";
 
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 const mockCreateShareLink = createShareLink as unknown as ReturnType<typeof vi.fn>;
 const mockGetList = getList as unknown as ReturnType<typeof vi.fn>;
 const mockGetProject = getProject as unknown as ReturnType<typeof vi.fn>;
+const mockGetUserLists = getUserLists as unknown as ReturnType<typeof vi.fn>;
+const mockGetUserProjects = getUserProjects as unknown as ReturnType<typeof vi.fn>;
+const mockListUserShares = listUserShares as unknown as ReturnType<typeof vi.fn>;
 
 describe("Share API - /api/share", () => {
   beforeEach(() => {
@@ -137,7 +150,7 @@ describe("Share API - /api/share", () => {
       expect(data.data.code).toBe("abc123xy");
       expect(data.data.type).toBe("list");
       expect(data.data.url).toContain("/share/abc123xy");
-      expect(mockCreateShareLink).toHaveBeenCalledWith("list", "list-123", undefined);
+      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "list", "list-123", undefined);
     });
 
     it("should create share link for project", async () => {
@@ -161,7 +174,7 @@ describe("Share API - /api/share", () => {
       expect(data.success).toBe(true);
       expect(data.data.code).toBe("xyz789ab");
       expect(data.data.type).toBe("project");
-      expect(mockCreateShareLink).toHaveBeenCalledWith("project", "project-123", undefined);
+      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "project", "project-123", undefined);
     });
 
     it("should create share link with expiry", async () => {
@@ -184,7 +197,7 @@ describe("Share API - /api/share", () => {
 
       expect(data.success).toBe(true);
       expect(data.data.expiresAt).toBe("2024-01-08");
-      expect(mockCreateShareLink).toHaveBeenCalledWith("list", "list-123", 7);
+      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "list", "list-123", 7);
     });
 
     it("should handle database errors", async () => {
@@ -201,6 +214,75 @@ describe("Share API - /api/share", () => {
       expect(response.status).toBe(500);
       expect(data.success).toBe(false);
       expect(data.error).toBe("Failed to create share link");
+    });
+  });
+
+  describe("GET /api/share", () => {
+    it("should return 401 if not authenticated", async () => {
+      mockAuth.mockResolvedValue({ userId: null });
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.success).toBe(false);
+    });
+
+    it("should return enriched list of user's shares", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockListUserShares.mockResolvedValue([
+        {
+          code: "aaaa",
+          userId: "user-123",
+          type: "list",
+          targetId: "list-1",
+          createdAt: "2026-01-01T00:00:00Z",
+        },
+        {
+          code: "bbbb",
+          userId: "user-123",
+          type: "project",
+          targetId: "proj-1",
+          createdAt: "2026-01-02T00:00:00Z",
+          expiresAt: "2026-02-01T00:00:00Z",
+        },
+      ]);
+      mockGetUserLists.mockResolvedValue([
+        { id: "list-1", name: "My List", userId: "user-123" },
+      ]);
+      mockGetUserProjects.mockResolvedValue([
+        { id: "proj-1", name: "My Project", userId: "user-123" },
+      ]);
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.success).toBe(true);
+      expect(data.data).toHaveLength(2);
+      expect(data.data[0].targetName).toBe("My List");
+      expect(data.data[1].targetName).toBe("My Project");
+      expect(data.data[0].url).toContain("/share/aaaa");
+    });
+
+    it("should null out targetName for orphaned shares", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockListUserShares.mockResolvedValue([
+        {
+          code: "zzzz",
+          userId: "user-123",
+          type: "list",
+          targetId: "missing",
+          createdAt: "2026-01-01T00:00:00Z",
+        },
+      ]);
+      mockGetUserLists.mockResolvedValue([]);
+      mockGetUserProjects.mockResolvedValue([]);
+
+      const response = await GET();
+      const data = await response.json();
+
+      expect(data.data[0].targetName).toBeNull();
     });
   });
 });

@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -62,9 +63,9 @@ export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// Generate share codes (shorter, URL-safe)
+// Generate share codes: 12-char URL-safe (~72 bits of entropy).
 export function generateShareCode(): string {
-  return Math.random().toString(36).substring(2, 10);
+  return randomBytes(9).toString("base64url");
 }
 
 // ============ TYPES ============
@@ -102,6 +103,7 @@ export interface Citation {
 
 export interface ShareLink {
   code: string;
+  userId: string;
   type: "list" | "project";
   targetId: string;
   createdAt: string;
@@ -237,6 +239,9 @@ export async function deleteList(userId: string, listId: string): Promise<void> 
   for (const citation of citations) {
     await deleteCitation(listId, citation.id);
   }
+
+  // Revoke any share links pointing at this list so they don't outlive the target.
+  await deleteSharesForTarget(userId, "list", listId);
 
   // Then delete the list itself
   await docClient.send(
@@ -379,6 +384,9 @@ export async function deleteProject(userId: string, projectId: string): Promise<
       await updateList(userId, list.id, { projectId: null });
     }
   }
+
+  // Revoke any share links pointing at this project.
+  await deleteSharesForTarget(userId, "project", projectId);
 
   // Delete the project
   await docClient.send(
@@ -592,6 +600,7 @@ export async function reorderCitations(listId: string, citationIds: string[]): P
 // ============ SHARE LINKS ============
 
 export async function createShareLink(
+  userId: string,
   type: "list" | "project",
   targetId: string,
   expiresInDays?: number
@@ -601,7 +610,14 @@ export async function createShareLink(
   const expiresAt = expiresInDays
     ? new Date(now.getTime() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
     : undefined;
-  const shareLink: ShareLink = { code, type, targetId, createdAt: now.toISOString(), expiresAt };
+  const shareLink: ShareLink = {
+    code,
+    userId,
+    type,
+    targetId,
+    createdAt: now.toISOString(),
+    expiresAt,
+  };
 
   await docClient.send(
     new PutCommand({
@@ -609,6 +625,9 @@ export async function createShareLink(
       Item: {
         PK: keys.share(code),
         SK: PREFIXES.META,
+        // GSI1 lets us list all shares a user owns.
+        GSI1PK: keys.user(userId),
+        GSI1SK: keys.share(code),
         ...shareLink,
         entityType: "SHARE",
       },
@@ -633,6 +652,7 @@ export async function getShareLink(code: string): Promise<ShareLink | null> {
 
   const shareLink: ShareLink = {
     code: result.Item.code,
+    userId: result.Item.userId,
     type: result.Item.type,
     targetId: result.Item.targetId,
     createdAt: result.Item.createdAt,
@@ -657,6 +677,47 @@ export async function deleteShareLink(code: string): Promise<void> {
       },
     })
   );
+}
+
+export async function listUserShares(userId: string): Promise<ShareLink[]> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: "GSI1",
+      KeyConditionExpression: "GSI1PK = :pk AND begins_with(GSI1SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": keys.user(userId),
+        ":sk": PREFIXES.SHARE,
+      },
+    })
+  );
+
+  const now = new Date();
+  const shares = (result.Items || [])
+    .map((item) => ({
+      code: item.code as string,
+      userId: item.userId as string,
+      type: item.type as "list" | "project",
+      targetId: item.targetId as string,
+      createdAt: item.createdAt as string,
+      expiresAt: item.expiresAt as string | undefined,
+    }))
+    .filter((s) => !s.expiresAt || new Date(s.expiresAt) >= now);
+
+  return shares.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+export async function deleteSharesForTarget(
+  userId: string,
+  type: "list" | "project",
+  targetId: string
+): Promise<number> {
+  const shares = await listUserShares(userId);
+  const matching = shares.filter((s) => s.type === type && s.targetId === targetId);
+  await Promise.all(matching.map((s) => deleteShareLink(s.code)));
+  return matching.length;
 }
 
 // ============ HELPER FUNCTIONS ============

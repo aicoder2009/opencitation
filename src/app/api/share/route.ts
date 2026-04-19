@@ -1,6 +1,60 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { createShareLink, getList, getProject } from "@/lib/db";
+import {
+  createShareLink,
+  getList,
+  getProject,
+  getUserLists,
+  getUserProjects,
+  listUserShares,
+} from "@/lib/db";
+
+// GET /api/share - List active share links owned by the current user
+export async function GET() {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const shares = await listUserShares(userId);
+
+    // Enrich with target name so the UI can render without extra round-trips.
+    const lists = await getUserLists(userId);
+    const projects = await getUserProjects(userId);
+    const listById = new Map(lists.map((l) => [l.id, l]));
+    const projectById = new Map(projects.map((p) => [p.id, p]));
+
+    const base = process.env.NEXT_PUBLIC_BASE_URL || "";
+    const enriched = shares.map((share) => {
+      const target =
+        share.type === "list"
+          ? listById.get(share.targetId)
+          : projectById.get(share.targetId);
+      return {
+        code: share.code,
+        type: share.type,
+        targetId: share.targetId,
+        targetName: target?.name ?? null,
+        createdAt: share.createdAt,
+        expiresAt: share.expiresAt,
+        url: `${base}/share/${share.code}`,
+      };
+    });
+
+    return NextResponse.json({ success: true, data: enriched });
+  } catch (error) {
+    console.error("Error listing share links:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to list share links" },
+      { status: 500 }
+    );
+  }
+}
 
 // POST /api/share - Create a share link
 export async function POST(request: NextRequest) {
@@ -54,7 +108,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const shareLink = await createShareLink(type, targetId, expiresInDays);
+    const shareLink = await createShareLink(userId, type, targetId, expiresInDays);
 
     return NextResponse.json({
       success: true,

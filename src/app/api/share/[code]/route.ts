@@ -27,28 +27,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    const shareMeta = {
+      createdAt: shareLink.createdAt,
+      expiresAt: shareLink.expiresAt,
+    };
+
     if (shareLink.type === "list") {
-      // Get list details using helper function
       const listData = await findListById(shareLink.targetId);
 
       if (!listData) {
-        // Fallback: Get citations directly using list prefix
-        const citations = await getListCitations(shareLink.targetId);
-        return NextResponse.json({
-          success: true,
-          data: {
-            type: "list",
-            id: shareLink.targetId,
-            name: "Shared List",
-            citations: citations.map((c) => ({
-              id: c.id,
-              style: c.style,
-              formattedText: c.formattedText,
-              formattedHtml: c.formattedHtml,
-              createdAt: c.createdAt,
-            })),
+        return NextResponse.json(
+          {
+            success: false,
+            error: "The shared list is no longer available.",
           },
-        });
+          { status: 410 }
+        );
       }
 
       const citations = await getListCitations(shareLink.targetId);
@@ -59,6 +53,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           type: "list",
           id: listData.id,
           name: listData.name,
+          share: shareMeta,
           citations: citations.map((c) => ({
             id: c.id,
             style: c.style,
@@ -73,15 +68,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       const projectData = await findProjectById(shareLink.targetId);
 
       if (!projectData) {
-        return NextResponse.json({
-          success: true,
-          data: {
-            type: "project",
-            id: shareLink.targetId,
-            name: "Shared Project",
-            lists: [],
+        return NextResponse.json(
+          {
+            success: false,
+            error: "The shared project is no longer available.",
           },
-        });
+          { status: 410 }
+        );
       }
 
       // Get all lists in project
@@ -112,6 +105,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           id: projectData.id,
           name: projectData.name,
           description: projectData.description,
+          share: shareMeta,
           lists: listsWithCitations,
         },
       });
@@ -147,8 +141,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // TODO: Verify ownership of the shared resource
-    // For now, allow any authenticated user to delete (should add ownership check)
+    if (shareLink.userId !== userId) {
+      return NextResponse.json(
+        { success: false, error: "Forbidden" },
+        { status: 403 }
+      );
+    }
 
     await deleteShareLink(code);
 

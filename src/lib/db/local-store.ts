@@ -2,6 +2,7 @@
 // This is a simple mock that stores data in memory
 // Data persists only for the lifetime of the server process
 
+import { randomBytes } from "node:crypto";
 import type { CitationFields, CitationStyle } from "@/types";
 
 // In-memory data store
@@ -53,6 +54,7 @@ export interface Citation {
 
 export interface ShareLink {
   code: string;
+  userId: string;
   type: "list" | "project";
   targetId: string;
   createdAt: string;
@@ -65,7 +67,7 @@ function generateId(): string {
 }
 
 function generateShareCode(): string {
-  return Math.random().toString(36).substring(2, 10);
+  return randomBytes(9).toString("base64url");
 }
 
 // ============ LISTS ============
@@ -118,6 +120,12 @@ export async function deleteList(userId: string, listId: string): Promise<void> 
       store.citations.delete(key);
     }
   });
+  // Revoke any share links pointing at this list.
+  store.shareLinks.forEach((share, code) => {
+    if (share.userId === userId && share.type === "list" && share.targetId === listId) {
+      store.shareLinks.delete(code);
+    }
+  });
   store.lists.delete(`${userId}:${listId}`);
 }
 
@@ -164,6 +172,12 @@ export async function deleteProject(userId: string, projectId: string): Promise<
   store.lists.forEach((list, key) => {
     if (list.projectId === projectId && list.userId === userId) {
       store.lists.set(key, { ...list, projectId: undefined, updatedAt: new Date().toISOString() });
+    }
+  });
+  // Revoke any share links pointing at this project.
+  store.shareLinks.forEach((share, code) => {
+    if (share.userId === userId && share.type === "project" && share.targetId === projectId) {
+      store.shareLinks.delete(code);
     }
   });
   store.projects.delete(`${userId}:${projectId}`);
@@ -251,6 +265,7 @@ export async function reorderCitations(listId: string, citationIds: string[]): P
 // ============ SHARE LINKS ============
 
 export async function createShareLink(
+  userId: string,
   type: "list" | "project",
   targetId: string,
   expiresInDays?: number
@@ -260,7 +275,14 @@ export async function createShareLink(
   const expiresAt = expiresInDays
     ? new Date(now.getTime() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
     : undefined;
-  const shareLink: ShareLink = { code, type, targetId, createdAt: now.toISOString(), expiresAt };
+  const shareLink: ShareLink = {
+    code,
+    userId,
+    type,
+    targetId,
+    createdAt: now.toISOString(),
+    expiresAt,
+  };
   store.shareLinks.set(code, shareLink);
   return shareLink;
 }
@@ -274,6 +296,34 @@ export async function getShareLink(code: string): Promise<ShareLink | null> {
 
 export async function deleteShareLink(code: string): Promise<void> {
   store.shareLinks.delete(code);
+}
+
+export async function listUserShares(userId: string): Promise<ShareLink[]> {
+  const shares: ShareLink[] = [];
+  const now = new Date();
+  store.shareLinks.forEach((share) => {
+    if (share.userId !== userId) return;
+    if (share.expiresAt && new Date(share.expiresAt) < now) return;
+    shares.push(share);
+  });
+  return shares.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+export async function deleteSharesForTarget(
+  userId: string,
+  type: "list" | "project",
+  targetId: string
+): Promise<number> {
+  let deleted = 0;
+  store.shareLinks.forEach((share, code) => {
+    if (share.userId === userId && share.type === type && share.targetId === targetId) {
+      store.shareLinks.delete(code);
+      deleted++;
+    }
+  });
+  return deleted;
 }
 
 // Helper to find list by ID (for share functionality)
