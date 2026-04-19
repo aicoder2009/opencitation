@@ -1329,7 +1329,7 @@ function CitePageContent() {
                           More...
                         </WikiButton>
                       </summary>
-                      <div className="absolute z-10 mt-1 bg-white border border-wiki-border-light shadow-lg p-2 flex flex-col gap-1">
+                      <div className="absolute z-10 mt-1 bg-wiki-white border border-wiki-border-light shadow-lg p-2 flex flex-col gap-1">
                         {SOURCE_TYPES.slice(6).map((type) => (
                           <WikiButton
                             key={type.value}
@@ -1451,7 +1451,7 @@ function CitePageContent() {
           {/* Add to List Modal */}
           {showListModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white border border-wiki-border-light max-w-md w-full mx-4 shadow-lg">
+              <div className="bg-wiki-white border border-wiki-border-light max-w-md w-full mx-4 shadow-lg">
                 <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
                   <h3 className="font-bold">Add to List</h3>
                   <button
@@ -1644,7 +1644,7 @@ https://another-site.com/paper"
           {/* Duplicate Warning Modal */}
           {showDuplicateWarning && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white border border-wiki-border-light max-w-sm w-full mx-4 shadow-lg">
+              <div className="bg-wiki-white border border-wiki-border-light max-w-sm w-full mx-4 shadow-lg">
                 <div className="p-4 border-b border-wiki-border-light">
                   <h3 className="font-bold text-amber-700">Possible Duplicate</h3>
                 </div>

@@ -706,7 +706,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                     className={`px-2 py-0.5 text-xs border ${
                       filterTag === null
                         ? "bg-wiki-link text-white border-wiki-link"
-                        : "bg-white text-wiki-text border-wiki-border-light hover:border-wiki-link"
+                        : "bg-wiki-white text-wiki-text border-wiki-border-light hover:border-wiki-link"
                     }`}
                   >
                     All
