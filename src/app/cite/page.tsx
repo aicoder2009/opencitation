@@ -9,6 +9,7 @@ import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { TemplatePicker } from "@/components/wiki/template-picker";
+import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS } from "@/lib/citation/exporters";
@@ -242,6 +243,7 @@ function CitePageContent() {
   const [selectedSourceType, setSelectedSourceType] = useState<SourceType>("website");
   const [selectedAccessType, setSelectedAccessType] = useState<AccessType>("web");
   const [quickAddInput, setQuickAddInput] = useState("");
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [generatedCitation, setGeneratedCitation] = useState<{ text: string; html: string } | null>(null);
   const [citationFields, setCitationFields] = useState<CitationFields | null>(null);
@@ -353,8 +355,9 @@ function CitePageContent() {
     });
   };
 
-  const handleQuickAdd = async () => {
-    if (!quickAddInput.trim()) {
+  const handleQuickAdd = async (override?: string) => {
+    const rawInput = override ?? quickAddInput;
+    if (!rawInput.trim()) {
       setError("Please enter a URL, DOI, or ISBN");
       return;
     }
@@ -363,7 +366,7 @@ function CitePageContent() {
     setError(null);
 
     try {
-      const input = quickAddInput.trim();
+      const input = rawInput.trim();
       let apiEndpoint: string;
       let body: object;
 
@@ -2059,6 +2062,13 @@ function CitePageContent() {
                     placeholder="https://example.com/article or 10.1000/xyz123 or 978-3-16-148410-0"
                     className="w-full"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowBarcodeScanner(true)}
+                    className="mt-1 text-wiki-link text-xs hover:underline"
+                  >
+                    [scan ISBN barcode with camera]
+                  </button>
                 </div>
 
                 <div>
@@ -2086,7 +2096,7 @@ function CitePageContent() {
 
                 <WikiButton
                   variant="primary"
-                  onClick={handleQuickAdd}
+                  onClick={() => handleQuickAdd()}
                   disabled={isLoading}
                 >
                   {isLoading ? "Loading..." : "Generate Citation"}
@@ -2614,6 +2624,16 @@ https://another-site.com/paper"
           )}
         </div>
       </div>
+      {showBarcodeScanner && (
+        <BarcodeScanner
+          onDetect={(isbn) => {
+            setShowBarcodeScanner(false);
+            setQuickAddInput(isbn);
+            handleQuickAdd(isbn);
+          }}
+          onClose={() => setShowBarcodeScanner(false)}
+        />
+      )}
     </WikiLayout>
   );
 }
