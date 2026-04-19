@@ -51,7 +51,7 @@ interface CitationFields {
   sourceType?: SourceType;
   accessType?: AccessType;
   title?: string;
-  authors?: Array<{ firstName?: string; lastName: string }>;
+  authors?: Array<{ firstName?: string; middleName?: string; lastName: string }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
