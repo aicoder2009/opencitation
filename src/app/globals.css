@@ -31,19 +31,19 @@
   --width-content: 800px;
 }
 
-/* Dark Mode Colors - Early 2000s CRT aesthetic */
+/* Dark Mode Colors - Wikipedia Vector 2022 palette */
 .dark {
-  --color-wiki-white: #1a1a2e;
-  --color-wiki-offwhite: #16213e;
-  --color-wiki-border: #4a4a6a;
-  --color-wiki-border-light: #3a3a5a;
-  --color-wiki-link: #6db3f2;
-  --color-wiki-link-hover: #8ec5f6;
-  --color-wiki-link-visited: #a78bfa;
+  --color-wiki-white: #101418;
+  --color-wiki-offwhite: #202122;
+  --color-wiki-border: #72777d;
+  --color-wiki-border-light: #54595d;
+  --color-wiki-link: #88a4d8;
+  --color-wiki-link-hover: #a3b8e5;
+  --color-wiki-link-visited: #b18fcf;
   --color-wiki-link-active: #f87171;
-  --color-wiki-tab-bg: #1f2041;
-  --color-wiki-text: #e2e8f0;
-  --color-wiki-text-muted: #94a3b8;
+  --color-wiki-tab-bg: #27292d;
+  --color-wiki-text: #eaecf0;
+  --color-wiki-text-muted: #a2a9b1;
 }
 
 /* Base styles */
