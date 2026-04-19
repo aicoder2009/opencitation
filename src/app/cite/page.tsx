@@ -12,6 +12,7 @@ import { TemplatePicker } from "@/components/wiki/template-picker";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS } from "@/lib/citation/exporters";
+import { parseBibTeX } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
 
@@ -266,6 +267,11 @@ function CitePageContent() {
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
 
+  // Paste BibTeX state
+  const [bibtexInput, setBibtexInput] = useState("");
+  const [bibtexError, setBibtexError] = useState<string | null>(null);
+  const [isBibtexLoading, setIsBibtexLoading] = useState(false);
+
   // Research lookup state
   const [researchInput, setResearchInput] = useState("");
   const [researchType, setResearchType] = useState<"pmid" | "arxiv" | "wikipedia">("pmid");
@@ -403,6 +409,40 @@ function CitePageContent() {
       console.error(err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleBibtexImport = () => {
+    setBibtexError(null);
+    if (!bibtexInput.trim()) {
+      setBibtexError("Paste a BibTeX entry first.");
+      return;
+    }
+
+    setIsBibtexLoading(true);
+    try {
+      const result = parseBibTeX(bibtexInput);
+      if (!result) {
+        setBibtexError("Could not parse this BibTeX entry. Check the syntax.");
+        return;
+      }
+      const { fields } = result;
+      setSelectedSourceType(fields.sourceType);
+      if (fields.accessType) {
+        setSelectedAccessType(fields.accessType);
+      }
+      const formatted = formatCitation(fields, selectedStyle);
+      setCitationFields(fields);
+      setGeneratedCitation(formatted);
+      setAddToListSuccess(null);
+
+      saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+      fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
+    } catch (err) {
+      console.error(err);
+      setBibtexError("Failed to parse BibTeX entry.");
+    } finally {
+      setIsBibtexLoading(false);
     }
   };
 
@@ -1930,6 +1970,7 @@ function CitePageContent() {
           tabs={[
             { id: "quick-add", label: "Quick Add", active: activeTab === "quick-add" },
             { id: "research-lookup", label: "Research Lookup", active: activeTab === "research-lookup" },
+            { id: "paste-bibtex", label: "Paste BibTeX", active: activeTab === "paste-bibtex" },
             { id: "manual", label: "Manual Entry", active: activeTab === "manual" },
             { id: "bulk-import", label: "Bulk Import", active: activeTab === "bulk-import" },
           ]}
@@ -2081,6 +2122,56 @@ function CitePageContent() {
                 >
                   {isResearchLoading ? "Looking up..." : "Generate Citation"}
                 </WikiButton>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "paste-bibtex" && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">Paste BibTeX</h2>
+              <p className="mb-4 text-sm text-wiki-text-muted">
+                Paste a BibTeX entry (e.g. from Google Scholar or the ACL Anthology). We detect the source type, parse authors, editors, pages, and more. Pick a style below and generate.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    BibTeX entry
+                  </label>
+                  <textarea
+                    value={bibtexInput}
+                    onChange={(e) => setBibtexInput(e.target.value)}
+                    placeholder={`@inproceedings{smith2024,\n  title = {Example Title},\n  author = {Smith, Jane A. and Doe, John},\n  booktitle = {Proceedings of X},\n  year = {2024},\n  pages = {1--10}\n}`}
+                    rows={12}
+                    className="w-full font-mono text-sm"
+                  />
+                </div>
+
+                {bibtexError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {bibtexError}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <WikiButton
+                    variant="primary"
+                    onClick={handleBibtexImport}
+                    disabled={isBibtexLoading || !bibtexInput.trim()}
+                  >
+                    {isBibtexLoading ? "Parsing..." : "Generate Citation"}
+                  </WikiButton>
+                  {bibtexInput && (
+                    <WikiButton
+                      onClick={() => {
+                        setBibtexInput("");
+                        setBibtexError(null);
+                      }}
+                    >
+                      Clear
+                    </WikiButton>
+                  )}
+                </div>
               </div>
             </div>
           )}

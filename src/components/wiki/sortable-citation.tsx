@@ -9,7 +9,7 @@ import type { CitationFields as FullCitationFields, CitationStyle } from "@/type
 
 interface CitationFields {
   title?: string;
-  authors?: Array<{ firstName?: string; lastName: string }>;
+  authors?: Array<{ firstName?: string; middleName?: string; lastName: string }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
