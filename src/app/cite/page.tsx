@@ -12,6 +12,7 @@ import { TemplatePicker } from "@/components/wiki/template-picker";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS } from "@/lib/citation/exporters";
+import { recordCitationSave } from "@/lib/barnstar";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
 
 interface List {
@@ -711,6 +712,7 @@ function CitePageContent() {
         setShowListModal(false);
         setShowDuplicateWarning(false);
         setPendingListId(null);
+        recordCitationSave();
       } else {
         setError(result.error || "Failed to add citation");
       }
@@ -781,6 +783,7 @@ function CitePageContent() {
         setNewListName("");
         // Add the new list to our local state so it appears next time
         setLists((prev) => [newList, ...prev]);
+        recordCitationSave();
       } else {
         setError(addCitationResult.error || "Failed to add citation to new list");
       }
