@@ -441,6 +441,32 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     })
   );
 
+  const sortKey = (c: Citation): string => {
+    const lastName = c.fields?.authors?.[0]?.lastName;
+    if (lastName) return lastName.toLowerCase();
+    const title = c.fields?.title;
+    if (typeof title === "string" && title) return title.toLowerCase();
+    return c.formattedText.toLowerCase();
+  };
+
+  const handleAlphabetize = async () => {
+    const sorted = [...citations].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+    const previous = citations;
+    setCitations(sorted);
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/reorder`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ citationIds: sorted.map((c) => c.id) }),
+      });
+      if (!response.ok) throw new Error("Failed to save order");
+    } catch (err) {
+      console.error("Failed to save order:", err);
+      setCitations(previous);
+      setError("Failed to save sorted order");
+    }
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -778,6 +804,13 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <div className="flex flex-wrap gap-3">
                 <WikiButton onClick={copyAllCitations}>
                   Copy All
+                </WikiButton>
+                <WikiButton
+                  onClick={handleAlphabetize}
+                  disabled={citations.length < 2}
+                  title="Sort citations alphabetically by author (or title)"
+                >
+                  Sort A–Z
                 </WikiButton>
                 <WikiButton onClick={() => setShowPrintAnimation(true)}>
                   Print
