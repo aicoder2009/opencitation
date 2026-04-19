@@ -99,6 +99,7 @@ export function suggestTemplateName(
 
   const sourceNames: Record<SourceType, string> = {
     book: "Book Template",
+    "book-chapter": "Book Chapter Template",
     journal: "Journal Template",
     website: "Website Template",
     blog: "Blog Template",
@@ -108,6 +109,22 @@ export function suggestTemplateName(
     film: "Film Template",
     "tv-series": "TV Series Template",
     "tv-episode": "TV Episode Template",
+    song: "Song Template",
+    album: "Album Template",
+    "podcast-episode": "Podcast Template",
+    "video-game": "Video Game Template",
+    artwork: "Artwork Template",
+    thesis: "Thesis Template",
+    "conference-paper": "Conference Paper Template",
+    dataset: "Dataset Template",
+    software: "Software Template",
+    preprint: "Preprint Template",
+    "social-media": "Social Media Template",
+    "ai-generated": "AI Chat Template",
+    interview: "Interview Template",
+    "government-report": "Report Template",
+    "legal-case": "Legal Case Template",
+    encyclopedia: "Encyclopedia Template",
     miscellaneous: "Custom Template",
   };
 

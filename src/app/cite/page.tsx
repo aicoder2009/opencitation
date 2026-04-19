@@ -22,6 +22,7 @@ interface List {
 
 const SOURCE_TYPES: { value: SourceType; label: string }[] = [
   { value: "book", label: "Book" },
+  { value: "book-chapter", label: "Book Chapter" },
   { value: "journal", label: "Journal" },
   { value: "website", label: "Website" },
   { value: "blog", label: "Blog" },
@@ -31,6 +32,22 @@ const SOURCE_TYPES: { value: SourceType; label: string }[] = [
   { value: "film", label: "Film" },
   { value: "tv-series", label: "TV Series" },
   { value: "tv-episode", label: "TV Episode" },
+  { value: "song", label: "Song" },
+  { value: "album", label: "Album" },
+  { value: "podcast-episode", label: "Podcast Episode" },
+  { value: "video-game", label: "Video Game" },
+  { value: "artwork", label: "Artwork" },
+  { value: "thesis", label: "Thesis / Dissertation" },
+  { value: "conference-paper", label: "Conference Paper" },
+  { value: "dataset", label: "Dataset" },
+  { value: "software", label: "Software / Code" },
+  { value: "preprint", label: "Preprint" },
+  { value: "social-media", label: "Social Media" },
+  { value: "ai-generated", label: "AI-Generated" },
+  { value: "interview", label: "Interview" },
+  { value: "government-report", label: "Government Report" },
+  { value: "legal-case", label: "Legal Case" },
+  { value: "encyclopedia", label: "Encyclopedia" },
   { value: "miscellaneous", label: "Miscellaneous" },
 ];
 
@@ -106,6 +123,51 @@ interface FormData {
   // Video specific
   channelName: string;
   platform: string;
+  // Song / album
+  album: string;
+  label: string;
+  // Podcast
+  showName: string;
+  // Video game
+  studio: string;
+  // Artwork
+  medium: string;
+  museum: string;
+  city: string;
+  // Thesis
+  institution: string;
+  degree: string;
+  department: string;
+  // Conference paper
+  conferenceName: string;
+  conferenceLocation: string;
+  proceedingsTitle: string;
+  // Book chapter
+  bookTitle: string;
+  // Dataset / software / preprint
+  repository: string;
+  version: string;
+  preprintId: string;
+  license: string;
+  // Encyclopedia
+  encyclopediaTitle: string;
+  // Social media
+  handle: string;
+  postType: string;
+  // AI-generated
+  modelName: string;
+  modelVersion: string;
+  company: string;
+  prompt: string;
+  // Interview
+  interviewType: string;
+  source: string;
+  // Government report
+  agency: string;
+  reportNumber: string;
+  // Legal case
+  court: string;
+  citationNumber: string;
 }
 
 const initialFormData: FormData = {
@@ -126,6 +188,37 @@ const initialFormData: FormData = {
   siteName: "",
   channelName: "",
   platform: "",
+  album: "",
+  label: "",
+  showName: "",
+  studio: "",
+  medium: "",
+  museum: "",
+  city: "",
+  institution: "",
+  degree: "",
+  department: "",
+  conferenceName: "",
+  conferenceLocation: "",
+  proceedingsTitle: "",
+  bookTitle: "",
+  repository: "",
+  version: "",
+  preprintId: "",
+  license: "",
+  encyclopediaTitle: "",
+  handle: "",
+  postType: "",
+  modelName: "",
+  modelVersion: "",
+  company: "",
+  prompt: "",
+  interviewType: "",
+  source: "",
+  agency: "",
+  reportNumber: "",
+  court: "",
+  citationNumber: "",
 };
 
 function CitePageContent() {
@@ -212,9 +305,16 @@ function CitePageContent() {
       let body: object;
 
       // Detect input type
+      const arxivBareMatch = input.match(/^(?:arxiv:)?(\d{4}\.\d{4,5}(?:v\d+)?)$/i);
+      const arxivOldMatch = input.match(/^(?:arxiv:)?([a-z-]+\/\d{7}(?:v\d+)?)$/i);
+
       if (input.match(/^(https?:\/\/|www\.)/i)) {
         apiEndpoint = "/api/lookup/url";
         body = { url: input };
+      } else if (arxivBareMatch || arxivOldMatch) {
+        apiEndpoint = "/api/lookup/arxiv";
+        const arxivMatch = arxivBareMatch || arxivOldMatch;
+        body = { arxivId: arxivMatch ? arxivMatch[1] : input };
       } else if (input.match(/^10\.\d{4,}/)) {
         apiEndpoint = "/api/lookup/doi";
         body = { doi: input };
@@ -222,7 +322,7 @@ function CitePageContent() {
         apiEndpoint = "/api/lookup/isbn";
         body = { isbn: input.replace(/[-\s]/g, "") };
       } else {
-        setError("Could not detect input type. Please enter a valid URL, DOI, or ISBN.");
+        setError("Could not detect input type. Please enter a URL, DOI, ISBN, or arXiv ID.");
         setIsLoading(false);
         return;
       }
@@ -241,9 +341,20 @@ function CitePageContent() {
         return;
       }
 
-      // Map API response to form data and generate citation
+      // Map API response to form data and generate citation.
+      // If the lookup auto-detected a source type (arXiv→preprint, YouTube→video,
+      // etc.), honor that; otherwise keep whatever the user had selected.
       const {data} = result;
-      const fields = buildCitationFields(data, selectedSourceType, selectedAccessType);
+      const autoType = apiEndpoint === "/api/lookup/arxiv"
+        ? ("preprint" as SourceType)
+        : (data.suggestedSourceType as SourceType | undefined);
+      const effectiveType: SourceType = autoType && SOURCE_TYPES.some(s => s.value === autoType)
+        ? autoType
+        : selectedSourceType;
+      if (autoType && autoType !== selectedSourceType) {
+        setSelectedSourceType(effectiveType);
+      }
+      const fields = buildCitationFields(data, effectiveType, selectedAccessType);
       const formatted = formatCitation(fields, selectedStyle);
       setCitationFields(fields);
       setGeneratedCitation(formatted);
@@ -489,12 +600,99 @@ function CitePageContent() {
           sourceType: "website" as const,
           siteName: (data.siteName as string) || undefined,
         };
+      case "blog":
+        return {
+          ...baseFields,
+          sourceType: "blog" as const,
+          blogName: (data.siteName as string) || "Unknown Blog",
+        };
+      case "newspaper":
+        return {
+          ...baseFields,
+          sourceType: "newspaper" as const,
+          newspaperTitle: (data.siteName as string) || "Unknown Newspaper",
+        };
       case "book":
         return {
           ...baseFields,
           sourceType: "book" as const,
           isbn: data.isbn as string | undefined,
           edition: data.edition as string | undefined,
+        };
+      case "preprint":
+        return {
+          ...baseFields,
+          sourceType: "preprint" as const,
+          repository: (data.repository as string) || "arXiv",
+          preprintId: data.preprintId as string | undefined,
+        };
+      case "video":
+        return {
+          ...baseFields,
+          sourceType: "video" as const,
+          channelName: (data.channelName as string) || (data.siteName as string) || undefined,
+          platform: data.platform as string | undefined,
+        };
+      case "social-media": {
+        const post = data.postType as string | undefined;
+        const isKnownPost = post === "post" || post === "tweet" || post === "reel" || post === "story" || post === "comment";
+        return {
+          ...baseFields,
+          sourceType: "social-media" as const,
+          platform: data.platform as string | undefined,
+          handle: data.handle as string | undefined,
+          postType: isKnownPost ? (post as "post" | "tweet" | "reel" | "story" | "comment") : undefined,
+        };
+      }
+      case "ai-generated":
+        return {
+          ...baseFields,
+          sourceType: "ai-generated" as const,
+          company: data.company as string | undefined,
+          modelName: data.modelName as string | undefined,
+        };
+      case "song":
+        return {
+          ...baseFields,
+          sourceType: "song" as const,
+          album: data.album as string | undefined,
+          label: data.label as string | undefined,
+        };
+      case "album":
+        return {
+          ...baseFields,
+          sourceType: "album" as const,
+          label: data.label as string | undefined,
+        };
+      case "podcast-episode":
+        return {
+          ...baseFields,
+          sourceType: "podcast-episode" as const,
+          showName: (data.showName as string) || (data.siteName as string) || "Unknown Show",
+        };
+      case "dataset":
+        return {
+          ...baseFields,
+          sourceType: "dataset" as const,
+          repository: data.repository as string | undefined,
+        };
+      case "software":
+        return {
+          ...baseFields,
+          sourceType: "software" as const,
+          repository: data.repository as string | undefined,
+        };
+      case "video-game":
+        return {
+          ...baseFields,
+          sourceType: "video-game" as const,
+          platform: data.platform as string | undefined,
+        };
+      case "encyclopedia":
+        return {
+          ...baseFields,
+          sourceType: "encyclopedia" as const,
+          encyclopediaTitle: (data.encyclopediaTitle as string) || (data.siteName as string) || "Encyclopedia",
         };
       default:
         return {
@@ -565,6 +763,138 @@ function CitePageContent() {
         return {
           ...baseFields,
           sourceType: "book" as const,
+        };
+      case "song":
+        return {
+          ...baseFields,
+          sourceType: "song" as const,
+          album: formData.album || undefined,
+          label: formData.label || undefined,
+          performers: baseFields.authors,
+        };
+      case "album":
+        return {
+          ...baseFields,
+          sourceType: "album" as const,
+          label: formData.label || undefined,
+          performers: baseFields.authors,
+        };
+      case "podcast-episode":
+        return {
+          ...baseFields,
+          sourceType: "podcast-episode" as const,
+          showName: formData.showName || "Unknown Show",
+          host: baseFields.authors,
+        };
+      case "video-game":
+        return {
+          ...baseFields,
+          sourceType: "video-game" as const,
+          studio: formData.studio || undefined,
+          platform: formData.platform || undefined,
+          version: formData.version || undefined,
+        };
+      case "artwork":
+        return {
+          ...baseFields,
+          sourceType: "artwork" as const,
+          medium: formData.medium || undefined,
+          museum: formData.museum || undefined,
+          city: formData.city || undefined,
+          artists: baseFields.authors,
+        };
+      case "thesis":
+        return {
+          ...baseFields,
+          sourceType: "thesis" as const,
+          institution: formData.institution || "Unknown Institution",
+          degree: (formData.degree as "doctoral" | "masters" | "bachelors") || undefined,
+          department: formData.department || undefined,
+        };
+      case "conference-paper":
+        return {
+          ...baseFields,
+          sourceType: "conference-paper" as const,
+          conferenceName: formData.conferenceName || "Unknown Conference",
+          conferenceLocation: formData.conferenceLocation || undefined,
+          proceedingsTitle: formData.proceedingsTitle || undefined,
+          pageRange: formData.pages || undefined,
+        };
+      case "book-chapter":
+        return {
+          ...baseFields,
+          sourceType: "book-chapter" as const,
+          bookTitle: formData.bookTitle || "Unknown Book",
+          pageRange: formData.pages || undefined,
+        };
+      case "dataset":
+        return {
+          ...baseFields,
+          sourceType: "dataset" as const,
+          version: formData.version || undefined,
+          repository: formData.repository || undefined,
+        };
+      case "software":
+        return {
+          ...baseFields,
+          sourceType: "software" as const,
+          version: formData.version || undefined,
+          repository: formData.repository || undefined,
+          license: formData.license || undefined,
+        };
+      case "preprint":
+        return {
+          ...baseFields,
+          sourceType: "preprint" as const,
+          repository: formData.repository || undefined,
+          preprintId: formData.preprintId || undefined,
+          version: formData.version || undefined,
+        };
+      case "social-media":
+        return {
+          ...baseFields,
+          sourceType: "social-media" as const,
+          platform: formData.platform || undefined,
+          handle: formData.handle || undefined,
+          postType: (formData.postType as "post" | "tweet" | "reel" | "story" | "comment") || undefined,
+        };
+      case "ai-generated":
+        return {
+          ...baseFields,
+          sourceType: "ai-generated" as const,
+          modelName: formData.modelName || undefined,
+          modelVersion: formData.modelVersion || undefined,
+          company: formData.company || undefined,
+          prompt: formData.prompt || undefined,
+        };
+      case "interview":
+        return {
+          ...baseFields,
+          sourceType: "interview" as const,
+          interviewee: baseFields.authors,
+          interviewType: (formData.interviewType as "personal" | "published" | "broadcast") || undefined,
+          source: formData.source || undefined,
+        };
+      case "government-report":
+        return {
+          ...baseFields,
+          sourceType: "government-report" as const,
+          agency: formData.agency || undefined,
+          reportNumber: formData.reportNumber || undefined,
+        };
+      case "legal-case":
+        return {
+          ...baseFields,
+          sourceType: "legal-case" as const,
+          court: formData.court || undefined,
+          citationNumber: formData.citationNumber || undefined,
+        };
+      case "encyclopedia":
+        return {
+          ...baseFields,
+          sourceType: "encyclopedia" as const,
+          encyclopediaTitle: formData.encyclopediaTitle || "Unknown Encyclopedia",
+          pageRange: formData.pages || undefined,
         };
       default:
         return {
@@ -1067,6 +1397,382 @@ function CitePageContent() {
                 placeholder="https://youtube.com/watch?v=..."
                 className="w-full"
               />
+            </div>
+          </>
+        );
+
+      case "song":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Album</label>
+              <input type="text" value={formData.album} onChange={(e) => updateFormData("album", e.target.value)} placeholder="Album title" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Label</label>
+              <input type="text" value={formData.label} onChange={(e) => updateFormData("label", e.target.value)} placeholder="Record label" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://open.spotify.com/track/..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "album":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Label</label>
+              <input type="text" value={formData.label} onChange={(e) => updateFormData("label", e.target.value)} placeholder="Record label" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://open.spotify.com/album/..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "podcast-episode":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Show Name *</label>
+              <input type="text" value={formData.showName} onChange={(e) => updateFormData("showName", e.target.value)} placeholder="Podcast show name" className="w-full" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "video-game":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Studio</label>
+                <input type="text" value={formData.studio} onChange={(e) => updateFormData("studio", e.target.value)} placeholder="Development studio" className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Platform</label>
+                <input type="text" value={formData.platform} onChange={(e) => updateFormData("platform", e.target.value)} placeholder="PC, PS5, Switch, etc." className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Version</label>
+              <input type="text" value={formData.version} onChange={(e) => updateFormData("version", e.target.value)} placeholder="1.0.0" className="w-full" />
+            </div>
+          </>
+        );
+
+      case "artwork":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Medium</label>
+                <input type="text" value={formData.medium} onChange={(e) => updateFormData("medium", e.target.value)} placeholder="Oil on canvas, sculpture..." className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Museum / Collection</label>
+                <input type="text" value={formData.museum} onChange={(e) => updateFormData("museum", e.target.value)} placeholder="MoMA, Louvre..." className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">City</label>
+              <input type="text" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} placeholder="New York, Paris..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "thesis":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Institution *</label>
+              <input type="text" value={formData.institution} onChange={(e) => updateFormData("institution", e.target.value)} placeholder="University name" className="w-full" required />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Degree</label>
+                <select value={formData.degree} onChange={(e) => updateFormData("degree", e.target.value)} className="w-full">
+                  <option value="">Select…</option>
+                  <option value="doctoral">Doctoral</option>
+                  <option value="masters">Master&apos;s</option>
+                  <option value="bachelors">Bachelor&apos;s</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Department</label>
+                <input type="text" value={formData.department} onChange={(e) => updateFormData("department", e.target.value)} placeholder="Computer Science" className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "conference-paper":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Conference Name *</label>
+              <input type="text" value={formData.conferenceName} onChange={(e) => updateFormData("conferenceName", e.target.value)} placeholder="NeurIPS 2024" className="w-full" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Conference Location</label>
+              <input type="text" value={formData.conferenceLocation} onChange={(e) => updateFormData("conferenceLocation", e.target.value)} placeholder="Vancouver, Canada" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Proceedings Title</label>
+              <input type="text" value={formData.proceedingsTitle} onChange={(e) => updateFormData("proceedingsTitle", e.target.value)} placeholder="Proceedings of…" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Pages</label>
+              <input type="text" value={formData.pages} onChange={(e) => updateFormData("pages", e.target.value)} placeholder="123-145" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">DOI</label>
+              <input type="text" value={formData.doi} onChange={(e) => updateFormData("doi", e.target.value)} placeholder="10.1000/xyz123" className="w-full" />
+            </div>
+          </>
+        );
+
+      case "book-chapter":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Book Title *</label>
+              <input type="text" value={formData.bookTitle} onChange={(e) => updateFormData("bookTitle", e.target.value)} placeholder="Title of the edited book" className="w-full" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Publisher</label>
+              <input type="text" value={formData.publisher} onChange={(e) => updateFormData("publisher", e.target.value)} placeholder="Publisher name" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Pages</label>
+              <input type="text" value={formData.pages} onChange={(e) => updateFormData("pages", e.target.value)} placeholder="123-145" className="w-full" />
+            </div>
+          </>
+        );
+
+      case "dataset":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Repository</label>
+                <input type="text" value={formData.repository} onChange={(e) => updateFormData("repository", e.target.value)} placeholder="Zenodo, Dryad, Figshare" className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Version</label>
+                <input type="text" value={formData.version} onChange={(e) => updateFormData("version", e.target.value)} placeholder="1.0.0" className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">DOI</label>
+              <input type="text" value={formData.doi} onChange={(e) => updateFormData("doi", e.target.value)} placeholder="10.5281/zenodo..." className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "software":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Repository</label>
+                <input type="text" value={formData.repository} onChange={(e) => updateFormData("repository", e.target.value)} placeholder="GitHub, GitLab" className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Version</label>
+                <input type="text" value={formData.version} onChange={(e) => updateFormData("version", e.target.value)} placeholder="1.0.0" className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">License</label>
+              <input type="text" value={formData.license} onChange={(e) => updateFormData("license", e.target.value)} placeholder="MIT, Apache 2.0" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://github.com/..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "preprint":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Repository</label>
+                <input type="text" value={formData.repository} onChange={(e) => updateFormData("repository", e.target.value)} placeholder="arXiv, bioRxiv" className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Preprint ID</label>
+                <input type="text" value={formData.preprintId} onChange={(e) => updateFormData("preprintId", e.target.value)} placeholder="2401.12345" className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">DOI</label>
+              <input type="text" value={formData.doi} onChange={(e) => updateFormData("doi", e.target.value)} placeholder="10.48550/arXiv..." className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://arxiv.org/abs/..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "social-media":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Platform</label>
+                <input type="text" value={formData.platform} onChange={(e) => updateFormData("platform", e.target.value)} placeholder="Twitter, Instagram, TikTok" className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Handle</label>
+                <input type="text" value={formData.handle} onChange={(e) => updateFormData("handle", e.target.value)} placeholder="@username" className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Post Type</label>
+              <select value={formData.postType} onChange={(e) => updateFormData("postType", e.target.value)} className="w-full">
+                <option value="">Select…</option>
+                <option value="post">Post</option>
+                <option value="tweet">Tweet</option>
+                <option value="reel">Reel</option>
+                <option value="story">Story</option>
+                <option value="comment">Comment</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "ai-generated":
+        return (
+          <>
+            {commonFields}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Model Name</label>
+                <input type="text" value={formData.modelName} onChange={(e) => updateFormData("modelName", e.target.value)} placeholder="ChatGPT, Claude, Gemini" className="w-full" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Version</label>
+                <input type="text" value={formData.modelVersion} onChange={(e) => updateFormData("modelVersion", e.target.value)} placeholder="4, 3.5, etc." className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Company</label>
+              <input type="text" value={formData.company} onChange={(e) => updateFormData("company", e.target.value)} placeholder="OpenAI, Anthropic, Google" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Prompt</label>
+              <input type="text" value={formData.prompt} onChange={(e) => updateFormData("prompt", e.target.value)} placeholder="The prompt that generated the response" className="w-full" />
+            </div>
+          </>
+        );
+
+      case "interview":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Interview Type</label>
+              <select value={formData.interviewType} onChange={(e) => updateFormData("interviewType", e.target.value)} className="w-full">
+                <option value="">Select…</option>
+                <option value="personal">Personal</option>
+                <option value="published">Published</option>
+                <option value="broadcast">Broadcast</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Source</label>
+              <input type="text" value={formData.source} onChange={(e) => updateFormData("source", e.target.value)} placeholder="Publication or broadcast source" className="w-full" />
+            </div>
+          </>
+        );
+
+      case "government-report":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Agency</label>
+              <input type="text" value={formData.agency} onChange={(e) => updateFormData("agency", e.target.value)} placeholder="U.S. Department of…" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Report Number</label>
+              <input type="text" value={formData.reportNumber} onChange={(e) => updateFormData("reportNumber", e.target.value)} placeholder="Report No. GAO-24-123" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
+            </div>
+          </>
+        );
+
+      case "legal-case":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Court</label>
+              <input type="text" value={formData.court} onChange={(e) => updateFormData("court", e.target.value)} placeholder="U.S. Supreme Court" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Citation Number</label>
+              <input type="text" value={formData.citationNumber} onChange={(e) => updateFormData("citationNumber", e.target.value)} placeholder="347 U.S. 483" className="w-full" />
+            </div>
+          </>
+        );
+
+      case "encyclopedia":
+        return (
+          <>
+            {commonFields}
+            <div>
+              <label className="block text-sm font-medium mb-1">Encyclopedia Title *</label>
+              <input type="text" value={formData.encyclopediaTitle} onChange={(e) => updateFormData("encyclopediaTitle", e.target.value)} placeholder="Encyclopedia Britannica" className="w-full" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Publisher</label>
+              <input type="text" value={formData.publisher} onChange={(e) => updateFormData("publisher", e.target.value)} placeholder="Publisher name" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Pages</label>
+              <input type="text" value={formData.pages} onChange={(e) => updateFormData("pages", e.target.value)} placeholder="123-145" className="w-full" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">URL</label>
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
             </div>
           </>
         );

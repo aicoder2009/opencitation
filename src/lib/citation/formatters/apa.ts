@@ -28,6 +28,7 @@ import {
   italic,
   toSentenceCase,
 } from '../utils';
+import { formatGeneric } from './generic';
 
 /**
  * Format a citation in APA 7th style
@@ -56,6 +57,24 @@ export function formatAPA(fields: CitationFields): FormattedCitation {
       return formatTVEpisode(fields);
     case 'miscellaneous':
       return formatMiscellaneous(fields);
+    case 'song':
+    case 'album':
+    case 'podcast-episode':
+    case 'video-game':
+    case 'artwork':
+    case 'thesis':
+    case 'conference-paper':
+    case 'book-chapter':
+    case 'dataset':
+    case 'software':
+    case 'preprint':
+    case 'social-media':
+    case 'ai-generated':
+    case 'interview':
+    case 'government-report':
+    case 'legal-case':
+    case 'encyclopedia':
+      return formatGeneric(fields, 'apa');
     default:
       return { text: '', html: '' };
   }
