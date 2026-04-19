@@ -90,7 +90,7 @@ export default function Dashboard() {
           </p>
 
           {/* Welcome box - 2000s Wikipedia portal style */}
-          <div className="border border-[#a7d7f9] bg-[#f5faff] p-4 mb-6">
+          <div className="border border-[#a7d7f9] bg-[#f5faff] dark:border-wiki-border-light dark:bg-wiki-offwhite p-4 mb-6">
             <SignedOut>
               <div className="text-center mb-3">
                 <span className="text-lg font-bold">Welcome to OpenCitation</span>

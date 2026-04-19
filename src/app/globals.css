@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Wikipedia 2005 Era Design System */
 @theme {
   /* Color Palette - Wikipedia 2005 Era (Light Mode) */
