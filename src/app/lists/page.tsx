@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { pickFactoid } from "@/lib/did-you-know";
 
 interface List {
   id: string;
@@ -24,6 +25,11 @@ export default function ListsPage() {
   const [newListName, setNewListName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [factoid, setFactoid] = useState<string>("");
+
+  useEffect(() => {
+    setFactoid(pickFactoid());
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -201,6 +207,19 @@ export default function ListsPage() {
               <WikiButton variant="primary" onClick={() => setShowCreateForm(true)}>
                 Create Your First List
               </WikiButton>
+              {factoid && (
+                <div className="mt-8 mx-auto max-w-lg border border-wiki-border-light bg-wiki-offwhite p-4 text-left text-sm">
+                  <div className="font-bold mb-1 text-wiki-text">Did you know...</div>
+                  <p className="text-wiki-text-muted italic">{factoid}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFactoid(pickFactoid())}
+                    className="mt-2 text-xs text-wiki-link hover:underline"
+                  >
+                    [another fact]
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <table className="w-full text-sm">

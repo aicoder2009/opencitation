@@ -35,6 +35,7 @@ import {
   toCSLJSON,
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
+import { pickFactoid } from "@/lib/did-you-know";
 import type { SourceType, AccessType, CitationFields as FullCitationFields, CitationStyle } from "@/types";
 import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
 
@@ -95,6 +96,11 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(null);
   const [reformatTarget, setReformatTarget] = useState<CitationStyle>("apa");
   const [isReformatting, setIsReformatting] = useState(false);
+  const [factoid, setFactoid] = useState<string>("");
+
+  useEffect(() => {
+    setFactoid(pickFactoid());
+  }, []);
 
   // Detect mixed citation styles
   const styleCounts = citations.reduce<Record<string, number>>((acc, c) => {
@@ -952,6 +958,19 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <WikiButton variant="primary" onClick={() => router.push("/cite")}>
                 Create Citation
               </WikiButton>
+              {factoid && (
+                <div className="mt-8 mx-auto max-w-lg border border-wiki-border-light bg-wiki-offwhite p-4 text-left text-sm">
+                  <div className="font-bold mb-1 text-wiki-text">Did you know...</div>
+                  <p className="text-wiki-text-muted italic">{factoid}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFactoid(pickFactoid())}
+                    className="mt-2 text-xs text-wiki-link hover:underline"
+                  >
+                    [another fact]
+                  </button>
+                </div>
+              )}
             </div>
           ) : filteredCitations.length === 0 ? (
             <div className="text-center py-8">
