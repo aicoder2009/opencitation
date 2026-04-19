@@ -31,6 +31,7 @@ interface Citation {
 interface EditableFields {
   title: string;
   authorFirst: string;
+  authorMiddle: string;
   authorLast: string;
   year: string;
   url: string;
@@ -80,6 +81,7 @@ export function SortableCitation({
   const [editFields, setEditFields] = useState<EditableFields>({
     title: "",
     authorFirst: "",
+    authorMiddle: "",
     authorLast: "",
     year: "",
     url: "",
@@ -106,6 +108,7 @@ export function SortableCitation({
     setEditFields({
       title: (fields.title as string) || "",
       authorFirst: firstAuthor?.firstName || "",
+      authorMiddle: firstAuthor?.middleName || "",
       authorLast: firstAuthor?.lastName || "",
       year: fields.publicationDate?.year?.toString() || "",
       url: (fields.url as string) || "",
@@ -185,25 +188,35 @@ export function SortableCitation({
                 placeholder="Title"
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Author First Name</label>
+                <label className="block text-xs font-medium text-wiki-text-muted mb-1">First Name</label>
                 <input
                   type="text"
                   value={editFields.authorFirst}
                   onChange={(e) => setEditFields({ ...editFields, authorFirst: e.target.value })}
                   className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="First name"
+                  placeholder="First"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Author Last Name</label>
+                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Middle</label>
+                <input
+                  type="text"
+                  value={editFields.authorMiddle}
+                  onChange={(e) => setEditFields({ ...editFields, authorMiddle: e.target.value })}
+                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                  placeholder="M."
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Last Name</label>
                 <input
                   type="text"
                   value={editFields.authorLast}
                   onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
                   className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="Last name"
+                  placeholder="Last"
                 />
               </div>
             </div>

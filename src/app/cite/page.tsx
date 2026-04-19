@@ -102,9 +102,14 @@ function saveToRecentCitations(title: string, formattedText: string, style: stri
   }
 }
 
+interface AuthorInput {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+}
+
 interface FormData {
-  authorFirst: string;
-  authorLast: string;
+  authors: AuthorInput[];
   title: string;
   subtitle: string;
   year: string;
@@ -170,9 +175,10 @@ interface FormData {
   citationNumber: string;
 }
 
+const emptyAuthor = (): AuthorInput => ({ firstName: "", middleName: "", lastName: "" });
+
 const initialFormData: FormData = {
-  authorFirst: "",
-  authorLast: "",
+  authors: [emptyAuthor()],
   title: "",
   subtitle: "",
   year: "",
@@ -286,8 +292,35 @@ function CitePageContent() {
     }
   }, [searchParams]);
 
-  const updateFormData = (field: keyof FormData, value: string) => {
+  type StringFormField = {
+    [K in keyof FormData]: FormData[K] extends string ? K : never;
+  }[keyof FormData];
+
+  const updateFormData = (field: StringFormField, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateAuthor = (index: number, field: keyof AuthorInput, value: string) => {
+    setFormData((prev) => {
+      const authors = prev.authors.map((a, i) =>
+        i === index ? { ...a, [field]: value } : a
+      );
+      return { ...prev, authors };
+    });
+  };
+
+  const addAuthor = () => {
+    setFormData((prev) => ({ ...prev, authors: [...prev.authors, emptyAuthor()] }));
+  };
+
+  const removeAuthor = (index: number) => {
+    setFormData((prev) => {
+      const authors = prev.authors.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        authors: authors.length > 0 ? authors : [emptyAuthor()],
+      };
+    });
   };
 
   const handleQuickAdd = async () => {
@@ -711,9 +744,16 @@ function CitePageContent() {
       url: formData.url || undefined,
       doi: formData.doi || undefined,
       publisher: formData.publisher || undefined,
-      authors: formData.authorLast
-        ? [{ firstName: formData.authorFirst || undefined, lastName: formData.authorLast }]
-        : undefined,
+      authors: (() => {
+        const filled = formData.authors
+          .filter((a) => a.lastName.trim())
+          .map((a) => ({
+            firstName: a.firstName.trim() || undefined,
+            middleName: a.middleName.trim() || undefined,
+            lastName: a.lastName.trim(),
+          }));
+        return filled.length > 0 ? filled : undefined;
+      })(),
       publicationDate: formData.year
         ? {
             year: parseInt(formData.year),
@@ -1154,27 +1194,68 @@ function CitePageContent() {
   const renderSourceFields = () => {
     const commonFields = (
       <>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Author First Name</label>
-            <input
-              type="text"
-              value={formData.authorFirst}
-              onChange={(e) => updateFormData("authorFirst", e.target.value)}
-              placeholder="John"
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Author Last Name</label>
-            <input
-              type="text"
-              value={formData.authorLast}
-              onChange={(e) => updateFormData("authorLast", e.target.value)}
-              placeholder="Smith"
-              className="w-full"
-            />
-          </div>
+        <div className="space-y-3">
+          <label className="block text-sm font-medium">Authors</label>
+          {formData.authors.map((author, index) => (
+            <div
+              key={index}
+              className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end"
+            >
+              <div>
+                {index === 0 && (
+                  <label className="block text-xs text-wiki-text-muted mb-1">First name</label>
+                )}
+                <input
+                  type="text"
+                  value={author.firstName}
+                  onChange={(e) => updateAuthor(index, "firstName", e.target.value)}
+                  placeholder="John"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                {index === 0 && (
+                  <label className="block text-xs text-wiki-text-muted mb-1">Middle name / initial</label>
+                )}
+                <input
+                  type="text"
+                  value={author.middleName}
+                  onChange={(e) => updateAuthor(index, "middleName", e.target.value)}
+                  placeholder="M."
+                  className="w-full"
+                />
+              </div>
+              <div>
+                {index === 0 && (
+                  <label className="block text-xs text-wiki-text-muted mb-1">Last name</label>
+                )}
+                <input
+                  type="text"
+                  value={author.lastName}
+                  onChange={(e) => updateAuthor(index, "lastName", e.target.value)}
+                  placeholder="Smith"
+                  className="w-full"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => removeAuthor(index)}
+                disabled={formData.authors.length === 1 && !author.firstName && !author.middleName && !author.lastName}
+                className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-30 disabled:cursor-not-allowed border border-wiki-border-light"
+                title="Remove author"
+                aria-label={`Remove author ${index + 1}`}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={addAuthor}
+            className="text-sm text-wiki-link hover:underline"
+          >
+            + Add another author
+          </button>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Title *</label>
