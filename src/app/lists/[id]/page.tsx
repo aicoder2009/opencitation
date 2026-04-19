@@ -35,7 +35,8 @@ import {
   toCSLJSON,
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
-import type { CitationStyle, SourceType, AccessType, CitationFields as FullCitationFields } from "@/types";
+import type { SourceType, AccessType, CitationFields as FullCitationFields, CitationStyle } from "@/types";
+import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
 
 interface List {
   id: string;
@@ -92,6 +93,16 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { getColor: getTagColor, setColor: setTagColor, clearColor: clearTagColor } = useTagColors();
   const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(null);
+  const [reformatTarget, setReformatTarget] = useState<CitationStyle>("apa");
+  const [isReformatting, setIsReformatting] = useState(false);
+
+  // Detect mixed citation styles
+  const styleCounts = citations.reduce<Record<string, number>>((acc, c) => {
+    acc[c.style] = (acc[c.style] || 0) + 1;
+    return acc;
+  }, {});
+  const uniqueStyles = Object.keys(styleCounts);
+  const hasMixedStyles = uniqueStyles.length > 1;
 
   // Get all unique tags from citations
   const allTags = Array.from(
@@ -440,6 +451,66 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleReformatAll = async () => {
+    const target = reformatTarget;
+    const needsUpdate = citations.filter((c) => c.style !== target && c.fields);
+    const missingFields = citations.filter((c) => c.style !== target && !c.fields);
+    if (needsUpdate.length === 0) {
+      if (missingFields.length > 0) {
+        setError(
+          `Cannot reformat ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} without structured fields.`
+        );
+      }
+      return;
+    }
+
+    setIsReformatting(true);
+    try {
+      const updates = await Promise.all(
+        needsUpdate.map(async (c) => {
+          const formatted = formatCitation(
+            c.fields as Parameters<typeof formatCitation>[0],
+            target
+          );
+          const response = await fetch(`/api/lists/${listId}/citations/${c.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              style: target,
+              formattedText: formatted.text,
+              formattedHtml: formatted.html,
+            }),
+          });
+          const result = await response.json();
+          if (!result.success) throw new Error(result.error || "Failed");
+          return {
+            id: c.id,
+            style: target,
+            formattedText: formatted.text,
+            formattedHtml: formatted.html,
+          };
+        })
+      );
+      const updateMap = new Map(updates.map((u) => [u.id, u]));
+      setCitations((prev) =>
+        prev.map((c) => {
+          const u = updateMap.get(c.id);
+          return u ? { ...c, ...u } : c;
+        })
+      );
+      if (missingFields.length > 0) {
+        setError(
+          `Reformatted ${updates.length}. ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} could not be converted (no structured fields).`
+        );
+      }
+    } catch (err) {
+      console.error("Reformat failed:", err);
+      setError("Failed to reformat some citations");
+    } finally {
+      setIsReformatting(false);
+    }
+  };
 
   const sortKey = (c: Citation): string => {
     const lastName = c.fields?.authors?.[0]?.lastName;
@@ -799,6 +870,48 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   Showing {filteredCitations.length} of {citations.length} citations
                   {filterTag && <span className="ml-1">(filtered by tag: {filterTag})</span>}
                 </p>
+              )}
+              {/* Mixed styles warning */}
+              {hasMixedStyles && (
+                <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200 text-sm">
+                  <div className="font-bold mb-1">Warning: mixed citation styles</div>
+                  <div className="mb-2">
+                    This list has citations in different styles:{" "}
+                    {uniqueStyles.map((s, i) => (
+                      <span key={s}>
+                        <b>{CITATION_STYLE_LABELS[s as CitationStyle] ?? s}</b> (
+                        {styleCounts[s]})
+                        {i < uniqueStyles.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                    . Exports (BibTeX, RIS, CSL JSON, etc.) assume a consistent style.
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <label htmlFor="reformat-target" className="text-xs">
+                      Reformat all to:
+                    </label>
+                    <select
+                      id="reformat-target"
+                      value={reformatTarget}
+                      onChange={(e) => setReformatTarget(e.target.value as CitationStyle)}
+                      className="text-xs"
+                      disabled={isReformatting}
+                    >
+                      {CITATION_STYLES.map((s) => (
+                        <option key={s} value={s}>
+                          {CITATION_STYLE_LABELS[s]}
+                        </option>
+                      ))}
+                    </select>
+                    <WikiButton
+                      onClick={handleReformatAll}
+                      disabled={isReformatting}
+                      title="Regenerate every citation using the selected style"
+                    >
+                      {isReformatting ? "Reformatting..." : "Apply to all"}
+                    </WikiButton>
+                  </div>
+                </div>
               )}
               {/* Actions */}
               <div className="flex flex-wrap gap-3">
