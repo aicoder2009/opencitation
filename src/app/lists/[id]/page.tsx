@@ -573,7 +573,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const handleEditCitation = async (
     citationId: string,
-    editFields: { title: string; authorFirst: string; authorLast: string; year: string; url: string }
+    editFields: { title: string; authorFirst: string; authorMiddle: string; authorLast: string; year: string; url: string }
   ) => {
     const citation = citations.find((c) => c.id === citationId);
     if (!citation) return;
@@ -589,6 +589,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     if (editFields.authorLast) {
       updatedFields.authors = [{
         firstName: editFields.authorFirst || undefined,
+        middleName: editFields.authorMiddle || undefined,
         lastName: editFields.authorLast,
       }];
     }

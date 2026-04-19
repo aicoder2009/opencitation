@@ -1,6 +1,14 @@
 import type { CitationFields } from "@/types";
 
 /**
+ * Format a single person for RIS (Last, First Middle)
+ */
+function formatPerson(p: { firstName?: string; middleName?: string; lastName: string }): string {
+  const given = [p.firstName, p.middleName].filter(Boolean).join(" ");
+  return given ? `${p.lastName}, ${given}` : p.lastName;
+}
+
+/**
  * Get RIS type tag from source type
  */
 function getRISType(sourceType: string): string {
@@ -73,22 +81,14 @@ export function toRIS(fields: CitationFields): string {
   // Authors
   if (fields.authors && fields.authors.length > 0) {
     for (const author of fields.authors) {
-      if (author.firstName) {
-        lines.push(`AU  - ${author.lastName}, ${author.firstName}`);
-      } else {
-        lines.push(`AU  - ${author.lastName}`);
-      }
+      lines.push(`AU  - ${formatPerson(author)}`);
     }
   }
 
   // Editors
   if (fields.editors && fields.editors.length > 0) {
     for (const editor of fields.editors) {
-      if (editor.firstName) {
-        lines.push(`ED  - ${editor.lastName}, ${editor.firstName}`);
-      } else {
-        lines.push(`ED  - ${editor.lastName}`);
-      }
+      lines.push(`ED  - ${formatPerson(editor)}`);
     }
   }
 
@@ -183,11 +183,7 @@ export function toRIS(fields: CitationFields): string {
     case "film":
       if ("directors" in fields && fields.directors && fields.directors.length > 0) {
         for (const director of fields.directors) {
-          if (director.firstName) {
-            lines.push(`A2  - ${director.lastName}, ${director.firstName}`);
-          } else {
-            lines.push(`A2  - ${director.lastName}`);
-          }
+          lines.push(`A2  - ${formatPerson(director)}`);
         }
       }
       if ("productionCompany" in fields && fields.productionCompany) {
@@ -227,11 +223,7 @@ export function toRIS(fields: CitationFields): string {
       }
       if ("bookEditors" in fields && fields.bookEditors && fields.bookEditors.length > 0) {
         for (const ed of fields.bookEditors) {
-          if (ed.firstName) {
-            lines.push(`ED  - ${ed.lastName}, ${ed.firstName}`);
-          } else {
-            lines.push(`ED  - ${ed.lastName}`);
-          }
+          lines.push(`ED  - ${formatPerson(ed)}`);
         }
       }
       if ("pageRange" in fields && fields.pageRange) {
@@ -276,7 +268,7 @@ export function toRIS(fields: CitationFields): string {
       if ("label" in fields && fields.label) lines.push(`PB  - ${fields.label}`);
       if ("performers" in fields && fields.performers && fields.performers.length > 0) {
         for (const p of fields.performers) {
-          lines.push(`A2  - ${p.firstName ? `${p.lastName}, ${p.firstName}` : p.lastName}`);
+          lines.push(`A2  - ${formatPerson(p)}`);
         }
       }
       break;
@@ -285,7 +277,7 @@ export function toRIS(fields: CitationFields): string {
       if ("showName" in fields && fields.showName) lines.push(`T2  - ${fields.showName}`);
       if ("host" in fields && fields.host && fields.host.length > 0) {
         for (const h of fields.host) {
-          lines.push(`A2  - ${h.firstName ? `${h.lastName}, ${h.firstName}` : h.lastName}`);
+          lines.push(`A2  - ${formatPerson(h)}`);
         }
       }
       break;
@@ -303,7 +295,7 @@ export function toRIS(fields: CitationFields): string {
     case "interview":
       if ("interviewer" in fields && fields.interviewer && fields.interviewer.length > 0) {
         for (const i of fields.interviewer) {
-          lines.push(`A2  - ${i.firstName ? `${i.lastName}, ${i.firstName}` : i.lastName}`);
+          lines.push(`A2  - ${formatPerson(i)}`);
         }
       }
       break;

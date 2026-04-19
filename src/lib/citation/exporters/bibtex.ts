@@ -27,13 +27,14 @@ function escapeBibTeX(text: string): string {
 }
 
 /**
- * Format authors for BibTeX (Last, First and Last, First and ...)
+ * Format authors for BibTeX (Last, First Middle and Last, First Middle and ...)
  */
-function formatAuthors(authors: { firstName?: string; lastName: string }[]): string {
+function formatAuthors(authors: { firstName?: string; middleName?: string; lastName: string }[]): string {
   return authors
     .map((a) => {
-      if (a.firstName) {
-        return `${a.lastName}, ${a.firstName}`;
+      const given = [a.firstName, a.middleName].filter(Boolean).join(" ");
+      if (given) {
+        return `${a.lastName}, ${given}`;
       }
       return a.lastName;
     })
