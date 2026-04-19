@@ -413,7 +413,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {availableLists.map((list) => (
                       <div
                         key={list.id}
-                        className="flex items-center justify-between p-2 hover:bg-white"
+                        className="flex items-center justify-between p-2 hover:bg-wiki-tab-bg"
                       >
                         <span>{list.name}</span>
                         <button

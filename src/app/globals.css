@@ -136,7 +136,8 @@ select:focus {
 /* Clerk modal styles - match Wikipedia aesthetic */
 .cl-card {
   font-family: Arial, Helvetica, sans-serif !important;
-  border: 1px solid #aaaaaa !important;
+  border: 1px solid var(--color-wiki-border) !important;
+  background: var(--color-wiki-white) !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
@@ -148,16 +149,29 @@ select:focus {
   font-family: Arial, Helvetica, sans-serif !important;
 }
 
+.dark .cl-headerTitle,
+.dark .cl-formFieldLabel,
+.dark .cl-internal-b3fm6y,
+.dark .cl-socialButtonsBlockButtonText {
+  color: var(--color-wiki-text) !important;
+}
+
+.dark .cl-headerSubtitle,
+.dark .cl-footer,
+.dark .cl-footerActionText {
+  color: var(--color-wiki-text-muted) !important;
+}
+
 .cl-formButtonPrimary {
-  background: #f0f0f0 !important;
-  color: #202122 !important;
-  border: 1px solid #aaaaaa !important;
+  background: var(--color-wiki-tab-bg) !important;
+  color: var(--color-wiki-text) !important;
+  border: 1px solid var(--color-wiki-border) !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
 
 .cl-formButtonPrimary:hover {
-  background: #e0e0e0 !important;
+  background: var(--color-wiki-border-light) !important;
 }
 
 /* PWA - Safe Area Insets for iOS */

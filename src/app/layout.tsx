@@ -71,7 +71,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <head>
           <meta name="mobile-web-app-capable" content="yes" />
           <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -80,6 +80,12 @@ export default function RootLayout({
           <link rel="manifest" href="/manifest.json" />
           <link rel="apple-touch-icon" href="/apple-icon.png" />
           <link rel="apple-touch-startup-image" href="/icons/icon-512.png" />
+          {/* Pre-hydration theme: avoid light-mode flash on dark users */}
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){try{var t=localStorage.getItem('opencitation-theme');var d=t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+            }}
+          />
         </head>
         <body className="antialiased">
           <PWAProvider>
