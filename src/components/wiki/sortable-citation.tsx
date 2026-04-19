@@ -9,7 +9,7 @@ import type { CitationFields as FullCitationFields, CitationStyle } from "@/type
 
 interface CitationFields {
   title?: string;
-  authors?: Array<{ firstName?: string; middleName?: string; lastName: string }>;
+  authors?: Array<{ firstName?: string; middleName?: string; lastName: string; isOrganization?: boolean }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
@@ -33,6 +33,7 @@ interface EditableFields {
   authorFirst: string;
   authorMiddle: string;
   authorLast: string;
+  authorIsOrganization: boolean;
   year: string;
   url: string;
 }
@@ -83,6 +84,7 @@ export function SortableCitation({
     authorFirst: "",
     authorMiddle: "",
     authorLast: "",
+    authorIsOrganization: false,
     year: "",
     url: "",
   });
@@ -110,6 +112,7 @@ export function SortableCitation({
       authorFirst: firstAuthor?.firstName || "",
       authorMiddle: firstAuthor?.middleName || "",
       authorLast: firstAuthor?.lastName || "",
+      authorIsOrganization: firstAuthor?.isOrganization || false,
       year: fields.publicationDate?.year?.toString() || "",
       url: (fields.url as string) || "",
     });
@@ -188,37 +191,67 @@ export function SortableCitation({
                 placeholder="Title"
               />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">First Name</label>
+            <div className="space-y-1">
+              <label className="flex items-center gap-2 text-xs text-wiki-text-muted">
                 <input
-                  type="text"
-                  value={editFields.authorFirst}
-                  onChange={(e) => setEditFields({ ...editFields, authorFirst: e.target.value })}
-                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="First"
+                  type="checkbox"
+                  checked={editFields.authorIsOrganization}
+                  onChange={(e) =>
+                    setEditFields({
+                      ...editFields,
+                      authorIsOrganization: e.target.checked,
+                      authorFirst: e.target.checked ? "" : editFields.authorFirst,
+                      authorMiddle: e.target.checked ? "" : editFields.authorMiddle,
+                    })
+                  }
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Middle</label>
-                <input
-                  type="text"
-                  value={editFields.authorMiddle}
-                  onChange={(e) => setEditFields({ ...editFields, authorMiddle: e.target.value })}
-                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="M."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Last Name</label>
-                <input
-                  type="text"
-                  value={editFields.authorLast}
-                  onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
-                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="Last"
-                />
-              </div>
+                Organization / group author
+              </label>
+              {editFields.authorIsOrganization ? (
+                <div>
+                  <label className="block text-xs font-medium text-wiki-text-muted mb-1">Organization name</label>
+                  <input
+                    type="text"
+                    value={editFields.authorLast}
+                    onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
+                    className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                    placeholder="World Health Organization"
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium text-wiki-text-muted mb-1">First Name</label>
+                    <input
+                      type="text"
+                      value={editFields.authorFirst}
+                      onChange={(e) => setEditFields({ ...editFields, authorFirst: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="First"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-wiki-text-muted mb-1">Middle</label>
+                    <input
+                      type="text"
+                      value={editFields.authorMiddle}
+                      onChange={(e) => setEditFields({ ...editFields, authorMiddle: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="M."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-wiki-text-muted mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      value={editFields.authorLast}
+                      onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="Last"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>

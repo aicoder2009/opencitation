@@ -51,7 +51,7 @@ interface CitationFields {
   sourceType?: SourceType;
   accessType?: AccessType;
   title?: string;
-  authors?: Array<{ firstName?: string; middleName?: string; lastName: string }>;
+  authors?: Array<{ firstName?: string; middleName?: string; lastName: string; isOrganization?: boolean }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
@@ -573,7 +573,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const handleEditCitation = async (
     citationId: string,
-    editFields: { title: string; authorFirst: string; authorMiddle: string; authorLast: string; year: string; url: string }
+    editFields: { title: string; authorFirst: string; authorMiddle: string; authorLast: string; authorIsOrganization: boolean; year: string; url: string }
   ) => {
     const citation = citations.find((c) => c.id === citationId);
     if (!citation) return;
@@ -587,11 +587,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
     // Update author if provided
     if (editFields.authorLast) {
-      updatedFields.authors = [{
-        firstName: editFields.authorFirst || undefined,
-        middleName: editFields.authorMiddle || undefined,
-        lastName: editFields.authorLast,
-      }];
+      updatedFields.authors = [
+        editFields.authorIsOrganization
+          ? { lastName: editFields.authorLast, isOrganization: true }
+          : {
+              firstName: editFields.authorFirst || undefined,
+              middleName: editFields.authorMiddle || undefined,
+              lastName: editFields.authorLast,
+            },
+      ];
     }
 
     // Update year if provided

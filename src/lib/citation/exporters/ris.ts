@@ -1,9 +1,16 @@
 import type { CitationFields } from "@/types";
 
 /**
- * Format a single person for RIS (Last, First Middle)
+ * Format a single person for RIS (Last, First Middle).
+ * Organization authors are emitted as a single name with no comma split.
  */
-function formatPerson(p: { firstName?: string; middleName?: string; lastName: string }): string {
+function formatPerson(p: {
+  firstName?: string;
+  middleName?: string;
+  lastName: string;
+  isOrganization?: boolean;
+}): string {
+  if (p.isOrganization) return p.lastName;
   const given = [p.firstName, p.middleName].filter(Boolean).join(" ");
   return given ? `${p.lastName}, ${given}` : p.lastName;
 }

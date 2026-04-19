@@ -27,11 +27,17 @@ function escapeBibTeX(text: string): string {
 }
 
 /**
- * Format authors for BibTeX (Last, First Middle and Last, First Middle and ...)
+ * Format authors for BibTeX (Last, First Middle and Last, First Middle and ...).
+ * Organization authors are wrapped in extra braces so BibTeX doesn't split them.
  */
-function formatAuthors(authors: { firstName?: string; middleName?: string; lastName: string }[]): string {
+function formatAuthors(
+  authors: { firstName?: string; middleName?: string; lastName: string; isOrganization?: boolean }[]
+): string {
   return authors
     .map((a) => {
+      if (a.isOrganization) {
+        return `{${a.lastName}}`;
+      }
       const given = [a.firstName, a.middleName].filter(Boolean).join(" ");
       if (given) {
         return `${a.lastName}, ${given}`;

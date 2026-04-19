@@ -107,6 +107,7 @@ interface AuthorInput {
   firstName: string;
   middleName: string;
   lastName: string;
+  isOrganization: boolean;
 }
 
 interface FormData {
@@ -176,7 +177,12 @@ interface FormData {
   citationNumber: string;
 }
 
-const emptyAuthor = (): AuthorInput => ({ firstName: "", middleName: "", lastName: "" });
+const emptyAuthor = (): AuthorInput => ({
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  isOrganization: false,
+});
 
 const initialFormData: FormData = {
   authors: [emptyAuthor()],
@@ -306,11 +312,29 @@ function CitePageContent() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const updateAuthor = (index: number, field: keyof AuthorInput, value: string) => {
+  const updateAuthor = (
+    index: number,
+    field: "firstName" | "middleName" | "lastName",
+    value: string
+  ) => {
     setFormData((prev) => {
       const authors = prev.authors.map((a, i) =>
         i === index ? { ...a, [field]: value } : a
       );
+      return { ...prev, authors };
+    });
+  };
+
+  const toggleAuthorOrganization = (index: number) => {
+    setFormData((prev) => {
+      const authors = prev.authors.map((a, i) => {
+        if (i !== index) return a;
+        const nextIsOrg = !a.isOrganization;
+        if (nextIsOrg) {
+          return { ...a, isOrganization: true, firstName: "", middleName: "" };
+        }
+        return { ...a, isOrganization: false };
+      });
       return { ...prev, authors };
     });
   };
@@ -787,11 +811,15 @@ function CitePageContent() {
       authors: (() => {
         const filled = formData.authors
           .filter((a) => a.lastName.trim())
-          .map((a) => ({
-            firstName: a.firstName.trim() || undefined,
-            middleName: a.middleName.trim() || undefined,
-            lastName: a.lastName.trim(),
-          }));
+          .map((a) =>
+            a.isOrganization
+              ? { lastName: a.lastName.trim(), isOrganization: true }
+              : {
+                  firstName: a.firstName.trim() || undefined,
+                  middleName: a.middleName.trim() || undefined,
+                  lastName: a.lastName.trim(),
+                }
+          );
         return filled.length > 0 ? filled : undefined;
       })(),
       publicationDate: formData.year
@@ -1237,56 +1265,90 @@ function CitePageContent() {
         <div className="space-y-3">
           <label className="block text-sm font-medium">Authors</label>
           {formData.authors.map((author, index) => (
-            <div
-              key={index}
-              className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end"
-            >
-              <div>
-                {index === 0 && (
-                  <label className="block text-xs text-wiki-text-muted mb-1">First name</label>
-                )}
-                <input
-                  type="text"
-                  value={author.firstName}
-                  onChange={(e) => updateAuthor(index, "firstName", e.target.value)}
-                  placeholder="John"
-                  className="w-full"
-                />
+            <div key={index} className="space-y-1">
+              <div className="flex items-center gap-3 text-xs text-wiki-text-muted">
+                <span>Author {index + 1}</span>
+                <label className="inline-flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={author.isOrganization}
+                    onChange={() => toggleAuthorOrganization(index)}
+                  />
+                  <span>Organization / group author</span>
+                </label>
               </div>
-              <div>
-                {index === 0 && (
-                  <label className="block text-xs text-wiki-text-muted mb-1">Middle name / initial</label>
-                )}
-                <input
-                  type="text"
-                  value={author.middleName}
-                  onChange={(e) => updateAuthor(index, "middleName", e.target.value)}
-                  placeholder="M."
-                  className="w-full"
-                />
-              </div>
-              <div>
-                {index === 0 && (
-                  <label className="block text-xs text-wiki-text-muted mb-1">Last name</label>
-                )}
-                <input
-                  type="text"
-                  value={author.lastName}
-                  onChange={(e) => updateAuthor(index, "lastName", e.target.value)}
-                  placeholder="Smith"
-                  className="w-full"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => removeAuthor(index)}
-                disabled={formData.authors.length === 1 && !author.firstName && !author.middleName && !author.lastName}
-                className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-30 disabled:cursor-not-allowed border border-wiki-border-light"
-                title="Remove author"
-                aria-label={`Remove author ${index + 1}`}
-              >
-                Remove
-              </button>
+              {author.isOrganization ? (
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
+                  <div>
+                    <input
+                      type="text"
+                      value={author.lastName}
+                      onChange={(e) => updateAuthor(index, "lastName", e.target.value)}
+                      placeholder="World Health Organization"
+                      className="w-full"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeAuthor(index)}
+                    disabled={formData.authors.length === 1 && !author.lastName}
+                    className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-30 disabled:cursor-not-allowed border border-wiki-border-light"
+                    title="Remove author"
+                    aria-label={`Remove author ${index + 1}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
+                  <div>
+                    {index === 0 && (
+                      <label className="block text-xs text-wiki-text-muted mb-1">First name</label>
+                    )}
+                    <input
+                      type="text"
+                      value={author.firstName}
+                      onChange={(e) => updateAuthor(index, "firstName", e.target.value)}
+                      placeholder="John"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    {index === 0 && (
+                      <label className="block text-xs text-wiki-text-muted mb-1">Middle name / initial</label>
+                    )}
+                    <input
+                      type="text"
+                      value={author.middleName}
+                      onChange={(e) => updateAuthor(index, "middleName", e.target.value)}
+                      placeholder="M."
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    {index === 0 && (
+                      <label className="block text-xs text-wiki-text-muted mb-1">Last name</label>
+                    )}
+                    <input
+                      type="text"
+                      value={author.lastName}
+                      onChange={(e) => updateAuthor(index, "lastName", e.target.value)}
+                      placeholder="Smith"
+                      className="w-full"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeAuthor(index)}
+                    disabled={formData.authors.length === 1 && !author.firstName && !author.middleName && !author.lastName}
+                    className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-30 disabled:cursor-not-allowed border border-wiki-border-light"
+                    title="Remove author"
+                    aria-label={`Remove author ${index + 1}`}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           <button

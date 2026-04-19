@@ -66,9 +66,35 @@ function cleanBibTeXString(value: string): string {
 }
 
 /**
+ * Return true if the raw name is fully wrapped in a top-level brace group,
+ * i.e. `{Corporate Name}` — BibTeX convention for corporate/organization authors.
+ */
+function isBraceWrappedName(raw: string): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return false;
+  let depth = 0;
+  for (let i = 0; i < trimmed.length; i++) {
+    const c = trimmed[i];
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0 && i !== trimmed.length - 1) return false;
+    }
+  }
+  return depth === 0;
+}
+
+/**
  * Parse a BibTeX person name. Supports "Last, First Middle" and "First Middle Last" forms.
+ * A name fully wrapped in braces (e.g. `{World Health Organization}`) is treated as a corporate author.
  */
 function parseBibTeXName(raw: string): Author | null {
+  if (isBraceWrappedName(raw)) {
+    const cleaned = cleanBibTeXString(raw);
+    if (!cleaned) return null;
+    return { lastName: cleaned, isOrganization: true };
+  }
+
   const name = cleanBibTeXString(raw);
   if (!name) return null;
 
