@@ -63,6 +63,29 @@ function getBibType(sourceType: string): string {
       return "misc";
     case "image":
       return "misc";
+    case "thesis":
+      return "phdthesis";
+    case "conference-paper":
+      return "inproceedings";
+    case "book-chapter":
+    case "encyclopedia":
+      return "incollection";
+    case "government-report":
+      return "techreport";
+    case "preprint":
+      return "unpublished";
+    case "song":
+    case "album":
+    case "podcast-episode":
+    case "video-game":
+    case "artwork":
+    case "dataset":
+    case "software":
+    case "social-media":
+    case "ai-generated":
+    case "interview":
+    case "legal-case":
+      return "misc";
     default:
       return "misc";
   }
@@ -143,6 +166,115 @@ export function toBibTeX(fields: CitationFields): string {
     case "newspaper":
       if ("newspaperTitle" in fields && fields.newspaperTitle) {
         lines.push(`  journal = {${escapeBibTeX(fields.newspaperTitle)}},`);
+      }
+      break;
+
+    case "thesis":
+      if ("institution" in fields && fields.institution) {
+        lines.push(`  school = {${escapeBibTeX(fields.institution)}},`);
+      }
+      break;
+
+    case "conference-paper":
+      if ("proceedingsTitle" in fields && fields.proceedingsTitle) {
+        lines.push(`  booktitle = {${escapeBibTeX(fields.proceedingsTitle)}},`);
+      } else if ("conferenceName" in fields && fields.conferenceName) {
+        lines.push(`  booktitle = {${escapeBibTeX(fields.conferenceName)}},`);
+      }
+      if ("conferenceLocation" in fields && fields.conferenceLocation) {
+        lines.push(`  address = {${escapeBibTeX(fields.conferenceLocation)}},`);
+      }
+      if ("pageRange" in fields && fields.pageRange) {
+        lines.push(`  pages = {${fields.pageRange}},`);
+      }
+      break;
+
+    case "book-chapter":
+      if ("bookTitle" in fields && fields.bookTitle) {
+        lines.push(`  booktitle = {${escapeBibTeX(fields.bookTitle)}},`);
+      }
+      if ("bookEditors" in fields && fields.bookEditors && fields.bookEditors.length > 0) {
+        lines.push(`  editor = {${formatAuthors(fields.bookEditors)}},`);
+      }
+      if ("pageRange" in fields && fields.pageRange) {
+        lines.push(`  pages = {${fields.pageRange}},`);
+      }
+      if (fields.publisher) {
+        lines.push(`  publisher = {${escapeBibTeX(fields.publisher)}},`);
+      }
+      break;
+
+    case "encyclopedia":
+      if ("encyclopediaTitle" in fields && fields.encyclopediaTitle) {
+        lines.push(`  booktitle = {${escapeBibTeX(fields.encyclopediaTitle)}},`);
+      }
+      if ("pageRange" in fields && fields.pageRange) {
+        lines.push(`  pages = {${fields.pageRange}},`);
+      }
+      if (fields.publisher) {
+        lines.push(`  publisher = {${escapeBibTeX(fields.publisher)}},`);
+      }
+      break;
+
+    case "government-report":
+      if ("agency" in fields && fields.agency) {
+        lines.push(`  institution = {${escapeBibTeX(fields.agency)}},`);
+      }
+      if ("reportNumber" in fields && fields.reportNumber) {
+        lines.push(`  number = {${escapeBibTeX(fields.reportNumber)}},`);
+      }
+      break;
+
+    case "preprint":
+      if ("repository" in fields && fields.repository) {
+        lines.push(`  note = {${escapeBibTeX(fields.repository)}},`);
+      }
+      if ("preprintId" in fields && fields.preprintId) {
+        lines.push(`  eprint = {${escapeBibTeX(fields.preprintId)}},`);
+      }
+      break;
+
+    case "software":
+    case "dataset":
+      if ("version" in fields && fields.version) {
+        lines.push(`  version = {${escapeBibTeX(fields.version)}},`);
+      }
+      if (fields.publisher) {
+        lines.push(`  publisher = {${escapeBibTeX(fields.publisher)}},`);
+      }
+      break;
+
+    case "song":
+    case "album":
+      if ("label" in fields && fields.label) {
+        lines.push(`  publisher = {${escapeBibTeX(fields.label)}},`);
+      }
+      break;
+
+    case "podcast-episode":
+      if ("showName" in fields && fields.showName) {
+        lines.push(`  howpublished = {${escapeBibTeX(fields.showName)}},`);
+      }
+      break;
+
+    case "social-media":
+      if ("platform" in fields && fields.platform) {
+        lines.push(`  howpublished = {${escapeBibTeX(fields.platform)}},`);
+      }
+      break;
+
+    case "ai-generated":
+      if ("company" in fields && fields.company) {
+        lines.push(`  publisher = {${escapeBibTeX(fields.company)}},`);
+      }
+      if ("modelVersion" in fields && fields.modelVersion) {
+        lines.push(`  version = {${escapeBibTeX(fields.modelVersion)}},`);
+      }
+      break;
+
+    case "artwork":
+      if ("museum" in fields && fields.museum) {
+        lines.push(`  howpublished = {${escapeBibTeX(fields.museum)}},`);
       }
       break;
   }

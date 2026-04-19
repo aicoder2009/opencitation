@@ -218,6 +218,199 @@ export interface MiscellaneousFields extends BaseCitationFields {
 }
 
 /**
+ * Song fields
+ */
+export interface SongFields extends BaseCitationFields {
+  sourceType: 'song';
+  performers?: Author[];
+  composers?: Author[];
+  album?: string;
+  label?: string;
+  trackNumber?: string;
+  duration?: string;
+}
+
+/**
+ * Album fields (full music album)
+ */
+export interface AlbumFields extends BaseCitationFields {
+  sourceType: 'album';
+  performers?: Author[];
+  label?: string;
+  format?: 'vinyl' | 'cd' | 'digital' | 'cassette';
+}
+
+/**
+ * Podcast episode fields
+ */
+export interface PodcastEpisodeFields extends BaseCitationFields {
+  sourceType: 'podcast-episode';
+  showName: string;
+  host?: Author[];
+  guests?: Author[];
+  episodeNumber?: string;
+  seasonNumber?: string;
+  duration?: string;
+  timestamp?: string;
+}
+
+/**
+ * Video game fields
+ */
+export interface VideoGameFields extends BaseCitationFields {
+  sourceType: 'video-game';
+  studio?: string;
+  platform?: string;
+  version?: string;
+}
+
+/**
+ * Artwork fields
+ */
+export interface ArtworkFields extends BaseCitationFields {
+  sourceType: 'artwork';
+  artists?: Author[];
+  medium?: string;
+  dimensions?: string;
+  museum?: string;
+  city?: string;
+  inventoryNumber?: string;
+}
+
+/**
+ * Thesis / dissertation fields
+ */
+export interface ThesisFields extends BaseCitationFields {
+  sourceType: 'thesis';
+  degree?: 'doctoral' | 'masters' | 'bachelors';
+  institution: string;
+  advisor?: Author;
+  department?: string;
+  databaseAccessionNumber?: string;
+}
+
+/**
+ * Conference paper fields
+ */
+export interface ConferencePaperFields extends BaseCitationFields {
+  sourceType: 'conference-paper';
+  conferenceName: string;
+  conferenceLocation?: string;
+  conferenceDate?: CitationDate;
+  proceedingsTitle?: string;
+  pageRange?: string;
+}
+
+/**
+ * Book chapter fields
+ */
+export interface BookChapterFields extends BaseCitationFields {
+  sourceType: 'book-chapter';
+  chapterTitle?: string;
+  bookTitle: string;
+  bookEditors?: Author[];
+  pageRange?: string;
+  edition?: string;
+  volume?: string;
+  isbn?: string;
+}
+
+/**
+ * Dataset fields
+ */
+export interface DatasetFields extends BaseCitationFields {
+  sourceType: 'dataset';
+  version?: string;
+  repository?: string;
+}
+
+/**
+ * Software / code fields
+ */
+export interface SoftwareFields extends BaseCitationFields {
+  sourceType: 'software';
+  version?: string;
+  repository?: string;
+  license?: string;
+  commit?: string;
+}
+
+/**
+ * Preprint fields (arXiv, bioRxiv, medRxiv, etc.)
+ */
+export interface PreprintFields extends BaseCitationFields {
+  sourceType: 'preprint';
+  repository?: string;
+  preprintId?: string;
+  version?: string;
+}
+
+/**
+ * Social media post fields
+ */
+export interface SocialMediaFields extends BaseCitationFields {
+  sourceType: 'social-media';
+  platform?: string;
+  handle?: string;
+  postType?: 'post' | 'tweet' | 'reel' | 'story' | 'comment';
+}
+
+/**
+ * AI-generated content fields
+ */
+export interface AIGeneratedFields extends BaseCitationFields {
+  sourceType: 'ai-generated';
+  modelName?: string;
+  modelVersion?: string;
+  company?: string;
+  prompt?: string;
+}
+
+/**
+ * Interview fields
+ */
+export interface InterviewFields extends BaseCitationFields {
+  sourceType: 'interview';
+  interviewer?: Author[];
+  interviewee?: Author[];
+  interviewType?: 'personal' | 'published' | 'broadcast';
+  source?: string;
+}
+
+/**
+ * Government report fields
+ */
+export interface GovernmentReportFields extends BaseCitationFields {
+  sourceType: 'government-report';
+  agency?: string;
+  reportNumber?: string;
+  series?: string;
+}
+
+/**
+ * Legal case fields (simple, not Bluebook-compliant)
+ */
+export interface LegalCaseFields extends BaseCitationFields {
+  sourceType: 'legal-case';
+  court?: string;
+  citationNumber?: string;
+  docketNumber?: string;
+  jurisdiction?: string;
+}
+
+/**
+ * Encyclopedia / dictionary entry fields
+ */
+export interface EncyclopediaFields extends BaseCitationFields {
+  sourceType: 'encyclopedia';
+  encyclopediaTitle: string;
+  editors?: Author[];
+  edition?: string;
+  volume?: string;
+  pageRange?: string;
+}
+
+/**
  * Union type of all citation field types
  */
 export type CitationFields =
@@ -231,7 +424,24 @@ export type CitationFields =
   | FilmFields
   | TVSeriesFields
   | TVEpisodeFields
-  | MiscellaneousFields;
+  | MiscellaneousFields
+  | SongFields
+  | AlbumFields
+  | PodcastEpisodeFields
+  | VideoGameFields
+  | ArtworkFields
+  | ThesisFields
+  | ConferencePaperFields
+  | BookChapterFields
+  | DatasetFields
+  | SoftwareFields
+  | PreprintFields
+  | SocialMediaFields
+  | AIGeneratedFields
+  | InterviewFields
+  | GovernmentReportFields
+  | LegalCaseFields
+  | EncyclopediaFields;
 
 /**
  * A complete citation with metadata

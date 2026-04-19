@@ -43,6 +43,23 @@ const TYPE_MAP: Record<string, string> = {
   "tv-episode": "broadcast",
   image: "graphic",
   miscellaneous: "document",
+  song: "song",
+  album: "song",
+  "podcast-episode": "broadcast",
+  "video-game": "software",
+  artwork: "graphic",
+  thesis: "thesis",
+  "conference-paper": "paper-conference",
+  "book-chapter": "chapter",
+  dataset: "dataset",
+  software: "software",
+  preprint: "article",
+  "social-media": "post",
+  "ai-generated": "personal_communication",
+  interview: "interview",
+  "government-report": "report",
+  "legal-case": "legal_case",
+  encyclopedia: "entry-encyclopedia",
 };
 
 function toNames(authors?: Array<{ firstName?: string; lastName: string }>): CSLName[] | undefined {
@@ -89,7 +106,7 @@ function toCSLItem(fields: CitationFields, index: number): CSLItem {
   if (fields.doi) item.DOI = fields.doi;
   if (fields.language) item.language = fields.language;
 
-  // container title — journal / newspaper / site / blog
+  // container title — journal / newspaper / site / blog / book / show / proceedings
   if ("journalTitle" in fields && fields.journalTitle) {
     item["container-title"] = fields.journalTitle;
   } else if ("newspaperTitle" in fields && fields.newspaperTitle) {
@@ -100,6 +117,16 @@ function toCSLItem(fields: CitationFields, index: number): CSLItem {
     item["container-title"] = fields.blogName;
   } else if ("seriesTitle" in fields && fields.seriesTitle) {
     item["container-title"] = fields.seriesTitle as string;
+  } else if ("bookTitle" in fields && fields.bookTitle) {
+    item["container-title"] = fields.bookTitle;
+  } else if ("encyclopediaTitle" in fields && fields.encyclopediaTitle) {
+    item["container-title"] = fields.encyclopediaTitle;
+  } else if ("proceedingsTitle" in fields && fields.proceedingsTitle) {
+    item["container-title"] = fields.proceedingsTitle;
+  } else if ("showName" in fields && fields.showName) {
+    item["container-title"] = fields.showName;
+  } else if ("album" in fields && fields.album) {
+    item["container-title"] = fields.album as string;
   }
 
   if ("volume" in fields && fields.volume) item.volume = String(fields.volume);

@@ -30,6 +30,7 @@ import {
   escapeHtml,
   italic,
 } from '../utils';
+import { formatGeneric } from './generic';
 
 /**
  * Format a citation in MLA 9th style
@@ -58,6 +59,24 @@ export function formatMLA(fields: CitationFields): FormattedCitation {
       return formatTVEpisode(fields);
     case 'miscellaneous':
       return formatMiscellaneous(fields);
+    case 'song':
+    case 'album':
+    case 'podcast-episode':
+    case 'video-game':
+    case 'artwork':
+    case 'thesis':
+    case 'conference-paper':
+    case 'book-chapter':
+    case 'dataset':
+    case 'software':
+    case 'preprint':
+    case 'social-media':
+    case 'ai-generated':
+    case 'interview':
+    case 'government-report':
+    case 'legal-case':
+    case 'encyclopedia':
+      return formatGeneric(fields, 'mla');
     default:
       return { text: '', html: '' };
   }

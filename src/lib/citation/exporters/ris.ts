@@ -23,6 +23,39 @@ function getRISType(sourceType: string): string {
       return "VIDEO";
     case "image":
       return "ART";
+    case "song":
+    case "album":
+      return "MUSIC";
+    case "podcast-episode":
+      return "SOUND";
+    case "video-game":
+      return "COMP";
+    case "artwork":
+      return "ART";
+    case "thesis":
+      return "THES";
+    case "conference-paper":
+      return "CPAPER";
+    case "book-chapter":
+      return "CHAP";
+    case "dataset":
+      return "DATA";
+    case "software":
+      return "COMP";
+    case "preprint":
+      return "UNPD";
+    case "social-media":
+      return "ELEC";
+    case "ai-generated":
+      return "GEN";
+    case "interview":
+      return "INTV";
+    case "government-report":
+      return "RPRT";
+    case "legal-case":
+      return "CASE";
+    case "encyclopedia":
+      return "ENCYC";
     default:
       return "GEN";
   }
@@ -160,6 +193,135 @@ export function toRIS(fields: CitationFields): string {
       if ("productionCompany" in fields && fields.productionCompany) {
         lines.push(`PB  - ${fields.productionCompany}`);
       }
+      break;
+
+    case "thesis":
+      if ("institution" in fields && fields.institution) {
+        lines.push(`PB  - ${fields.institution}`);
+      }
+      if ("degree" in fields && fields.degree) {
+        lines.push(`M3  - ${fields.degree}`);
+      }
+      break;
+
+    case "conference-paper":
+      if ("conferenceName" in fields && fields.conferenceName) {
+        lines.push(`T2  - ${fields.conferenceName}`);
+      }
+      if ("conferenceLocation" in fields && fields.conferenceLocation) {
+        lines.push(`CY  - ${fields.conferenceLocation}`);
+      }
+      if ("proceedingsTitle" in fields && fields.proceedingsTitle) {
+        lines.push(`T3  - ${fields.proceedingsTitle}`);
+      }
+      if ("pageRange" in fields && fields.pageRange) {
+        const pages = fields.pageRange.split("-");
+        if (pages[0]) lines.push(`SP  - ${pages[0].trim()}`);
+        if (pages[1]) lines.push(`EP  - ${pages[1].trim()}`);
+      }
+      break;
+
+    case "book-chapter":
+      if ("bookTitle" in fields && fields.bookTitle) {
+        lines.push(`T2  - ${fields.bookTitle}`);
+      }
+      if ("bookEditors" in fields && fields.bookEditors && fields.bookEditors.length > 0) {
+        for (const ed of fields.bookEditors) {
+          if (ed.firstName) {
+            lines.push(`ED  - ${ed.lastName}, ${ed.firstName}`);
+          } else {
+            lines.push(`ED  - ${ed.lastName}`);
+          }
+        }
+      }
+      if ("pageRange" in fields && fields.pageRange) {
+        const pages = fields.pageRange.split("-");
+        if (pages[0]) lines.push(`SP  - ${pages[0].trim()}`);
+        if (pages[1]) lines.push(`EP  - ${pages[1].trim()}`);
+      }
+      if (fields.publisher) lines.push(`PB  - ${fields.publisher}`);
+      break;
+
+    case "encyclopedia":
+      if ("encyclopediaTitle" in fields && fields.encyclopediaTitle) {
+        lines.push(`T2  - ${fields.encyclopediaTitle}`);
+      }
+      if ("pageRange" in fields && fields.pageRange) {
+        const pages = fields.pageRange.split("-");
+        if (pages[0]) lines.push(`SP  - ${pages[0].trim()}`);
+        if (pages[1]) lines.push(`EP  - ${pages[1].trim()}`);
+      }
+      if (fields.publisher) lines.push(`PB  - ${fields.publisher}`);
+      break;
+
+    case "government-report":
+      if ("agency" in fields && fields.agency) lines.push(`PB  - ${fields.agency}`);
+      if ("reportNumber" in fields && fields.reportNumber) lines.push(`M1  - ${fields.reportNumber}`);
+      if ("series" in fields && fields.series) lines.push(`T3  - ${fields.series}`);
+      break;
+
+    case "preprint":
+      if ("repository" in fields && fields.repository) lines.push(`PB  - ${fields.repository}`);
+      if ("preprintId" in fields && fields.preprintId) lines.push(`M1  - ${fields.preprintId}`);
+      break;
+
+    case "dataset":
+    case "software":
+      if ("version" in fields && fields.version) lines.push(`ET  - ${fields.version}`);
+      if ("repository" in fields && fields.repository) lines.push(`PB  - ${fields.repository}`);
+      break;
+
+    case "song":
+    case "album":
+      if ("label" in fields && fields.label) lines.push(`PB  - ${fields.label}`);
+      if ("performers" in fields && fields.performers && fields.performers.length > 0) {
+        for (const p of fields.performers) {
+          lines.push(`A2  - ${p.firstName ? `${p.lastName}, ${p.firstName}` : p.lastName}`);
+        }
+      }
+      break;
+
+    case "podcast-episode":
+      if ("showName" in fields && fields.showName) lines.push(`T2  - ${fields.showName}`);
+      if ("host" in fields && fields.host && fields.host.length > 0) {
+        for (const h of fields.host) {
+          lines.push(`A2  - ${h.firstName ? `${h.lastName}, ${h.firstName}` : h.lastName}`);
+        }
+      }
+      break;
+
+    case "social-media":
+      if ("platform" in fields && fields.platform) lines.push(`PB  - ${fields.platform}`);
+      if ("handle" in fields && fields.handle) lines.push(`M1  - ${fields.handle}`);
+      break;
+
+    case "ai-generated":
+      if ("company" in fields && fields.company) lines.push(`PB  - ${fields.company}`);
+      if ("modelVersion" in fields && fields.modelVersion) lines.push(`ET  - ${fields.modelVersion}`);
+      break;
+
+    case "interview":
+      if ("interviewer" in fields && fields.interviewer && fields.interviewer.length > 0) {
+        for (const i of fields.interviewer) {
+          lines.push(`A2  - ${i.firstName ? `${i.lastName}, ${i.firstName}` : i.lastName}`);
+        }
+      }
+      break;
+
+    case "artwork":
+      if ("museum" in fields && fields.museum) lines.push(`PB  - ${fields.museum}`);
+      if ("city" in fields && fields.city) lines.push(`CY  - ${fields.city}`);
+      if ("medium" in fields && fields.medium) lines.push(`M3  - ${fields.medium}`);
+      break;
+
+    case "legal-case":
+      if ("court" in fields && fields.court) lines.push(`PB  - ${fields.court}`);
+      if ("citationNumber" in fields && fields.citationNumber) lines.push(`M1  - ${fields.citationNumber}`);
+      break;
+
+    case "video-game":
+      if ("studio" in fields && fields.studio) lines.push(`PB  - ${fields.studio}`);
+      if ("platform" in fields && fields.platform) lines.push(`M3  - ${fields.platform}`);
       break;
   }
 
