@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { ShareDialog } from "@/components/wiki/share-dialog";
 
 interface Project {
   id: string;
@@ -38,9 +39,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [showAddList, setShowAddList] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const [activeShare, setActiveShare] = useState<{ code: string; url: string; expiresAt?: string } | null>(null);
-  const [isSharing, setIsSharing] = useState(false);
-  const [shareCopySuccess, setShareCopySuccess] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -50,27 +49,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
     if (isSignedIn && projectId) {
       fetchProjectAndLists();
-      fetchActiveShare();
     }
   }, [isLoaded, isSignedIn, projectId, router]);
-
-  const fetchActiveShare = async () => {
-    try {
-      const response = await fetch(`/api/share`);
-      const result = await response.json();
-      if (!result.success) return;
-      const match = (result.data as Array<{ code: string; type: string; targetId: string; url: string; expiresAt?: string }>).find(
-        (s) => s.type === "project" && s.targetId === projectId
-      );
-      if (match) {
-        setActiveShare({ code: match.code, url: match.url || `${window.location.origin}/share/${match.code}`, expiresAt: match.expiresAt });
-      } else {
-        setActiveShare(null);
-      }
-    } catch {
-      // Non-fatal
-    }
-  };
 
   const fetchProjectAndLists = async () => {
     try {
@@ -216,80 +196,6 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
   };
 
-  const handleShare = async () => {
-    try {
-      setIsSharing(true);
-      setShareCopySuccess(false);
-
-      if (activeShare) {
-        try {
-          await navigator.clipboard.writeText(activeShare.url);
-          setShareCopySuccess(true);
-        } catch {
-          // Clipboard failed
-        }
-        return;
-      }
-
-      const response = await fetch("/api/share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "project",
-          targetId: projectId,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        const url = `${window.location.origin}/share/${result.data.code}`;
-        setActiveShare({ code: result.data.code, url, expiresAt: result.data.expiresAt });
-        try {
-          await navigator.clipboard.writeText(url);
-          setShareCopySuccess(true);
-        } catch {
-          // Clipboard failed
-        }
-      } else {
-        setError(result.error || "Failed to create share link");
-      }
-    } catch (err) {
-      console.error("Error sharing:", err);
-      setError("Failed to create share link");
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  const copyShareUrl = async () => {
-    if (!activeShare) return;
-    try {
-      await navigator.clipboard.writeText(activeShare.url);
-      setShareCopySuccess(true);
-    } catch {
-      // Fallback
-    }
-  };
-
-  const handleRevokeShare = async () => {
-    if (!activeShare) return;
-    if (!window.confirm("Revoke this share link? Anyone with the URL will lose access.")) return;
-    try {
-      const response = await fetch(`/api/share/${activeShare.code}`, { method: "DELETE" });
-      const result = await response.json();
-      if (result.success) {
-        setActiveShare(null);
-        setShareCopySuccess(false);
-      } else {
-        setError(result.error || "Failed to revoke share link");
-      }
-    } catch (err) {
-      console.error("Error revoking share:", err);
-      setError("Failed to revoke share link");
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -407,51 +313,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
             <div className="flex gap-2">
-              <WikiButton onClick={handleShare} disabled={isSharing}>
-                {isSharing
-                  ? "Sharing..."
-                  : activeShare
-                    ? "Copy share link"
-                    : "Share"}
+              <WikiButton onClick={() => setIsShareDialogOpen(true)}>
+                Share
               </WikiButton>
               <WikiButton variant="primary" onClick={() => setShowAddList(!showAddList)}>
                 {showAddList ? "Cancel" : "Add List"}
               </WikiButton>
             </div>
           </div>
-
-          {/* Share URL */}
-          {activeShare && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm">
-              {shareCopySuccess ? "Copied! " : "Share link: "}
-              <button
-                onClick={copyShareUrl}
-                className="text-green-800 hover:underline font-medium break-all"
-                title="Click to copy"
-              >
-                {activeShare.url}
-              </button>
-              {!shareCopySuccess && (
-                <button
-                  onClick={copyShareUrl}
-                  className="ml-2 text-green-600 hover:text-green-800"
-                >
-                  [copy]
-                </button>
-              )}
-              <button
-                onClick={handleRevokeShare}
-                className="ml-2 text-red-600 hover:text-red-800"
-              >
-                [revoke]
-              </button>
-              {activeShare.expiresAt && (
-                <span className="ml-2 text-green-600 text-xs">
-                  (expires {new Date(activeShare.expiresAt).toLocaleDateString()})
-                </span>
-              )}
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (
@@ -583,6 +452,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
+
+      <ShareDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        type="project"
+        targetId={projectId}
+        targetName={project?.name}
+      />
     </WikiLayout>
   );
 }
