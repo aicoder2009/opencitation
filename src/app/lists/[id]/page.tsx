@@ -34,6 +34,7 @@ import {
   toMarkdown,
   toHTML,
   toCSLJSON,
+  toRTF,
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
 import { pickFactoid } from "@/lib/did-you-know";
@@ -365,6 +366,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const exportHTML = () => {
     downloadFile(toHTML(citations, list?.name), "html", "text/html");
+  };
+
+  const exportRTF = () => {
+    downloadFile(toRTF(citations, list?.name), "rtf", "application/rtf");
   };
 
   const citationsWithFields = (): FullCitationFields[] =>
@@ -868,6 +873,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   label="Export"
                   items={[
                     { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
+                    { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
                     { label: "Markdown", hint: ".md", onClick: exportMarkdown },
                     { label: "HTML", hint: ".html", onClick: exportHTML },
                     { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },

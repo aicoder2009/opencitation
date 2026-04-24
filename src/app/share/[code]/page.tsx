@@ -5,6 +5,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
+import { toRTF } from "@/lib/citation/exporters";
 
 interface SharedCitation {
   id: string;
@@ -127,18 +128,31 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
     }
   };
 
-  const exportCitations = (citations: SharedCitation[], name: string) => {
-    const allText = citations.map((c) => c.formattedText).join("\n\n");
-    const blob = new Blob([allText], { type: "text/plain" });
+  const downloadBlob = (
+    content: string,
+    name: string,
+    extension: string,
+    mimeType: string,
+  ) => {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     const safeName = name.replace(/[^a-z0-9-_ ]/gi, "_").trim() || "citations";
-    a.download = `${safeName}.txt`;
+    a.download = `${safeName}.${extension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const exportCitations = (citations: SharedCitation[], name: string) => {
+    const allText = citations.map((c) => c.formattedText).join("\n\n");
+    downloadBlob(allText, name, "txt", "text/plain");
+  };
+
+  const exportCitationsRTF = (citations: SharedCitation[], name: string) => {
+    downloadBlob(toRTF(citations, name), name, "rtf", "application/rtf");
   };
 
   if (isLoading) {
@@ -227,6 +241,12 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                 </WikiButton>
                 <WikiButton onClick={() => exportCitations(data.citations!, data.name)}>
                   Export .txt
+                </WikiButton>
+                <WikiButton
+                  onClick={() => exportCitationsRTF(data.citations!, data.name)}
+                  title="Word-compatible with hanging indent"
+                >
+                  Export .rtf
                 </WikiButton>
               </div>
             )}
@@ -337,7 +357,13 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                           Copy All
                         </WikiButton>
                         <WikiButton onClick={() => exportCitations(list.citations, list.name)}>
-                          Export
+                          Export .txt
+                        </WikiButton>
+                        <WikiButton
+                          onClick={() => exportCitationsRTF(list.citations, list.name)}
+                          title="Word-compatible with hanging indent"
+                        >
+                          Export .rtf
                         </WikiButton>
                       </div>
                     )}

@@ -12,7 +12,7 @@ import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import type { CitationTemplate } from "@/lib/templates";
-import { toBibTeX, toRIS } from "@/lib/citation/exporters";
+import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
 import { parseBibTeX } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
@@ -1068,6 +1068,22 @@ function CitePageContent() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
+  };
+
+  const exportRTF = () => {
+    if (!generatedCitation) return;
+    const rtf = toRTF([
+      { formattedText: generatedCitation.text, formattedHtml: generatedCitation.html },
+    ]);
+    const blob = new Blob([rtf], { type: "application/rtf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `citation-${Date.now()}.rtf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const openAddToListModal = async () => {
@@ -2385,6 +2401,9 @@ function CitePageContent() {
                 )}
                 <WikiButton onClick={exportCitation}>
                   Export .txt
+                </WikiButton>
+                <WikiButton onClick={exportRTF} title="Word-compatible with hanging indent">
+                  Export .rtf
                 </WikiButton>
                 <WikiButton onClick={exportBibTeX}>
                   Export .bib
