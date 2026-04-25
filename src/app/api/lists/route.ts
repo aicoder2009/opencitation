@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createList, getUserLists } from "@/lib/db";
+import { isListNameTaken } from "@/lib/db/validation";
 
 // GET /api/lists - Get all lists for the authenticated user
 export async function GET() {
@@ -48,6 +49,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: "Name is required" },
         { status: 400 }
+      );
+    }
+
+    if (await isListNameTaken(userId, name.trim())) {
+      return NextResponse.json(
+        { success: false, error: "A list with this name already exists" },
+        { status: 409 }
       );
     }
 

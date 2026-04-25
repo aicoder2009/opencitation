@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getList, updateList, deleteList } from "@/lib/db";
+import { isListNameTaken } from "@/lib/db/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -74,6 +75,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         );
       }
       updates.name = name.trim();
+      if (await isListNameTaken(userId, updates.name, id)) {
+        return NextResponse.json(
+          { success: false, error: "A list with this name already exists" },
+          { status: 409 }
+        );
+      }
     }
     if (projectId !== undefined) {
       updates.projectId = projectId;

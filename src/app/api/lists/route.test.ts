@@ -13,6 +13,11 @@ vi.mock("@/lib/db", () => ({
   getUserLists: vi.fn(),
 }));
 
+vi.mock("@/lib/db/validation", () => ({
+  isListNameTaken: vi.fn().mockResolvedValue(false),
+  isProjectNameTaken: vi.fn().mockResolvedValue(false),
+}));
+
 import { auth } from "@clerk/nextjs/server";
 import { createList, getUserLists } from "@/lib/db";
 

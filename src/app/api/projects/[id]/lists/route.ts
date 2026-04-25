@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getProject, getProjectLists, createList } from "@/lib/db";
+import { isListNameTaken } from "@/lib/db/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -72,6 +73,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         { success: false, error: "List name is required" },
         { status: 400 }
+      );
+    }
+
+    if (await isListNameTaken(userId, name.trim())) {
+      return NextResponse.json(
+        { success: false, error: "A list with this name already exists" },
+        { status: 409 }
       );
     }
 

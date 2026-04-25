@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getProject, updateProject, deleteProject } from "@/lib/db";
+import { isProjectNameTaken } from "@/lib/db/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -66,7 +67,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const updates: { name?: string; description?: string } = {};
-    if (name !== undefined) updates.name = name.trim();
+    if (name !== undefined) {
+      updates.name = name.trim();
+      if (await isProjectNameTaken(userId, updates.name, projectId)) {
+        return NextResponse.json(
+          { success: false, error: "A project with this name already exists" },
+          { status: 409 }
+        );
+      }
+    }
     if (description !== undefined) updates.description = description?.trim();
 
     const project = await updateProject(userId, projectId, updates);
