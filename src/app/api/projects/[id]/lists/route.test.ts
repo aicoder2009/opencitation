@@ -145,7 +145,7 @@ describe("Project Lists API - /api/projects/[id]/lists", () => {
       expect(data.success).toBe(true);
       expect(data.data.name).toBe("New List");
       expect(data.data.projectId).toBe("project-123");
-      expect(mockCreateList).toHaveBeenCalledWith("user-123", "New List", "project-123");
+      expect(mockCreateList).toHaveBeenCalledWith("user-123", "New List", "project-123", undefined);
     });
 
     it("should return 400 if name is missing", async () => {

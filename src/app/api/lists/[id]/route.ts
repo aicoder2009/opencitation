@@ -56,17 +56,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name, projectId } = body;
+    const { name, projectId, description } = body as {
+      name?: string;
+      projectId?: string;
+      description?: string;
+    };
 
     // Validate that at least one field is being updated
-    if (name === undefined && projectId === undefined) {
+    if (name === undefined && projectId === undefined && description === undefined) {
       return NextResponse.json(
         { success: false, error: "No updates provided" },
         { status: 400 }
       );
     }
 
-    const updates: { name?: string; projectId?: string } = {};
+    const updates: { name?: string; description?: string; projectId?: string } = {};
     if (name !== undefined) {
       if (typeof name !== "string" || name.trim().length === 0) {
         return NextResponse.json(
@@ -81,6 +85,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           { status: 409 }
         );
       }
+    }
+    if (description !== undefined) {
+      updates.description = description.trim();
     }
     if (projectId !== undefined) {
       updates.projectId = projectId;

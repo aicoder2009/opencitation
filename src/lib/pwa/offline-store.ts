@@ -18,6 +18,7 @@ const STORES = {
 export interface OfflineList {
   id: string;
   name: string;
+  description?: string;
   projectId?: string;
   userId: string;
   createdAt: string;

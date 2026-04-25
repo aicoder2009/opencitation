@@ -25,6 +25,7 @@ export interface List {
   id: string;
   userId: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -82,10 +83,15 @@ function generateShareCode(): string {
 
 // ============ LISTS ============
 
-export async function createList(userId: string, name: string, projectId?: string): Promise<List> {
+export async function createList(
+  userId: string,
+  name: string,
+  projectId?: string,
+  description?: string
+): Promise<List> {
   const id = generateId();
   const now = new Date().toISOString();
-  const list: List = { id, userId, name, projectId, createdAt: now, updatedAt: now };
+  const list: List = { id, userId, name, description, projectId, createdAt: now, updatedAt: now };
   store.lists.set(`${userId}:${id}`, list);
   return list;
 }
@@ -107,16 +113,19 @@ export async function getUserLists(userId: string): Promise<List[]> {
 export async function updateList(
   userId: string,
   listId: string,
-  updates: { name?: string; projectId?: string | null }
+  updates: { name?: string; description?: string; projectId?: string | null }
 ): Promise<List | null> {
   const key = `${userId}:${listId}`;
   const list = store.lists.get(key);
   if (!list) return null;
 
-  const updated = {
+  const updated: List = {
     ...list,
     ...updates,
-    projectId: updates.projectId === null ? undefined : (updates.projectId ?? list.projectId),
+    description:
+      updates.description === "" ? undefined : (updates.description ?? list.description),
+    projectId:
+      updates.projectId === null ? undefined : (updates.projectId ?? list.projectId),
     updatedAt: new Date().toISOString(),
   };
   store.lists.set(key, updated);

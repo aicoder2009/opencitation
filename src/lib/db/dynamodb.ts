@@ -74,6 +74,7 @@ export interface List {
   id: string;
   userId: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -122,10 +123,15 @@ export interface ShareLink {
 
 // ============ LISTS ============
 
-export async function createList(userId: string, name: string, projectId?: string): Promise<List> {
+export async function createList(
+  userId: string,
+  name: string,
+  projectId?: string,
+  description?: string
+): Promise<List> {
   const id = generateId();
   const now = new Date().toISOString();
-  const list: List = { id, userId, name, projectId, createdAt: now, updatedAt: now };
+  const list: List = { id, userId, name, description, projectId, createdAt: now, updatedAt: now };
 
   await docClient.send(
     new PutCommand({
@@ -161,6 +167,7 @@ export async function getList(userId: string, listId: string): Promise<List | nu
     id: result.Item.id,
     userId: result.Item.userId,
     name: result.Item.name,
+    description: result.Item.description,
     projectId: result.Item.projectId,
     createdAt: result.Item.createdAt,
     updatedAt: result.Item.updatedAt,
@@ -183,6 +190,7 @@ export async function getUserLists(userId: string): Promise<List[]> {
     id: item.id,
     userId: item.userId,
     name: item.name,
+    description: item.description,
     projectId: item.projectId,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -194,28 +202,47 @@ export async function getUserLists(userId: string): Promise<List[]> {
 export async function updateList(
   userId: string,
   listId: string,
-  updates: { name?: string; projectId?: string | null }
+  updates: { name?: string; description?: string; projectId?: string | null }
 ): Promise<List | null> {
   const existing = await getList(userId, listId);
   if (!existing) return null;
 
   const now = new Date().toISOString();
-  const updateExpressions: string[] = ["updatedAt = :updatedAt"];
+  const setExpressions: string[] = ["updatedAt = :updatedAt"];
+  const removeExpressions: string[] = [];
   const expressionValues: Record<string, unknown> = { ":updatedAt": now };
+  const expressionNames: Record<string, string> = {};
 
   if (updates.name !== undefined) {
-    updateExpressions.push("#n = :name");
+    setExpressions.push("#n = :name");
     expressionValues[":name"] = updates.name;
+    expressionNames["#n"] = "name";
+  }
+
+  if (updates.description !== undefined) {
+    if (updates.description === "") {
+      removeExpressions.push("description");
+    } else {
+      setExpressions.push("description = :description");
+      expressionValues[":description"] = updates.description;
+    }
   }
 
   if (updates.projectId !== undefined) {
     if (updates.projectId === null) {
-      updateExpressions.push("REMOVE projectId");
+      removeExpressions.push("projectId");
     } else {
-      updateExpressions.push("projectId = :projectId");
+      setExpressions.push("projectId = :projectId");
       expressionValues[":projectId"] = updates.projectId;
     }
   }
+
+  const updateExpression = [
+    `SET ${setExpressions.join(", ")}`,
+    removeExpressions.length > 0 ? `REMOVE ${removeExpressions.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const result = await docClient.send(
     new UpdateCommand({
@@ -224,9 +251,10 @@ export async function updateList(
         PK: keys.user(userId),
         SK: keys.list(listId),
       },
-      UpdateExpression: `SET ${updateExpressions.filter((e) => !e.startsWith("REMOVE")).join(", ")}${updateExpressions.some((e) => e.startsWith("REMOVE")) ? " REMOVE projectId" : ""}`,
+      UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionValues,
-      ExpressionAttributeNames: updates.name !== undefined ? { "#n": "name" } : undefined,
+      ExpressionAttributeNames:
+        Object.keys(expressionNames).length > 0 ? expressionNames : undefined,
       ReturnValues: "ALL_NEW",
     })
   );
@@ -237,6 +265,7 @@ export async function updateList(
     id: result.Attributes.id,
     userId: result.Attributes.userId,
     name: result.Attributes.name,
+    description: result.Attributes.description,
     projectId: result.Attributes.projectId,
     createdAt: result.Attributes.createdAt,
     updatedAt: result.Attributes.updatedAt,

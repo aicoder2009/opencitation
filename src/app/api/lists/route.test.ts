@@ -120,7 +120,7 @@ describe("Lists API - /api/lists", () => {
       expect(response.status).toBe(200);
       expect(data.success).toBe(true);
       expect(data.data.name).toBe("New List");
-      expect(mockCreateList).toHaveBeenCalledWith("user-123", "New List", undefined);
+      expect(mockCreateList).toHaveBeenCalledWith("user-123", "New List", undefined, undefined);
     });
 
     it("should create a list with projectId", async () => {
@@ -143,7 +143,7 @@ describe("Lists API - /api/lists", () => {
       const data = await response.json();
 
       expect(data.success).toBe(true);
-      expect(mockCreateList).toHaveBeenCalledWith("user-123", "Project List", "project-123");
+      expect(mockCreateList).toHaveBeenCalledWith("user-123", "Project List", "project-123", undefined);
     });
 
     it("should return 400 if name is missing", async () => {
@@ -194,7 +194,7 @@ describe("Lists API - /api/lists", () => {
 
       await POST(request);
 
-      expect(mockCreateList).toHaveBeenCalledWith("user-123", "Trimmed Name", undefined);
+      expect(mockCreateList).toHaveBeenCalledWith("user-123", "Trimmed Name", undefined, undefined);
     });
   });
 });

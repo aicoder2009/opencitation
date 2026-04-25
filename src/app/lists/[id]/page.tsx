@@ -44,6 +44,7 @@ import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
 interface List {
   id: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -92,6 +93,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [showPrintAnimation, setShowPrintAnimation] = useState(false);
   const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
@@ -220,6 +222,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
       setList(listResult.data);
       setEditName(listResult.data.name);
+      setEditDescription(listResult.data.description || "");
 
       // Fetch citations
       const citationsResponse = await fetch(`/api/lists/${listId}/citations`);
@@ -237,22 +240,37 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleUpdateName = async () => {
-    if (!editName.trim() || editName.trim() === list?.name) {
+    const trimmedName = editName.trim();
+    const trimmedDesc = editDescription.trim();
+    if (!trimmedName) {
       setIsEditing(false);
       return;
     }
+
+    const nameChanged = trimmedName !== list?.name;
+    const descChanged = trimmedDesc !== (list?.description || "");
+    if (!nameChanged && !descChanged) {
+      setIsEditing(false);
+      return;
+    }
+
+    const body: { name?: string; description?: string } = {};
+    if (nameChanged) body.name = trimmedName;
+    if (descChanged) body.description = trimmedDesc;
 
     try {
       const response = await fetch(`/api/lists/${listId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() }),
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
 
       if (result.success) {
         setList(result.data);
+        setEditName(result.data.name);
+        setEditDescription(result.data.description || "");
         setIsEditing(false);
       } else {
         setError(result.error || "Failed to update list");
@@ -707,30 +725,50 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               {isEditing ? (
-                <div className="flex gap-2 items-center">
+                <div className="space-y-2">
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="text-xl font-bold"
+                    className="text-xl font-bold w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleUpdateName()}
+                    placeholder="List name"
                     autoFocus
                   />
-                  <WikiButton onClick={handleUpdateName}>Save</WikiButton>
-                  <WikiButton onClick={() => { setIsEditing(false); setEditName(list?.name || ""); }}>
-                    Cancel
-                  </WikiButton>
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full text-sm h-20"
+                    placeholder="Description (optional)"
+                  />
+                  <div className="flex gap-2">
+                    <WikiButton onClick={handleUpdateName}>Save</WikiButton>
+                    <WikiButton
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditName(list?.name || "");
+                        setEditDescription(list?.description || "");
+                      }}
+                    >
+                      Cancel
+                    </WikiButton>
+                  </div>
                 </div>
               ) : (
-                <h1 className="text-2xl font-bold mb-1">
-                  {list?.name}
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="ml-2 text-wiki-link text-sm font-normal hover:underline"
-                  >
-                    [edit]
-                  </button>
-                </h1>
+                <>
+                  <h1 className="text-2xl font-bold mb-1">
+                    {list?.name}
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="ml-2 text-wiki-link text-sm font-normal hover:underline"
+                    >
+                      [edit]
+                    </button>
+                  </h1>
+                  {list?.description && (
+                    <p className="text-sm mb-1 max-w-2xl">{list.description}</p>
+                  )}
+                </>
               )}
               <p className="text-wiki-text-muted text-sm">
                 {citations.length} citation{citations.length !== 1 ? "s" : ""}

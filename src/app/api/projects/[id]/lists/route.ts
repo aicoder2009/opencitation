@@ -67,7 +67,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name } = body as { name: string };
+    const { name, description } = body as { name: string; description?: string };
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json(
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const list = await createList(userId, name.trim(), projectId);
+    const list = await createList(userId, name.trim(), projectId, description?.trim() || undefined);
 
     return NextResponse.json({
       success: true,
