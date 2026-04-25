@@ -384,31 +384,6 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  const handleSetReadingStatus = async (
-    citationId: string,
-    readingStatus: ReadingStatus | null
-  ) => {
-    try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readingStatus }),
-      });
-      const result = await response.json();
-      if (result.success) {
-        setCitations((prev) =>
-          prev.map((c) =>
-            c.id === citationId
-              ? { ...c, readingStatus: readingStatus ?? undefined }
-              : c
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Error updating reading status:", err);
-    }
-  };
-
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
@@ -1017,7 +992,6 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                       onEditDone={() => setEditingCitationId(null)}
                       onSaveNotes={handleSaveNotes}
                       onSaveQuotes={handleSaveQuotes}
-                      onSetReadingStatus={handleSetReadingStatus}
                     />
                   ))}
                 </div>

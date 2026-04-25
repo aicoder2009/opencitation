@@ -38,20 +38,6 @@ interface Citation {
   updatedAt: string;
 }
 
-const READING_STATUS_LABELS: Record<ReadingStatus, string> = {
-  "to-read": "to read",
-  reading: "reading",
-  read: "read",
-  cited: "cited",
-};
-
-const READING_STATUS_STYLES: Record<ReadingStatus, string> = {
-  "to-read": "bg-amber-50 text-amber-800 border-amber-300",
-  reading: "bg-blue-50 text-blue-800 border-blue-300",
-  read: "bg-green-50 text-green-800 border-green-300",
-  cited: "bg-purple-50 text-purple-800 border-purple-300",
-};
-
 interface EditableFields {
   title: string;
   authorFirst: string;
@@ -81,7 +67,6 @@ interface SortableCitationProps {
   onEditDone?: () => void;
   onSaveNotes?: (id: string, notes: string) => void | Promise<void>;
   onSaveQuotes?: (id: string, quotes: CitationQuote[]) => void | Promise<void>;
-  onSetReadingStatus?: (id: string, status: ReadingStatus | null) => void | Promise<void>;
 }
 
 export function SortableCitation({
@@ -103,7 +88,6 @@ export function SortableCitation({
   onEditDone,
   onSaveNotes,
   onSaveQuotes,
-  onSetReadingStatus,
 }: SortableCitationProps) {
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
@@ -209,28 +193,6 @@ export function SortableCitation({
         <span className="font-medium text-sm">
           Citation {index + 1} ({citation.style.toUpperCase()})
         </span>
-        {onSetReadingStatus && (
-          <select
-            value={citation.readingStatus ?? ""}
-            onChange={(e) => {
-              const v = e.target.value;
-              onSetReadingStatus(citation.id, v === "" ? null : (v as ReadingStatus));
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className={`ml-auto text-xs px-2 py-0.5 border ${
-              citation.readingStatus
-                ? READING_STATUS_STYLES[citation.readingStatus]
-                : "bg-wiki-white text-wiki-text-muted border-wiki-border-light"
-            }`}
-            title="Reading status"
-          >
-            <option value="">no status</option>
-            <option value="to-read">{READING_STATUS_LABELS["to-read"]}</option>
-            <option value="reading">{READING_STATUS_LABELS["reading"]}</option>
-            <option value="read">{READING_STATUS_LABELS["read"]}</option>
-            <option value="cited">{READING_STATUS_LABELS["cited"]}</option>
-          </select>
-        )}
       </div>
 
       {/* Content */}
