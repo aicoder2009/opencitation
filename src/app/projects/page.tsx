@@ -221,53 +221,50 @@ export default function ProjectsPage() {
               </WikiButton>
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-wiki-border-light">
-                  <th className="text-left py-2 px-2 font-semibold">Name</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden md:table-cell">Description</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Created</th>
-                  <th className="text-right py-2 px-2 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((project) => (
-                  <tr
-                    key={project.id}
-                    className="border-b border-wiki-border-light hover:bg-wiki-offwhite"
-                  >
-                    <td className="py-3 px-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="flex flex-col border border-wiki-border-light bg-wiki-white hover:bg-wiki-offwhite transition-colors"
+                >
+                  <div className="p-4 flex-1">
+                    <h2 className="text-lg font-bold mb-1 leading-tight">
                       <a
                         href={`/projects/${project.id}`}
-                        className="text-wiki-link hover:underline font-medium"
+                        className="text-wiki-link hover:underline"
                       >
                         {project.name}
                       </a>
-                    </td>
-                    <td className="py-3 px-2 text-wiki-text-muted hidden md:table-cell">
-                      {project.description || "-"}
-                    </td>
-                    <td className="py-3 px-2 text-wiki-text-muted hidden sm:table-cell">
-                      {formatDate(project.createdAt)}
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() => router.push(`/projects/${project.id}`)}
-                        className="text-wiki-link hover:underline mr-3"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProject(project.id, project.name)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </h2>
+                    <p className="text-xs text-wiki-text-muted mb-3">
+                      Created {formatDate(project.createdAt)}
+                    </p>
+                    {project.description ? (
+                      <p className="text-sm line-clamp-3">{project.description}</p>
+                    ) : (
+                      <p className="text-sm text-wiki-text-muted italic">
+                        No description
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 px-4 py-2 border-t border-wiki-border-light bg-wiki-tab-bg text-sm">
+                    <button
+                      onClick={() => router.push(`/projects/${project.id}`)}
+                      className="text-wiki-link hover:underline"
+                    >
+                      View
+                    </button>
+                    <span className="text-wiki-border-light">|</span>
+                    <button
+                      onClick={() => handleDeleteProject(project.id, project.name)}
+                      className="text-red-600 hover:underline ml-auto"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
 
           {/* Quick Actions */}
