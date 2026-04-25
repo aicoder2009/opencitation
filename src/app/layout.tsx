@@ -81,6 +81,7 @@ export default function RootLayout({
           <link rel="manifest" href="/manifest.json" />
           <link rel="apple-touch-icon" href="/apple-icon.png" />
           <link rel="apple-touch-startup-image" href="/icons/icon-512.png" />
+          <link rel="search" type="application/opensearchdescription+xml" title="OpenCitation" href="/opensearch.xml" />
           {/* Pre-hydration theme: avoid light-mode flash on dark users */}
           <script
             dangerouslySetInnerHTML={{

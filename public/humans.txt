@@ -1,0 +1,18 @@
+/* TEAM */
+  Creator: Karthick Arun
+  GitHub: @aicoder2009
+  Site: https://github.com/aicoder2009/opencitation
+
+/* THANKS */
+  Built with the help of Claude Code.
+  Citation metadata from: CrossRef, Open Library, Google Books,
+  PubMed (NCBI E-utilities), arXiv, Wikipedia.
+
+/* SITE */
+  Last update: 2026-04-24
+  Language: English
+  Doctype: HTML5
+  Standards: HTML5, CSS3, ES2023
+  Components: Next.js 16, React 19, Tailwind CSS 4, Clerk, DynamoDB,
+              Electron 34, @dnd-kit, Vitest
+  Inspiration: Wikipedia circa 2005 — clean, information-dense, utilitarian.
