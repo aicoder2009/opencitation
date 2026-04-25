@@ -88,6 +88,13 @@ export interface Project {
   updatedAt: string;
 }
 
+export type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+export interface CitationQuote {
+  text: string;
+  page?: string;
+}
+
 export interface Citation {
   id: string;
   listId: string;
@@ -96,6 +103,9 @@ export interface Citation {
   formattedText: string;
   formattedHtml: string;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;
@@ -413,11 +423,18 @@ export async function addCitation(
   style: CitationStyle,
   formattedText: string,
   formattedHtml: string,
-  tags?: string[]
+  tags?: string[],
+  notes?: string,
+  quotes?: CitationQuote[],
+  readingStatus?: ReadingStatus
 ): Promise<Citation> {
   const id = generateId();
   const now = new Date().toISOString();
-  const citation: Citation = { id, listId, fields, style, formattedText, formattedHtml, tags, createdAt: now, updatedAt: now };
+  const citation: Citation = {
+    id, listId, fields, style, formattedText, formattedHtml,
+    tags, notes, quotes, readingStatus,
+    createdAt: now, updatedAt: now,
+  };
 
   await docClient.send(
     new PutCommand({
@@ -457,6 +474,9 @@ export async function getCitation(listId: string, citationId: string): Promise<C
     formattedText: result.Item.formattedText,
     formattedHtml: result.Item.formattedHtml,
     tags: result.Item.tags,
+    notes: result.Item.notes,
+    quotes: result.Item.quotes,
+    readingStatus: result.Item.readingStatus,
     createdAt: result.Item.createdAt,
     updatedAt: result.Item.updatedAt,
   };
@@ -482,6 +502,9 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
     formattedText: item.formattedText,
     formattedHtml: item.formattedHtml,
     tags: item.tags,
+    notes: item.notes,
+    quotes: item.quotes,
+    readingStatus: item.readingStatus,
     sortOrder: item.sortOrder,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -499,39 +522,79 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
 export async function updateCitation(
   listId: string,
   citationId: string,
-  updates: { fields?: CitationFields; style?: CitationStyle; formattedText?: string; formattedHtml?: string; tags?: string[] }
+  updates: {
+    fields?: CitationFields;
+    style?: CitationStyle;
+    formattedText?: string;
+    formattedHtml?: string;
+    tags?: string[];
+    notes?: string;
+    quotes?: CitationQuote[];
+    readingStatus?: ReadingStatus | null;
+  }
 ): Promise<Citation | null> {
   const existing = await getCitation(listId, citationId);
   if (!existing) return null;
 
   const now = new Date().toISOString();
-  const updateExpressions: string[] = ["updatedAt = :updatedAt"];
+  const setExpressions: string[] = ["updatedAt = :updatedAt"];
+  const removeExpressions: string[] = [];
   const expressionValues: Record<string, unknown> = { ":updatedAt": now };
 
   if (updates.fields !== undefined) {
-    updateExpressions.push("fields = :fields");
+    setExpressions.push("fields = :fields");
     expressionValues[":fields"] = updates.fields;
   }
 
   if (updates.style !== undefined) {
-    updateExpressions.push("style = :style");
+    setExpressions.push("style = :style");
     expressionValues[":style"] = updates.style;
   }
 
   if (updates.formattedText !== undefined) {
-    updateExpressions.push("formattedText = :formattedText");
+    setExpressions.push("formattedText = :formattedText");
     expressionValues[":formattedText"] = updates.formattedText;
   }
 
   if (updates.formattedHtml !== undefined) {
-    updateExpressions.push("formattedHtml = :formattedHtml");
+    setExpressions.push("formattedHtml = :formattedHtml");
     expressionValues[":formattedHtml"] = updates.formattedHtml;
   }
 
   if (updates.tags !== undefined) {
-    updateExpressions.push("tags = :tags");
+    setExpressions.push("tags = :tags");
     expressionValues[":tags"] = updates.tags;
   }
+
+  if (updates.notes !== undefined) {
+    if (updates.notes === "") {
+      removeExpressions.push("notes");
+    } else {
+      setExpressions.push("notes = :notes");
+      expressionValues[":notes"] = updates.notes;
+    }
+  }
+
+  if (updates.quotes !== undefined) {
+    setExpressions.push("quotes = :quotes");
+    expressionValues[":quotes"] = updates.quotes;
+  }
+
+  if (updates.readingStatus !== undefined) {
+    if (updates.readingStatus === null) {
+      removeExpressions.push("readingStatus");
+    } else {
+      setExpressions.push("readingStatus = :readingStatus");
+      expressionValues[":readingStatus"] = updates.readingStatus;
+    }
+  }
+
+  const updateExpression = [
+    `SET ${setExpressions.join(", ")}`,
+    removeExpressions.length > 0 ? `REMOVE ${removeExpressions.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const result = await docClient.send(
     new UpdateCommand({
@@ -540,7 +603,7 @@ export async function updateCitation(
         PK: keys.list(listId),
         SK: keys.citation(citationId),
       },
-      UpdateExpression: `SET ${updateExpressions.join(", ")}`,
+      UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionValues,
       ReturnValues: "ALL_NEW",
     })
@@ -556,6 +619,9 @@ export async function updateCitation(
     formattedText: result.Attributes.formattedText,
     formattedHtml: result.Attributes.formattedHtml,
     tags: result.Attributes.tags,
+    notes: result.Attributes.notes,
+    quotes: result.Attributes.quotes,
+    readingStatus: result.Attributes.readingStatus,
     createdAt: result.Attributes.createdAt,
     updatedAt: result.Attributes.updatedAt,
   };

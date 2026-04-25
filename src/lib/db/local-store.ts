@@ -39,6 +39,13 @@ export interface Project {
   updatedAt: string;
 }
 
+export type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+export interface CitationQuote {
+  text: string;
+  page?: string;
+}
+
 export interface Citation {
   id: string;
   listId: string;
@@ -47,6 +54,9 @@ export interface Citation {
   formattedText: string;
   formattedHtml: string;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;
@@ -201,11 +211,18 @@ export async function addCitation(
   style: CitationStyle,
   formattedText: string,
   formattedHtml: string,
-  tags?: string[]
+  tags?: string[],
+  notes?: string,
+  quotes?: CitationQuote[],
+  readingStatus?: ReadingStatus
 ): Promise<Citation> {
   const id = generateId();
   const now = new Date().toISOString();
-  const citation: Citation = { id, listId, fields, style, formattedText, formattedHtml, tags, createdAt: now, updatedAt: now };
+  const citation: Citation = {
+    id, listId, fields, style, formattedText, formattedHtml,
+    tags, notes, quotes, readingStatus,
+    createdAt: now, updatedAt: now,
+  };
   store.citations.set(`${listId}:${id}`, citation);
   return citation;
 }
@@ -233,13 +250,31 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
 export async function updateCitation(
   listId: string,
   citationId: string,
-  updates: { fields?: CitationFields; style?: CitationStyle; formattedText?: string; formattedHtml?: string; tags?: string[] }
+  updates: {
+    fields?: CitationFields;
+    style?: CitationStyle;
+    formattedText?: string;
+    formattedHtml?: string;
+    tags?: string[];
+    notes?: string;
+    quotes?: CitationQuote[];
+    readingStatus?: ReadingStatus | null;
+  }
 ): Promise<Citation | null> {
   const key = `${listId}:${citationId}`;
   const citation = store.citations.get(key);
   if (!citation) return null;
 
-  const updated = { ...citation, ...updates, updatedAt: new Date().toISOString() };
+  const updated: Citation = {
+    ...citation,
+    ...updates,
+    notes: updates.notes === "" ? undefined : (updates.notes ?? citation.notes),
+    readingStatus:
+      updates.readingStatus === null
+        ? undefined
+        : (updates.readingStatus ?? citation.readingStatus),
+    updatedAt: new Date().toISOString(),
+  };
   store.citations.set(key, updated);
   return updated;
 }

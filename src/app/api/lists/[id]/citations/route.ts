@@ -67,12 +67,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { fields, style, formattedText, formattedHtml, tags } = body as {
+    const { fields, style, formattedText, formattedHtml, tags, notes, quotes, readingStatus } = body as {
       fields: CitationFields;
       style: CitationStyle;
       formattedText: string;
       formattedHtml: string;
       tags?: string[];
+      notes?: string;
+      quotes?: Array<{ text: string; page?: string }>;
+      readingStatus?: "to-read" | "reading" | "read" | "cited";
     };
 
     // Validate required fields
@@ -83,7 +86,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const citation = await addCitation(listId, fields, style, formattedText, formattedHtml, tags);
+    const citation = await addCitation(
+      listId, fields, style, formattedText, formattedHtml,
+      tags, notes, quotes, readingStatus
+    );
 
     return NextResponse.json({
       success: true,

@@ -33,6 +33,10 @@ export interface OfflineCitation {
   style: string;
   formattedText: string;
   formattedHtml: string;
+  tags?: string[];
+  notes?: string;
+  quotes?: Array<{ text: string; page?: string }>;
+  readingStatus?: "to-read" | "reading" | "read" | "cited";
   createdAt: string;
   updatedAt: string;
   _offline?: boolean;

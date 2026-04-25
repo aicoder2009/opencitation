@@ -60,6 +60,13 @@ interface CitationFields {
   [key: string]: unknown;
 }
 
+type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+interface CitationQuote {
+  text: string;
+  page?: string;
+}
+
 interface Citation {
   id: string;
   listId: string;
@@ -68,6 +75,9 @@ interface Citation {
   formattedHtml: string;
   fields?: CitationFields;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -335,6 +345,67 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       }
     } catch (err) {
       console.error("Error removing tag:", err);
+    }
+  };
+
+  const handleSaveNotes = async (citationId: string, notes: string) => {
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setCitations((prev) =>
+          prev.map((c) => (c.id === citationId ? { ...c, notes: notes || undefined } : c))
+        );
+      }
+    } catch (err) {
+      console.error("Error saving notes:", err);
+    }
+  };
+
+  const handleSaveQuotes = async (citationId: string, quotes: CitationQuote[]) => {
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quotes }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setCitations((prev) =>
+          prev.map((c) => (c.id === citationId ? { ...c, quotes } : c))
+        );
+      }
+    } catch (err) {
+      console.error("Error saving quotes:", err);
+    }
+  };
+
+  const handleSetReadingStatus = async (
+    citationId: string,
+    readingStatus: ReadingStatus | null
+  ) => {
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ readingStatus }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setCitations((prev) =>
+          prev.map((c) =>
+            c.id === citationId
+              ? { ...c, readingStatus: readingStatus ?? undefined }
+              : c
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Error updating reading status:", err);
     }
   };
 
@@ -944,6 +1015,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                       newTagInput={newTagInput}
                       setNewTagInput={setNewTagInput}
                       onEditDone={() => setEditingCitationId(null)}
+                      onSaveNotes={handleSaveNotes}
+                      onSaveQuotes={handleSaveQuotes}
+                      onSetReadingStatus={handleSetReadingStatus}
                     />
                   ))}
                 </div>
