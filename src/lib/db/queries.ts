@@ -4,6 +4,7 @@ import {
   DeleteCommand,
   QueryCommand,
   UpdateCommand,
+  BatchWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { docClient, TABLE_NAME, keys, PREFIXES, generateId, generateShareCode } from "./dynamodb";
 import type { CitationFields, CitationStyle } from "@/types";
@@ -172,8 +173,33 @@ export async function updateList(
 export async function deleteList(userId: string, listId: string): Promise<void> {
   // First delete all citations in the list
   const citations = await getListCitations(listId);
-  for (const citation of citations) {
-    await deleteCitation(listId, citation.id);
+
+  if (citations.length > 0) {
+    // DynamoDB allows a maximum of 25 items per BatchWriteItem request
+    const BATCH_SIZE = 25;
+    const batches = [];
+
+    for (let i = 0; i < citations.length; i += BATCH_SIZE) {
+      const batch = citations.slice(i, i + BATCH_SIZE);
+      batches.push(
+        docClient.send(
+          new BatchWriteCommand({
+            RequestItems: {
+              [TABLE_NAME]: batch.map((citation) => ({
+                DeleteRequest: {
+                  Key: {
+                    PK: keys.list(listId),
+                    SK: keys.citation(citation.id),
+                  },
+                },
+              })),
+            },
+          })
+        )
+      );
+    }
+
+    await Promise.all(batches);
   }
 
   // Then delete the list
