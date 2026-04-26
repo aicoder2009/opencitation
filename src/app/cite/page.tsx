@@ -72,6 +72,18 @@ const ACCESS_TYPES: { value: AccessType; label: string }[] = [
   { value: "archive", label: "Archive" },
 ];
 
+const STYLE_LABELS: Record<string, string> = Object.fromEntries(
+  CITATION_STYLES.map(s => [s.value, s.label])
+);
+
+const SOURCE_LABELS: Record<string, string> = Object.fromEntries(
+  SOURCE_TYPES.map(s => [s.value, s.label])
+);
+
+const ACCESS_LABELS: Record<string, string> = Object.fromEntries(
+  ACCESS_TYPES.map(s => [s.value, s.label])
+);
+
 interface RecentCitation {
   id: string;
   title: string;
@@ -1277,13 +1289,13 @@ function CitePageContent() {
   };
 
   const getStyleLabel = (value: CitationStyle) =>
-    CITATION_STYLES.find(s => s.value === value)?.label || value;
+    STYLE_LABELS[value] || value;
 
   const getSourceLabel = (value: SourceType) =>
-    SOURCE_TYPES.find(s => s.value === value)?.label || value;
+    SOURCE_LABELS[value] || value;
 
   const _getAccessLabel = (value: AccessType) =>
-    ACCESS_TYPES.find(s => s.value === value)?.label || value;
+    ACCESS_LABELS[value] || value;
 
   const handleSelectTemplate = (template: CitationTemplate) => {
     // Apply template settings
