@@ -5,6 +5,21 @@
 
 import type { Author, CitationDate } from '@/types/citation';
 
+const MONTHS_LONG: readonly string[] = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const MONTHS_MLA: readonly string[] = [
+  'Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June',
+  'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.',
+];
+
+const HTML_ESCAPE_MAP: Readonly<Record<string, string>> = {
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;',
+};
+const HTML_ESCAPE_RE = /[&<>"']/g;
+
 /**
  * Format author name for APA style: Last, F. M.
  */
@@ -231,15 +246,10 @@ export function formatAuthorsHarvard(authors: Author[]): string {
 export function formatDateAPA(date?: CitationDate): string {
   if (!date || !date.year) return '(n.d.)';
 
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
   let dateStr = `${date.year}`;
 
   if (date.month) {
-    dateStr += `, ${months[date.month - 1]}`;
+    dateStr += `, ${MONTHS_LONG[date.month - 1]}`;
     if (date.day) {
       dateStr += ` ${date.day}`;
     }
@@ -262,17 +272,12 @@ export function formatDateAPA(date?: CitationDate): string {
 export function formatDateMLA(date?: CitationDate): string {
   if (!date || !date.year) return '';
 
-  const months = [
-    'Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June',
-    'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'
-  ];
-
   if (date.day && date.month) {
-    return `${date.day} ${months[date.month - 1]} ${date.year}`;
+    return `${date.day} ${MONTHS_MLA[date.month - 1]} ${date.year}`;
   }
 
   if (date.month) {
-    return `${months[date.month - 1]} ${date.year}`;
+    return `${MONTHS_MLA[date.month - 1]} ${date.year}`;
   }
 
   return `${date.year}`;
@@ -284,17 +289,12 @@ export function formatDateMLA(date?: CitationDate): string {
 export function formatDateChicago(date?: CitationDate): string {
   if (!date || !date.year) return '';
 
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
   if (date.month && date.day) {
-    return `${months[date.month - 1]} ${date.day}, ${date.year}`;
+    return `${MONTHS_LONG[date.month - 1]} ${date.day}, ${date.year}`;
   }
 
   if (date.month) {
-    return `${months[date.month - 1]} ${date.year}`;
+    return `${MONTHS_LONG[date.month - 1]} ${date.year}`;
   }
 
   return `${date.year}`;
@@ -306,17 +306,12 @@ export function formatDateChicago(date?: CitationDate): string {
 export function formatDateHarvard(date?: CitationDate): string {
   if (!date || !date.year) return 'n.d.';
 
-  const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-
   if (date.day && date.month) {
-    return `${date.day} ${months[date.month - 1]} ${date.year}`;
+    return `${date.day} ${MONTHS_LONG[date.month - 1]} ${date.year}`;
   }
 
   if (date.month) {
-    return `${months[date.month - 1]} ${date.year}`;
+    return `${MONTHS_LONG[date.month - 1]} ${date.year}`;
   }
 
   return `${date.year}`;
@@ -346,12 +341,7 @@ export function formatAccessDate(date?: CitationDate, style: 'apa' | 'mla' | 'ch
  * Escape HTML characters
  */
 export function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+  return text.replace(HTML_ESCAPE_RE, (ch) => HTML_ESCAPE_MAP[ch]);
 }
 
 /**

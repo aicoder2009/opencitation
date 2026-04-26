@@ -1,5 +1,16 @@
 import type { CitationFields } from "@/types";
 
+const BIBTEX_MONTHS: readonly string[] = [
+  "jan", "feb", "mar", "apr", "may", "jun",
+  "jul", "aug", "sep", "oct", "nov", "dec",
+];
+
+const BIBTEX_ESCAPE_MAP: Readonly<Record<string, string>> = {
+  "\\": "\\\\", "{": "\\{", "}": "\\}", "&": "\\&",
+  "%": "\\%", "$": "\\$", "#": "\\#", "_": "\\_", "~": "\\~{}",
+};
+const BIBTEX_ESCAPE_RE = /[\\{}&%$#_~]/g;
+
 /**
  * Generate a BibTeX key from citation fields
  */
@@ -14,16 +25,7 @@ function generateBibKey(fields: CitationFields): string {
  * Escape special BibTeX characters
  */
 function escapeBibTeX(text: string): string {
-  return text
-    .replace(/\\/g, "\\\\")
-    .replace(/\{/g, "\\{")
-    .replace(/\}/g, "\\}")
-    .replace(/&/g, "\\&")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/_/g, "\\_")
-    .replace(/~/g, "\\~{}");
+  return text.replace(BIBTEX_ESCAPE_RE, (ch) => BIBTEX_ESCAPE_MAP[ch]);
 }
 
 /**
@@ -125,8 +127,7 @@ export function toBibTeX(fields: CitationFields): string {
 
   // Month
   if (fields.publicationDate?.month) {
-    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
-    const monthStr = months[fields.publicationDate.month - 1];
+    const monthStr = BIBTEX_MONTHS[fields.publicationDate.month - 1];
     if (monthStr) {
       lines.push(`  month = ${monthStr},`);
     }

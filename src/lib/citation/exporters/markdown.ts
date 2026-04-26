@@ -3,20 +3,33 @@ interface CitationLike {
   formattedHtml: string;
 }
 
+const RE_EM     = /<em>([\s\S]*?)<\/em>/gi;
+const RE_I      = /<i>([\s\S]*?)<\/i>/gi;
+const RE_STRONG = /<strong>([\s\S]*?)<\/strong>/gi;
+const RE_B      = /<b>([\s\S]*?)<\/b>/gi;
+const RE_BR     = /<br\s*\/?>/gi;
+const RE_TAGS   = /<[^>]+>/g;
+const RE_AMP    = /&amp;/g;
+const RE_LT     = /&lt;/g;
+const RE_GT     = /&gt;/g;
+const RE_QUOT   = /&quot;/g;
+const RE_APOS   = /&#39;/g;
+const RE_NBSP   = /&nbsp;/g;
+
 function htmlToMarkdown(html: string): string {
   return html
-    .replace(/<em>([\s\S]*?)<\/em>/gi, "*$1*")
-    .replace(/<i>([\s\S]*?)<\/i>/gi, "*$1*")
-    .replace(/<strong>([\s\S]*?)<\/strong>/gi, "**$1**")
-    .replace(/<b>([\s\S]*?)<\/b>/gi, "**$1**")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, "")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, " ")
+    .replace(RE_EM,     "*$1*")
+    .replace(RE_I,      "*$1*")
+    .replace(RE_STRONG, "**$1**")
+    .replace(RE_B,      "**$1**")
+    .replace(RE_BR,     "\n")
+    .replace(RE_TAGS,   "")
+    .replace(RE_AMP,    "&")
+    .replace(RE_LT,     "<")
+    .replace(RE_GT,     ">")
+    .replace(RE_QUOT,   '"')
+    .replace(RE_APOS,   "'")
+    .replace(RE_NBSP,   " ")
     .trim();
 }
 
