@@ -57,6 +57,7 @@ export function CitationAddModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
+  const [addMore, setAddMore] = useState(false);
   const [isLooking, setIsLooking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
@@ -80,6 +81,7 @@ export function CitationAddModal({
       setSaveError(null);
       setAddedCount(0);
       setShowSuccess(false);
+      setAddMore(false);
     }
   }, [isOpen]);
 
@@ -164,20 +166,23 @@ export function CitationAddModal({
         return;
       }
 
-      // Success — reset for next entry
-      setAddedCount((n) => n + 1);
-      setInput("");
-      setCitationFields(null);
-      setGeneratedCitation(null);
-      setLookupError(null);
-      setSaveError(null);
-      setShowSuccess(true);
       onCitationAdded();
 
-      if (successTimer.current) clearTimeout(successTimer.current);
-      successTimer.current = setTimeout(() => setShowSuccess(false), 1500);
-
-      setTimeout(() => inputRef.current?.focus(), 30);
+      if (addMore) {
+        // Stay open — reset for next entry
+        setAddedCount((n) => n + 1);
+        setInput("");
+        setCitationFields(null);
+        setGeneratedCitation(null);
+        setLookupError(null);
+        setSaveError(null);
+        setShowSuccess(true);
+        if (successTimer.current) clearTimeout(successTimer.current);
+        successTimer.current = setTimeout(() => setShowSuccess(false), 1500);
+        setTimeout(() => inputRef.current?.focus(), 30);
+      } else {
+        onClose();
+      }
     } catch {
       setSaveError("Network error. Please try again.");
     } finally {
@@ -199,7 +204,7 @@ export function CitationAddModal({
             <h2 className="font-bold text-base">Add Citation</h2>
             <p className="text-xs text-wiki-text-muted mt-0.5">
               to &ldquo;{listName}&rdquo;
-              {addedCount > 0 && (
+              {addMore && addedCount > 0 && (
                 <span className="ml-2 text-green-700 font-medium">
                   {addedCount} added
                 </span>
@@ -279,13 +284,24 @@ export function CitationAddModal({
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-wiki-border-light flex items-center justify-between gap-3">
-          <a
-            href="/cite"
-            className="text-xs text-wiki-link hover:underline"
-            tabIndex={-1}
-          >
-            Full citation editor →
-          </a>
+          <div className="flex items-center gap-4">
+            <a
+              href="/cite"
+              className="text-xs text-wiki-link hover:underline"
+              tabIndex={-1}
+            >
+              Full citation editor →
+            </a>
+            <label className="flex items-center gap-1.5 text-xs text-wiki-text-muted cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={addMore}
+                onChange={(e) => setAddMore(e.target.checked)}
+                className="cursor-pointer"
+              />
+              Add multiple
+            </label>
+          </div>
           <div className="flex gap-2">
             <WikiButton onClick={onClose} disabled={isSaving}>
               Done
