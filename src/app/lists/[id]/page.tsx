@@ -460,12 +460,19 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const exportZotero = () => {
-    const fieldsList = citationsWithFields();
-    if (fieldsList.length === 0) {
+    const items = citations
+      .filter((c) => c.fields)
+      .map((c) => ({
+        fields: c.fields as unknown as FullCitationFields,
+        tags: c.tags,
+        notes: c.notes,
+        quotes: c.quotes,
+      }));
+    if (items.length === 0) {
       setError("No citations with structured fields to export to Zotero.");
       return;
     }
-    const ris = toRISMultiple(fieldsList);
+    const ris = toRISMultiple(items);
     const blob = new Blob([ris], { type: "application/x-research-info-systems" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
