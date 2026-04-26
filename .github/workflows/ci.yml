@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run test:run
+
+  build:
+    name: Next.js Build
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
+      CLERK_SECRET_KEY: sk_test_placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  claude-review:
+    name: Claude Code Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropic-ai/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            Review this pull request with two passes:
+
+            **Pass 1 — Code Quality**
+            Check for: code smells, unclear logic, missing edge cases, naming issues, unnecessary
+            complexity, and adherence to project conventions (Next.js 16 App Router, React 19,
+            Tailwind 4, citation engine patterns in src/lib/citation/).
+
+            **Pass 2 — Security Scan**
+            Look for: OWASP Top 10 issues, injection vulnerabilities, auth bypasses, exposed secrets
+            or credentials, XSS/CSRF risks, insecure API route handling, and unsafe DynamoDB query
+            patterns.
+
+            Post inline review comments on specific lines where you find issues. End with a brief
+            summary comment covering the overall verdict for each pass.
