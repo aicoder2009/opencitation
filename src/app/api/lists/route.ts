@@ -17,10 +17,10 @@ export async function GET() {
 
     const lists = await getUserLists(userId);
 
-    return NextResponse.json({
-      success: true,
-      data: lists,
-    });
+    return NextResponse.json(
+      { success: true, data: lists },
+      { headers: { "Cache-Control": "private, no-cache" } }
+    );
   } catch (error) {
     console.error("Error fetching lists:", error);
     return NextResponse.json(

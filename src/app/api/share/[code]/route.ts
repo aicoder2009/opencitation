@@ -47,22 +47,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
       const citations = await getListCitations(shareLink.targetId);
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          type: "list",
-          id: listData.id,
-          name: listData.name,
-          share: shareMeta,
-          citations: citations.map((c) => ({
-            id: c.id,
-            style: c.style,
-            formattedText: c.formattedText,
-            formattedHtml: c.formattedHtml,
-            createdAt: c.createdAt,
-          })),
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            type: "list",
+            id: listData.id,
+            name: listData.name,
+            share: shareMeta,
+            citations: citations.map((c) => ({
+              id: c.id,
+              style: c.style,
+              formattedText: c.formattedText,
+              formattedHtml: c.formattedHtml,
+              createdAt: c.createdAt,
+            })),
+          },
         },
-      });
+        { headers: { "Cache-Control": "public, max-age=60, must-revalidate" } }
+      );
     } else {
       // Project sharing - get project with all its lists and citations
       const projectData = await findProjectById(shareLink.targetId);
@@ -98,17 +101,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         })
       );
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          type: "project",
-          id: projectData.id,
-          name: projectData.name,
-          description: projectData.description,
-          share: shareMeta,
-          lists: listsWithCitations,
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            type: "project",
+            id: projectData.id,
+            name: projectData.name,
+            description: projectData.description,
+            share: shareMeta,
+            lists: listsWithCitations,
+          },
         },
-      });
+        { headers: { "Cache-Control": "public, max-age=60, must-revalidate" } }
+      );
     }
   } catch (error) {
     console.error("Error fetching shared content:", error);

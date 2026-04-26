@@ -17,10 +17,10 @@ export async function GET() {
 
     const projects = await getUserProjects(userId);
 
-    return NextResponse.json({
-      success: true,
-      data: projects,
-    });
+    return NextResponse.json(
+      { success: true, data: projects },
+      { headers: { "Cache-Control": "private, no-cache" } }
+    );
   } catch (error) {
     console.error("Error fetching projects:", error);
     return NextResponse.json(
