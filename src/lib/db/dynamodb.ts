@@ -444,11 +444,10 @@ export async function updateProject(
 export async function deleteProject(userId: string, projectId: string): Promise<void> {
   // Remove project association from lists (but don't delete them)
   const lists = await getUserLists(userId);
-  for (const list of lists) {
-    if (list.projectId === projectId) {
-      await updateList(userId, list.id, { projectId: null });
-    }
-  }
+  const updatePromises = lists
+    .filter((list) => list.projectId === projectId)
+    .map((list) => updateList(userId, list.id, { projectId: null }));
+  await Promise.all(updatePromises);
 
   // Revoke any share links pointing at this project.
   await deleteSharesForTarget(userId, "project", projectId);

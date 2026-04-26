@@ -516,11 +516,10 @@ export async function updateProject(
 export async function deleteProject(userId: string, projectId: string): Promise<void> {
   // First remove project association from all lists
   const lists = await getUserLists(userId);
-  for (const list of lists) {
-    if (list.projectId === projectId) {
-      await updateList(userId, list.id, { projectId: undefined });
-    }
-  }
+  const updatePromises = lists
+    .filter((list) => list.projectId === projectId)
+    .map((list) => updateList(userId, list.id, { projectId: undefined }));
+  await Promise.all(updatePromises);
 
   // Then delete the project
   await docClient.send(
