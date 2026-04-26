@@ -21,68 +21,66 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Maximum 20 items allowed per request" }, { status: 400 });
     }
 
-    const results: LookupResult[] = [];
+    const baseUrl = request.nextUrl.origin;
 
-    for (const item of items) {
-      const trimmedItem = item.trim();
-      if (!trimmedItem) {
-        results.push({ input: item, success: false, error: "Empty input" });
-        continue;
-      }
-
-      try {
-        let apiEndpoint: string;
-        let body: object;
-
-        // Detect input type
-        if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
-          body = { url: trimmedItem };
-        } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
-          body = { doi: trimmedItem };
-        } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
-          body = { isbn: trimmedItem };
-        } else {
-          // Try DOI format without 10. prefix
-          results.push({
-            input: trimmedItem,
-            success: false,
-            error: "Unrecognized format. Please enter a URL, DOI (10.xxxx/...), or ISBN."
-          });
-          continue;
+    // OPTIMIZATION: Process all metadata fetch lookups concurrently
+    // rather than sequentially to significantly reduce response latency.
+    const results: LookupResult[] = await Promise.all(
+      items.map(async (item): Promise<LookupResult> => {
+        const trimmedItem = item.trim();
+        if (!trimmedItem) {
+          return { input: item, success: false, error: "Empty input" };
         }
 
-        // Get the base URL from the request
-        const baseUrl = request.nextUrl.origin;
+        try {
+          let apiEndpoint: string;
+          let body: object;
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
+          // Detect input type
+          if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
+            apiEndpoint = "/api/lookup/url";
+            body = { url: trimmedItem };
+          } else if (trimmedItem.match(/^10\.\d{4,}/)) {
+            apiEndpoint = "/api/lookup/doi";
+            body = { doi: trimmedItem };
+          } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
+            apiEndpoint = "/api/lookup/isbn";
+            body = { isbn: trimmedItem };
+          } else {
+            return {
+              input: trimmedItem,
+              success: false,
+              error: "Unrecognized format. Please enter a URL, DOI (10.xxxx/...), or ISBN.",
+            };
+          }
 
-        const data = await response.json();
+          // Make the API call
+          const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
 
-        if (response.ok && data.data) {
-          results.push({ input: trimmedItem, success: true, data: data.data });
-        } else {
-          results.push({
+          const data = await response.json();
+
+          if (response.ok && data.data) {
+            return { input: trimmedItem, success: true, data: data.data };
+          }
+            return {
+              input: trimmedItem,
+              success: false,
+              error: data.error || "Failed to fetch metadata",
+            };
+
+        } catch (err) {
+          return {
             input: trimmedItem,
             success: false,
-            error: data.error || "Failed to fetch metadata"
-          });
+            error: err instanceof Error ? err.message : "Unknown error",
+          };
         }
-      } catch (err) {
-        results.push({
-          input: trimmedItem,
-          success: false,
-          error: err instanceof Error ? err.message : "Unknown error"
-        });
-      }
-    }
+      })
+    );
 
     return NextResponse.json({
       results,
