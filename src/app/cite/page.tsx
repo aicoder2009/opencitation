@@ -59,6 +59,9 @@ const CITATION_STYLES: { value: CitationStyle; label: string }[] = [
   { value: "harvard", label: "Harvard" },
 ];
 
+const NORMALIZE_REGEX = /\s+/g;
+const normalizeText = (text: string) => text.toLowerCase().replace(NORMALIZE_REGEX, " ").trim();
+
 const ACCESS_TYPES: { value: AccessType; label: string }[] = [
   { value: "web", label: "Web" },
   { value: "print", label: "Print" },
@@ -1062,18 +1065,17 @@ function CitePageContent() {
   };
 
   const checkForDuplicates = (existingCitations: { formattedText: string }[], newText: string): string | null => {
-    // Normalize text for comparison (remove extra spaces, lowercase)
-    const normalize = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();
-    const normalizedNew = normalize(newText);
+    const normalizedNew = normalizeText(newText);
+    const prefix = normalizedNew.length > 50 ? normalizedNew.substring(0, 50) : null;
 
     for (const existing of existingCitations) {
-      const normalizedExisting = normalize(existing.formattedText);
-      // Check for exact or very similar match
+      const normalizedExisting = normalizeText(existing.formattedText);
+      // Check for exact match
       if (normalizedExisting === normalizedNew) {
         return "This exact citation already exists in the list.";
       }
       // Check if significant portion matches (90%+ similarity by checking substring)
-      if (normalizedNew.length > 50 && normalizedExisting.includes(normalizedNew.substring(0, 50))) {
+      if (prefix && normalizedExisting.includes(prefix)) {
         return "A very similar citation may already exist in the list.";
       }
     }
