@@ -20,7 +20,6 @@ const store: {
   stats: { citationsGenerated: 0 },
 };
 
-// Export types for compatibility with queries.ts
 export interface List {
   id: string;
   userId: string;
