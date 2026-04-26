@@ -827,6 +827,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <button
                 onClick={() => setError(null)}
                 className="ml-2 text-red-500 hover:text-red-700"
+                aria-label="Dismiss error"
               >
                 [dismiss]
               </button>
