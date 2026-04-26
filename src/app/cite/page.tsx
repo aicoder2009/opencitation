@@ -1070,6 +1070,21 @@ function CitePageContent() {
     }
   };
 
+  const exportZotero = () => {
+    if (citationFields) {
+      const ris = toRIS(citationFields);
+      const blob = new Blob([ris], { type: "application/x-research-info-systems" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `citation-${Date.now()}-zotero.ris`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   const exportRTF = () => {
     if (!generatedCitation) return;
     const rtf = toRTF([
@@ -2410,6 +2425,12 @@ function CitePageContent() {
                 </WikiButton>
                 <WikiButton onClick={exportRIS}>
                   Export .ris
+                </WikiButton>
+                <WikiButton
+                  onClick={exportZotero}
+                  title="Downloads .ris — then in Zotero: File > Import"
+                >
+                  Export to Zotero
                 </WikiButton>
               </div>
               {addToListSuccess && (

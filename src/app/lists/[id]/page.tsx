@@ -459,6 +459,24 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     downloadFile(toRISMultiple(fieldsList), "ris", "application/x-research-info-systems");
   };
 
+  const exportZotero = () => {
+    const fieldsList = citationsWithFields();
+    if (fieldsList.length === 0) {
+      setError("No citations with structured fields to export to Zotero.");
+      return;
+    }
+    const ris = toRISMultiple(fieldsList);
+    const blob = new Blob([ris], { type: "application/x-research-info-systems" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${list?.name || "citations"}-zotero.ris`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const exportCSLJSON = () => {
     const fieldsList = citationsWithFields();
     if (fieldsList.length === 0) {
@@ -960,8 +978,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                     { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
                     { label: "Markdown", hint: ".md", onClick: exportMarkdown },
                     { label: "HTML", hint: ".html", onClick: exportHTML },
+                    { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
                     { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
-                    { label: "RIS (Zotero, EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
+                    { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
                     { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
                   ]}
                 />
