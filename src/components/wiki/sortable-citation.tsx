@@ -5,6 +5,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTagColors } from "@/lib/tag-colors";
 import { generateInTextCitation } from "@/lib/citation";
+import DOMPurify from "isomorphic-dompurify";
 import type { CitationFields as FullCitationFields, CitationStyle } from "@/types";
 
 interface CitationFields {
@@ -313,7 +314,7 @@ export function SortableCitation({
           <>
             <p
               className="citation-text mb-4"
-              dangerouslySetInnerHTML={{ __html: citation.formattedHtml }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(citation.formattedHtml) }}
             />
             <div className="flex flex-wrap gap-2 mb-3">
               <button
