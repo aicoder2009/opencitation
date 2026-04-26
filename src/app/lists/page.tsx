@@ -17,10 +17,16 @@ interface List {
   updatedAt: string;
 }
 
+interface Project {
+  id: string;
+  name: string;
+}
+
 export default function ListsPage() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
   const [lists, setLists] = useState<List[]>([]);
+  const [projectMap, setProjectMap] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newListName, setNewListName] = useState("");
@@ -47,13 +53,27 @@ export default function ListsPage() {
   const fetchLists = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("/api/lists");
-      const result = await response.json();
+      const [listsRes, projectsRes] = await Promise.all([
+        fetch("/api/lists"),
+        fetch("/api/projects"),
+      ]);
+      const [listsResult, projectsResult] = await Promise.all([
+        listsRes.json(),
+        projectsRes.json(),
+      ]);
 
-      if (result.success) {
-        setLists(result.data);
+      if (listsResult.success) {
+        setLists(listsResult.data);
       } else {
-        setError(result.error || "Failed to fetch lists");
+        setError(listsResult.error || "Failed to fetch lists");
+      }
+
+      if (projectsResult.success) {
+        const map: Record<string, string> = {};
+        for (const p of projectsResult.data as Project[]) {
+          map[p.id] = p.name;
+        }
+        setProjectMap(map);
       }
     } catch (err) {
       console.error("Error fetching lists:", err);
@@ -269,6 +289,18 @@ export default function ListsPage() {
                       {list.description && (
                         <p className="text-xs text-wiki-text-muted mt-0.5 line-clamp-2">
                           {list.description}
+                        </p>
+                      )}
+                      {list.projectId && projectMap[list.projectId] && (
+                        <p className="text-xs text-wiki-text-muted mt-0.5">
+                          <span className="font-medium">Project:</span>{" "}
+                          <a
+                            href={`/projects/${list.projectId}`}
+                            className="text-wiki-link hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {projectMap[list.projectId]}
+                          </a>
                         </p>
                       )}
                     </td>

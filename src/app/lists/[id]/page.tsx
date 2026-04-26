@@ -24,6 +24,7 @@ import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
 import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { ShareDialog } from "@/components/wiki/share-dialog";
+import { CitationAddModal } from "@/components/wiki/citation-add-modal";
 import { TagColorPicker } from "@/components/wiki/tag-color-picker";
 import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
@@ -95,6 +96,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [showCiteModal, setShowCiteModal] = useState(false);
   const [showPrintAnimation, setShowPrintAnimation] = useState(false);
   const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -814,7 +816,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <WikiButton onClick={() => setIsShareDialogOpen(true)}>
                 Share
               </WikiButton>
-              <WikiButton variant="primary" onClick={() => router.push("/cite")}>
+              <WikiButton variant="primary" onClick={() => setShowCiteModal(true)}>
                 Add Citation
               </WikiButton>
             </div>
@@ -1014,7 +1016,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-wiki-text-muted mb-4">
                 This list is empty. Add your first citation!
               </p>
-              <WikiButton variant="primary" onClick={() => router.push("/cite")}>
+              <WikiButton variant="primary" onClick={() => setShowCiteModal(true)}>
                 Create Citation
               </WikiButton>
               {factoid && (
@@ -1091,6 +1093,14 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         type="list"
         targetId={listId}
         targetName={list?.name}
+      />
+
+      <CitationAddModal
+        isOpen={showCiteModal}
+        onClose={() => setShowCiteModal(false)}
+        listId={listId}
+        listName={list?.name ?? ""}
+        onCitationAdded={fetchListAndCitations}
       />
 
       {/* Print Animation Modal */}
