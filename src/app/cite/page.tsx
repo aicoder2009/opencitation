@@ -1055,6 +1055,12 @@ function CitePageContent() {
     }
   };
 
+  const copyBibTeX = () => {
+    if (citationFields) {
+      navigator.clipboard.writeText(toBibTeX(citationFields));
+    }
+  };
+
   const exportRIS = () => {
     if (citationFields) {
       const ris = toRIS(citationFields);
@@ -2422,6 +2428,9 @@ function CitePageContent() {
                 </WikiButton>
                 <WikiButton onClick={exportBibTeX}>
                   Export .bib
+                </WikiButton>
+                <WikiButton onClick={copyBibTeX} title="Copy BibTeX to clipboard">
+                  Copy .bib
                 </WikiButton>
                 <WikiButton onClick={exportRIS}>
                   Export .ris

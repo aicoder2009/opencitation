@@ -450,6 +450,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     downloadFile(toBibTeXMultiple(fieldsList), "bib", "application/x-bibtex");
   };
 
+  const copyBibTeX = () => {
+    const fieldsList = citationsWithFields();
+    if (fieldsList.length === 0) {
+      setError("No citations with structured fields to copy as BibTeX.");
+      return;
+    }
+    navigator.clipboard.writeText(toBibTeXMultiple(fieldsList));
+  };
+
   const exportRIS = () => {
     const fieldsList = citationsWithFields();
     if (fieldsList.length === 0) {
@@ -987,6 +996,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                     { label: "HTML", hint: ".html", onClick: exportHTML },
                     { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
                     { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
+                    { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
                     { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
                     { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
                   ]}
