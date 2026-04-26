@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createProject, getUserProjects } from "@/lib/db";
+import { isProjectNameTaken } from "@/lib/db/validation";
 
 // GET /api/projects - Get all projects for the current user
 export async function GET() {
@@ -48,6 +49,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: "Project name is required" },
         { status: 400 }
+      );
+    }
+
+    if (await isProjectNameTaken(userId, name.trim())) {
+      return NextResponse.json(
+        { success: false, error: "A project with this name already exists" },
+        { status: 409 }
       );
     }
 

@@ -11,6 +11,7 @@ import { pickFactoid } from "@/lib/did-you-know";
 interface List {
   id: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -23,6 +24,7 @@ export default function ListsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newListName, setNewListName] = useState("");
+  const [newListDescription, setNewListDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [factoid, setFactoid] = useState<string>("");
@@ -69,7 +71,10 @@ export default function ListsPage() {
       const response = await fetch("/api/lists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newListName.trim() }),
+        body: JSON.stringify({
+          name: newListName.trim(),
+          description: newListDescription.trim() || undefined,
+        }),
       });
 
       const result = await response.json();
@@ -77,6 +82,7 @@ export default function ListsPage() {
       if (result.success) {
         setLists((prev) => [result.data, ...prev]);
         setNewListName("");
+        setNewListDescription("");
         setShowCreateForm(false);
       } else {
         setError(result.error || "Failed to create list");
@@ -160,16 +166,31 @@ export default function ListsPage() {
           {showCreateForm && (
             <div className="mb-6 p-4 border border-wiki-border-light bg-wiki-offwhite">
               <h3 className="font-bold mb-3">Create New List</h3>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="Enter list name..."
-                  className="flex-1"
-                  onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
-                  disabled={isCreating}
-                />
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    placeholder="Enter list name..."
+                    className="w-full"
+                    onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
+                    disabled={isCreating}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Description (optional)
+                  </label>
+                  <textarea
+                    value={newListDescription}
+                    onChange={(e) => setNewListDescription(e.target.value)}
+                    placeholder="What's this list for?"
+                    className="w-full h-20"
+                    disabled={isCreating}
+                  />
+                </div>
                 <WikiButton
                   variant="primary"
                   onClick={handleCreateList}
@@ -244,6 +265,11 @@ export default function ListsPage() {
                       >
                         {list.name}
                       </a>
+                      {list.description && (
+                        <p className="text-xs text-wiki-text-muted mt-0.5 line-clamp-2">
+                          {list.description}
+                        </p>
+                      )}
                     </td>
                     <td className="py-3 px-2 text-wiki-text-muted hidden sm:table-cell">
                       {formatDate(list.createdAt)}

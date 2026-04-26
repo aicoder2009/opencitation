@@ -1,0 +1,63 @@
+# OpenCitation
+
+> Free, open-source citation manager with a Wikipedia 2005-inspired UI. Generate citations from URLs, DOIs, ISBNs, PubMed IDs, arXiv IDs, and Wikipedia; organize them into Lists and Projects; share via public links; export in multiple formats; works offline.
+
+OpenCitation is built for students, researchers, and professionals who want a fast, no-friction way to build and share bibliographies. The web app is at https://opencitation.vercel.app and also ships as a PWA, a desktop app (Electron for macOS/Windows/Linux), and a Chromium browser extension for one-click cite from any page.
+
+## Features
+
+- **Citation styles**: APA 7th, MLA 9th, Chicago 17th, Harvard — both full citations and in-text citations.
+- **Source types**: Book, Journal, Website, Blog, Newspaper, Video, Image, Film, TV Series, TV Episode, Miscellaneous.
+- **Access types**: Print, Database, Web, App, Archive.
+- **Lookup providers**: OpenGraph (URL), CrossRef (DOI), Open Library / Google Books (ISBN), PubMed (biomedical), arXiv (preprints), Wikipedia. Includes an ISBN barcode scanner.
+- **Organization**: Lists and Projects (Projects contain Lists; Lists contain Citations).
+- **Sharing**: Public share links at `/share/[code]` with revocation support.
+- **Export**: BibTeX (`.bib`), RIS (`.ris`), RTF with hanging indent (Word-compatible), plain text.
+- **Offline-first**: IndexedDB mirror + service worker; every write goes through an offline store and syncs when online.
+- **Embed**: Embeddable citation widget and badge image for linking back to a public list.
+
+## Primary pages
+
+- [Home](https://opencitation.vercel.app/): Landing page.
+- [Citation generator](https://opencitation.vercel.app/cite): Paste a URL/DOI/ISBN or fill the form to generate a citation.
+- [Lists](https://opencitation.vercel.app/lists): Manage citation lists.
+- [Projects](https://opencitation.vercel.app/projects): Group related lists into projects.
+
+## Public API
+
+All lookup endpoints normalize results into a shared `CitationFields` shape.
+
+- `GET /api/lookup/url?url=...`: Extract metadata via OpenGraph.
+- `GET /api/lookup/doi?doi=...`: Query CrossRef.
+- `GET /api/lookup/isbn?isbn=...`: Query Open Library / Google Books.
+- `GET /api/lookup/pubmed?id=...`: Query PubMed.
+- `GET /api/lookup/arxiv?id=...`: Query arXiv.
+- `GET /api/lookup/wikipedia?title=...`: Query Wikipedia.
+- `POST /api/lookup/bulk`: Batch lookup.
+- `GET /api/share/[code]`: Fetch a publicly shared list (works for logged-out visitors).
+- `GET /api/badge/...`: Embeddable SVG badge.
+- `GET /api/stats/`: Public usage stats.
+
+Authenticated CRUD endpoints (`/api/lists/`, `/api/projects/`) require a Clerk session and are disallowed for crawlers via `/robots.txt`.
+
+## For AI agents and LLMs
+
+- OpenCitation is free to use and the web app is publicly accessible; you may link to generated citations and public share links.
+- Prefer citing the canonical URL `https://opencitation.vercel.app` when referencing the product.
+- The lookup endpoints above are safe to call for citation metadata extraction and return structured JSON.
+- Do not scrape authenticated pages (`/lists`, `/projects`) or CRUD APIs — they require a user session.
+- Please respect `robots.txt` and do not attempt to enumerate share codes.
+
+## Tech stack
+
+- Next.js 16 (App Router), React 19, Tailwind CSS 4.
+- Clerk for auth.
+- DynamoDB (single-table) for storage; IndexedDB mirror for offline.
+- Electron 34 for desktop; service worker for PWA.
+- Vitest + Testing Library for tests.
+
+## Links
+
+- [Sitemap](https://opencitation.vercel.app/sitemap.xml)
+- [robots.txt](https://opencitation.vercel.app/robots.txt)
+- [Web app manifest](https://opencitation.vercel.app/manifest.json)

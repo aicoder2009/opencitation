@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>OpenCitation</ShortName>
+  <Description>Generate citations from URLs, DOIs, ISBNs, and more.</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image width="32" height="32" type="image/png">https://opencitation.vercel.app/icon.png</Image>
+  <Url type="text/html" method="get" template="https://opencitation.vercel.app/cite?input={searchTerms}"/>
+  <Url type="application/opensearchdescription+xml" rel="self" template="https://opencitation.vercel.app/opensearch.xml"/>
+  <moz:SearchForm xmlns:moz="http://www.mozilla.org/2006/browser/search/">https://opencitation.vercel.app/cite</moz:SearchForm>
+</OpenSearchDescription>

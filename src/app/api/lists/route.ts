@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createList, getUserLists } from "@/lib/db";
+import { isListNameTaken } from "@/lib/db/validation";
 
 // GET /api/lists - Get all lists for the authenticated user
 export async function GET() {
@@ -42,7 +43,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, projectId } = body;
+    const { name, projectId, description } = body as {
+      name?: string;
+      projectId?: string;
+      description?: string;
+    };
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
@@ -51,7 +56,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const list = await createList(userId, name.trim(), projectId);
+    if (await isListNameTaken(userId, name.trim())) {
+      return NextResponse.json(
+        { success: false, error: "A list with this name already exists" },
+        { status: 409 }
+      );
+    }
+
+    const list = await createList(userId, name.trim(), projectId, description?.trim() || undefined);
 
     return NextResponse.json({
       success: true,

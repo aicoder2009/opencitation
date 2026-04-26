@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -62,9 +63,9 @@ export function generateId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
 }
 
-// Generate share codes (shorter, URL-safe)
+// Generate share codes: 12-char URL-safe (~72 bits of entropy).
 export function generateShareCode(): string {
-  return Math.random().toString(36).substring(2, 10);
+  return randomBytes(9).toString("base64url");
 }
 
 // ============ TYPES ============
@@ -73,6 +74,7 @@ export interface List {
   id: string;
   userId: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -87,6 +89,13 @@ export interface Project {
   updatedAt: string;
 }
 
+export type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+export interface CitationQuote {
+  text: string;
+  page?: string;
+}
+
 export interface Citation {
   id: string;
   listId: string;
@@ -95,6 +104,9 @@ export interface Citation {
   formattedText: string;
   formattedHtml: string;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;
@@ -102,6 +114,7 @@ export interface Citation {
 
 export interface ShareLink {
   code: string;
+  userId: string;
   type: "list" | "project";
   targetId: string;
   createdAt: string;
@@ -110,10 +123,15 @@ export interface ShareLink {
 
 // ============ LISTS ============
 
-export async function createList(userId: string, name: string, projectId?: string): Promise<List> {
+export async function createList(
+  userId: string,
+  name: string,
+  projectId?: string,
+  description?: string
+): Promise<List> {
   const id = generateId();
   const now = new Date().toISOString();
-  const list: List = { id, userId, name, projectId, createdAt: now, updatedAt: now };
+  const list: List = { id, userId, name, description, projectId, createdAt: now, updatedAt: now };
 
   await docClient.send(
     new PutCommand({
@@ -149,6 +167,7 @@ export async function getList(userId: string, listId: string): Promise<List | nu
     id: result.Item.id,
     userId: result.Item.userId,
     name: result.Item.name,
+    description: result.Item.description,
     projectId: result.Item.projectId,
     createdAt: result.Item.createdAt,
     updatedAt: result.Item.updatedAt,
@@ -171,6 +190,7 @@ export async function getUserLists(userId: string): Promise<List[]> {
     id: item.id,
     userId: item.userId,
     name: item.name,
+    description: item.description,
     projectId: item.projectId,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -182,28 +202,47 @@ export async function getUserLists(userId: string): Promise<List[]> {
 export async function updateList(
   userId: string,
   listId: string,
-  updates: { name?: string; projectId?: string | null }
+  updates: { name?: string; description?: string; projectId?: string | null }
 ): Promise<List | null> {
   const existing = await getList(userId, listId);
   if (!existing) return null;
 
   const now = new Date().toISOString();
-  const updateExpressions: string[] = ["updatedAt = :updatedAt"];
+  const setExpressions: string[] = ["updatedAt = :updatedAt"];
+  const removeExpressions: string[] = [];
   const expressionValues: Record<string, unknown> = { ":updatedAt": now };
+  const expressionNames: Record<string, string> = {};
 
   if (updates.name !== undefined) {
-    updateExpressions.push("#n = :name");
+    setExpressions.push("#n = :name");
     expressionValues[":name"] = updates.name;
+    expressionNames["#n"] = "name";
+  }
+
+  if (updates.description !== undefined) {
+    if (updates.description === "") {
+      removeExpressions.push("description");
+    } else {
+      setExpressions.push("description = :description");
+      expressionValues[":description"] = updates.description;
+    }
   }
 
   if (updates.projectId !== undefined) {
     if (updates.projectId === null) {
-      updateExpressions.push("REMOVE projectId");
+      removeExpressions.push("projectId");
     } else {
-      updateExpressions.push("projectId = :projectId");
+      setExpressions.push("projectId = :projectId");
       expressionValues[":projectId"] = updates.projectId;
     }
   }
+
+  const updateExpression = [
+    `SET ${setExpressions.join(", ")}`,
+    removeExpressions.length > 0 ? `REMOVE ${removeExpressions.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const result = await docClient.send(
     new UpdateCommand({
@@ -212,9 +251,10 @@ export async function updateList(
         PK: keys.user(userId),
         SK: keys.list(listId),
       },
-      UpdateExpression: `SET ${updateExpressions.filter((e) => !e.startsWith("REMOVE")).join(", ")}${updateExpressions.some((e) => e.startsWith("REMOVE")) ? " REMOVE projectId" : ""}`,
+      UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionValues,
-      ExpressionAttributeNames: updates.name !== undefined ? { "#n": "name" } : undefined,
+      ExpressionAttributeNames:
+        Object.keys(expressionNames).length > 0 ? expressionNames : undefined,
       ReturnValues: "ALL_NEW",
     })
   );
@@ -225,6 +265,7 @@ export async function updateList(
     id: result.Attributes.id,
     userId: result.Attributes.userId,
     name: result.Attributes.name,
+    description: result.Attributes.description,
     projectId: result.Attributes.projectId,
     createdAt: result.Attributes.createdAt,
     updatedAt: result.Attributes.updatedAt,
@@ -237,6 +278,9 @@ export async function deleteList(userId: string, listId: string): Promise<void> 
   for (const citation of citations) {
     await deleteCitation(listId, citation.id);
   }
+
+  // Revoke any share links pointing at this list so they don't outlive the target.
+  await deleteSharesForTarget(userId, "list", listId);
 
   // Then delete the list itself
   await docClient.send(
@@ -380,6 +424,9 @@ export async function deleteProject(userId: string, projectId: string): Promise<
     }
   }
 
+  // Revoke any share links pointing at this project.
+  await deleteSharesForTarget(userId, "project", projectId);
+
   // Delete the project
   await docClient.send(
     new DeleteCommand({
@@ -405,11 +452,18 @@ export async function addCitation(
   style: CitationStyle,
   formattedText: string,
   formattedHtml: string,
-  tags?: string[]
+  tags?: string[],
+  notes?: string,
+  quotes?: CitationQuote[],
+  readingStatus?: ReadingStatus
 ): Promise<Citation> {
   const id = generateId();
   const now = new Date().toISOString();
-  const citation: Citation = { id, listId, fields, style, formattedText, formattedHtml, tags, createdAt: now, updatedAt: now };
+  const citation: Citation = {
+    id, listId, fields, style, formattedText, formattedHtml,
+    tags, notes, quotes, readingStatus,
+    createdAt: now, updatedAt: now,
+  };
 
   await docClient.send(
     new PutCommand({
@@ -449,6 +503,9 @@ export async function getCitation(listId: string, citationId: string): Promise<C
     formattedText: result.Item.formattedText,
     formattedHtml: result.Item.formattedHtml,
     tags: result.Item.tags,
+    notes: result.Item.notes,
+    quotes: result.Item.quotes,
+    readingStatus: result.Item.readingStatus,
     createdAt: result.Item.createdAt,
     updatedAt: result.Item.updatedAt,
   };
@@ -474,6 +531,9 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
     formattedText: item.formattedText,
     formattedHtml: item.formattedHtml,
     tags: item.tags,
+    notes: item.notes,
+    quotes: item.quotes,
+    readingStatus: item.readingStatus,
     sortOrder: item.sortOrder,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
@@ -491,39 +551,79 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
 export async function updateCitation(
   listId: string,
   citationId: string,
-  updates: { fields?: CitationFields; style?: CitationStyle; formattedText?: string; formattedHtml?: string; tags?: string[] }
+  updates: {
+    fields?: CitationFields;
+    style?: CitationStyle;
+    formattedText?: string;
+    formattedHtml?: string;
+    tags?: string[];
+    notes?: string;
+    quotes?: CitationQuote[];
+    readingStatus?: ReadingStatus | null;
+  }
 ): Promise<Citation | null> {
   const existing = await getCitation(listId, citationId);
   if (!existing) return null;
 
   const now = new Date().toISOString();
-  const updateExpressions: string[] = ["updatedAt = :updatedAt"];
+  const setExpressions: string[] = ["updatedAt = :updatedAt"];
+  const removeExpressions: string[] = [];
   const expressionValues: Record<string, unknown> = { ":updatedAt": now };
 
   if (updates.fields !== undefined) {
-    updateExpressions.push("fields = :fields");
+    setExpressions.push("fields = :fields");
     expressionValues[":fields"] = updates.fields;
   }
 
   if (updates.style !== undefined) {
-    updateExpressions.push("style = :style");
+    setExpressions.push("style = :style");
     expressionValues[":style"] = updates.style;
   }
 
   if (updates.formattedText !== undefined) {
-    updateExpressions.push("formattedText = :formattedText");
+    setExpressions.push("formattedText = :formattedText");
     expressionValues[":formattedText"] = updates.formattedText;
   }
 
   if (updates.formattedHtml !== undefined) {
-    updateExpressions.push("formattedHtml = :formattedHtml");
+    setExpressions.push("formattedHtml = :formattedHtml");
     expressionValues[":formattedHtml"] = updates.formattedHtml;
   }
 
   if (updates.tags !== undefined) {
-    updateExpressions.push("tags = :tags");
+    setExpressions.push("tags = :tags");
     expressionValues[":tags"] = updates.tags;
   }
+
+  if (updates.notes !== undefined) {
+    if (updates.notes === "") {
+      removeExpressions.push("notes");
+    } else {
+      setExpressions.push("notes = :notes");
+      expressionValues[":notes"] = updates.notes;
+    }
+  }
+
+  if (updates.quotes !== undefined) {
+    setExpressions.push("quotes = :quotes");
+    expressionValues[":quotes"] = updates.quotes;
+  }
+
+  if (updates.readingStatus !== undefined) {
+    if (updates.readingStatus === null) {
+      removeExpressions.push("readingStatus");
+    } else {
+      setExpressions.push("readingStatus = :readingStatus");
+      expressionValues[":readingStatus"] = updates.readingStatus;
+    }
+  }
+
+  const updateExpression = [
+    `SET ${setExpressions.join(", ")}`,
+    removeExpressions.length > 0 ? `REMOVE ${removeExpressions.join(", ")}` : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const result = await docClient.send(
     new UpdateCommand({
@@ -532,7 +632,7 @@ export async function updateCitation(
         PK: keys.list(listId),
         SK: keys.citation(citationId),
       },
-      UpdateExpression: `SET ${updateExpressions.join(", ")}`,
+      UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionValues,
       ReturnValues: "ALL_NEW",
     })
@@ -548,6 +648,9 @@ export async function updateCitation(
     formattedText: result.Attributes.formattedText,
     formattedHtml: result.Attributes.formattedHtml,
     tags: result.Attributes.tags,
+    notes: result.Attributes.notes,
+    quotes: result.Attributes.quotes,
+    readingStatus: result.Attributes.readingStatus,
     createdAt: result.Attributes.createdAt,
     updatedAt: result.Attributes.updatedAt,
   };
@@ -592,6 +695,7 @@ export async function reorderCitations(listId: string, citationIds: string[]): P
 // ============ SHARE LINKS ============
 
 export async function createShareLink(
+  userId: string,
   type: "list" | "project",
   targetId: string,
   expiresInDays?: number
@@ -601,7 +705,14 @@ export async function createShareLink(
   const expiresAt = expiresInDays
     ? new Date(now.getTime() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
     : undefined;
-  const shareLink: ShareLink = { code, type, targetId, createdAt: now.toISOString(), expiresAt };
+  const shareLink: ShareLink = {
+    code,
+    userId,
+    type,
+    targetId,
+    createdAt: now.toISOString(),
+    expiresAt,
+  };
 
   await docClient.send(
     new PutCommand({
@@ -609,6 +720,9 @@ export async function createShareLink(
       Item: {
         PK: keys.share(code),
         SK: PREFIXES.META,
+        // GSI1 lets us list all shares a user owns.
+        GSI1PK: keys.user(userId),
+        GSI1SK: keys.share(code),
         ...shareLink,
         entityType: "SHARE",
       },
@@ -633,6 +747,7 @@ export async function getShareLink(code: string): Promise<ShareLink | null> {
 
   const shareLink: ShareLink = {
     code: result.Item.code,
+    userId: result.Item.userId,
     type: result.Item.type,
     targetId: result.Item.targetId,
     createdAt: result.Item.createdAt,
@@ -657,6 +772,47 @@ export async function deleteShareLink(code: string): Promise<void> {
       },
     })
   );
+}
+
+export async function listUserShares(userId: string): Promise<ShareLink[]> {
+  const result = await docClient.send(
+    new QueryCommand({
+      TableName: TABLE_NAME,
+      IndexName: "GSI1",
+      KeyConditionExpression: "GSI1PK = :pk AND begins_with(GSI1SK, :sk)",
+      ExpressionAttributeValues: {
+        ":pk": keys.user(userId),
+        ":sk": PREFIXES.SHARE,
+      },
+    })
+  );
+
+  const now = new Date();
+  const shares = (result.Items || [])
+    .map((item) => ({
+      code: item.code as string,
+      userId: item.userId as string,
+      type: item.type as "list" | "project",
+      targetId: item.targetId as string,
+      createdAt: item.createdAt as string,
+      expiresAt: item.expiresAt as string | undefined,
+    }))
+    .filter((s) => !s.expiresAt || new Date(s.expiresAt) >= now);
+
+  return shares.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+export async function deleteSharesForTarget(
+  userId: string,
+  type: "list" | "project",
+  targetId: string
+): Promise<number> {
+  const shares = await listUserShares(userId);
+  const matching = shares.filter((s) => s.type === type && s.targetId === targetId);
+  await Promise.all(matching.map((s) => deleteShareLink(s.code)));
+  return matching.length;
 }
 
 // ============ HELPER FUNCTIONS ============

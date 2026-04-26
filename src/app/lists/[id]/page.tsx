@@ -23,6 +23,7 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
 import { SortableCitation } from "@/components/wiki/sortable-citation";
+import { ShareDialog } from "@/components/wiki/share-dialog";
 import { TagColorPicker } from "@/components/wiki/tag-color-picker";
 import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
@@ -33,6 +34,7 @@ import {
   toMarkdown,
   toHTML,
   toCSLJSON,
+  toRTF,
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
 import { pickFactoid } from "@/lib/did-you-know";
@@ -42,6 +44,7 @@ import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
 interface List {
   id: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -51,11 +54,18 @@ interface CitationFields {
   sourceType?: SourceType;
   accessType?: AccessType;
   title?: string;
-  authors?: Array<{ firstName?: string; middleName?: string; lastName: string }>;
+  authors?: Array<{ firstName?: string; middleName?: string; lastName: string; isOrganization?: boolean }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
   [key: string]: unknown;
+}
+
+type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+interface CitationQuote {
+  text: string;
+  page?: string;
 }
 
 interface Citation {
@@ -66,6 +76,9 @@ interface Citation {
   formattedHtml: string;
   fields?: CitationFields;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -80,9 +93,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
-  const [shareUrl, setShareUrl] = useState<string | null>(null);
-  const [isSharing, setIsSharing] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [editDescription, setEditDescription] = useState("");
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [showPrintAnimation, setShowPrintAnimation] = useState(false);
   const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -210,6 +222,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
       setList(listResult.data);
       setEditName(listResult.data.name);
+      setEditDescription(listResult.data.description || "");
 
       // Fetch citations
       const citationsResponse = await fetch(`/api/lists/${listId}/citations`);
@@ -227,22 +240,37 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleUpdateName = async () => {
-    if (!editName.trim() || editName.trim() === list?.name) {
+    const trimmedName = editName.trim();
+    const trimmedDesc = editDescription.trim();
+    if (!trimmedName) {
       setIsEditing(false);
       return;
     }
+
+    const nameChanged = trimmedName !== list?.name;
+    const descChanged = trimmedDesc !== (list?.description || "");
+    if (!nameChanged && !descChanged) {
+      setIsEditing(false);
+      return;
+    }
+
+    const body: { name?: string; description?: string } = {};
+    if (nameChanged) body.name = trimmedName;
+    if (descChanged) body.description = trimmedDesc;
 
     try {
       const response = await fetch(`/api/lists/${listId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() }),
+        body: JSON.stringify(body),
       });
 
       const result = await response.json();
 
       if (result.success) {
         setList(result.data);
+        setEditName(result.data.name);
+        setEditDescription(result.data.description || "");
         setIsEditing(false);
       } else {
         setError(result.error || "Failed to update list");
@@ -338,6 +366,42 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
+  const handleSaveNotes = async (citationId: string, notes: string) => {
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setCitations((prev) =>
+          prev.map((c) => (c.id === citationId ? { ...c, notes: notes || undefined } : c))
+        );
+      }
+    } catch (err) {
+      console.error("Error saving notes:", err);
+    }
+  };
+
+  const handleSaveQuotes = async (citationId: string, quotes: CitationQuote[]) => {
+    try {
+      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quotes }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setCitations((prev) =>
+          prev.map((c) => (c.id === citationId ? { ...c, quotes } : c))
+        );
+      }
+    } catch (err) {
+      console.error("Error saving quotes:", err);
+    }
+  };
+
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
@@ -368,6 +432,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     downloadFile(toHTML(citations, list?.name), "html", "text/html");
   };
 
+  const exportRTF = () => {
+    downloadFile(toRTF(citations, list?.name), "rtf", "application/rtf");
+  };
+
   const citationsWithFields = (): FullCitationFields[] =>
     citations
       .map((c) => c.fields)
@@ -382,6 +450,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     downloadFile(toBibTeXMultiple(fieldsList), "bib", "application/x-bibtex");
   };
 
+  const copyBibTeX = () => {
+    const fieldsList = citationsWithFields();
+    if (fieldsList.length === 0) {
+      setError("No citations with structured fields to copy as BibTeX.");
+      return;
+    }
+    navigator.clipboard.writeText(toBibTeXMultiple(fieldsList));
+  };
+
   const exportRIS = () => {
     const fieldsList = citationsWithFields();
     if (fieldsList.length === 0) {
@@ -391,6 +468,31 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     downloadFile(toRISMultiple(fieldsList), "ris", "application/x-research-info-systems");
   };
 
+  const exportZotero = () => {
+    const items = citations
+      .filter((c) => c.fields)
+      .map((c) => ({
+        fields: c.fields as unknown as FullCitationFields,
+        tags: c.tags,
+        notes: c.notes,
+        quotes: c.quotes,
+      }));
+    if (items.length === 0) {
+      setError("No citations with structured fields to export to Zotero.");
+      return;
+    }
+    const ris = toRISMultiple(items);
+    const blob = new Blob([ris], { type: "application/x-research-info-systems" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${list?.name || "citations"}-zotero.ris`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const exportCSLJSON = () => {
     const fieldsList = citationsWithFields();
     if (fieldsList.length === 0) {
@@ -398,52 +500,6 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toCSLJSON(fieldsList), "json", "application/vnd.citationstyles.csl+json");
-  };
-
-  const handleShare = async () => {
-    try {
-      setIsSharing(true);
-      setCopySuccess(false);
-      const response = await fetch("/api/share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "list",
-          targetId: listId,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        const url = `${window.location.origin}/share/${result.data.code}`;
-        setShareUrl(url);
-        try {
-          await navigator.clipboard.writeText(url);
-          setCopySuccess(true);
-        } catch {
-          // Clipboard failed, user can manually copy
-        }
-      } else {
-        setError(result.error || "Failed to create share link");
-      }
-    } catch (err) {
-      console.error("Error sharing:", err);
-      setError("Failed to create share link");
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  const copyShareUrl = async () => {
-    if (shareUrl) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        setCopySuccess(true);
-      } catch {
-        // Fallback: select text for manual copy
-      }
-    }
   };
 
   // Drag and drop sensors
@@ -573,7 +629,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const handleEditCitation = async (
     citationId: string,
-    editFields: { title: string; authorFirst: string; authorMiddle: string; authorLast: string; year: string; url: string }
+    editFields: { title: string; authorFirst: string; authorMiddle: string; authorLast: string; authorIsOrganization: boolean; year: string; url: string }
   ) => {
     const citation = citations.find((c) => c.id === citationId);
     if (!citation) return;
@@ -587,11 +643,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
     // Update author if provided
     if (editFields.authorLast) {
-      updatedFields.authors = [{
-        firstName: editFields.authorFirst || undefined,
-        middleName: editFields.authorMiddle || undefined,
-        lastName: editFields.authorLast,
-      }];
+      updatedFields.authors = [
+        editFields.authorIsOrganization
+          ? { lastName: editFields.authorLast, isOrganization: true }
+          : {
+              firstName: editFields.authorFirst || undefined,
+              middleName: editFields.authorMiddle || undefined,
+              lastName: editFields.authorLast,
+            },
+      ];
     }
 
     // Update year if provided
@@ -699,72 +759,64 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
               {isEditing ? (
-                <div className="flex gap-2 items-center">
+                <div className="space-y-2">
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="text-xl font-bold"
+                    className="text-xl font-bold w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleUpdateName()}
+                    placeholder="List name"
                     autoFocus
                   />
-                  <WikiButton onClick={handleUpdateName}>Save</WikiButton>
-                  <WikiButton onClick={() => { setIsEditing(false); setEditName(list?.name || ""); }}>
-                    Cancel
-                  </WikiButton>
+                  <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full text-sm h-20"
+                    placeholder="Description (optional)"
+                  />
+                  <div className="flex gap-2">
+                    <WikiButton onClick={handleUpdateName}>Save</WikiButton>
+                    <WikiButton
+                      onClick={() => {
+                        setIsEditing(false);
+                        setEditName(list?.name || "");
+                        setEditDescription(list?.description || "");
+                      }}
+                    >
+                      Cancel
+                    </WikiButton>
+                  </div>
                 </div>
               ) : (
-                <h1 className="text-2xl font-bold mb-1">
-                  {list?.name}
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="ml-2 text-wiki-link text-sm font-normal hover:underline"
-                  >
-                    [edit]
-                  </button>
-                </h1>
+                <>
+                  <h1 className="text-2xl font-bold mb-1">
+                    {list?.name}
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="ml-2 text-wiki-link text-sm font-normal hover:underline"
+                    >
+                      [edit]
+                    </button>
+                  </h1>
+                  {list?.description && (
+                    <p className="text-sm mb-1 max-w-2xl">{list.description}</p>
+                  )}
+                </>
               )}
               <p className="text-wiki-text-muted text-sm">
                 {citations.length} citation{citations.length !== 1 ? "s" : ""}
               </p>
             </div>
             <div className="flex gap-2">
-              <WikiButton onClick={handleShare} disabled={isSharing}>
-                {isSharing ? "Sharing..." : "Share"}
+              <WikiButton onClick={() => setIsShareDialogOpen(true)}>
+                Share
               </WikiButton>
               <WikiButton variant="primary" onClick={() => router.push("/cite")}>
                 Add Citation
               </WikiButton>
             </div>
           </div>
-
-          {/* Share URL */}
-          {shareUrl && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 text-sm">
-              {copySuccess ? "Copied! " : "Share link: "}
-              <button
-                onClick={copyShareUrl}
-                className="text-green-800 hover:underline font-medium"
-                title="Click to copy"
-              >
-                {shareUrl}
-              </button>
-              {!copySuccess && (
-                <button
-                  onClick={copyShareUrl}
-                  className="ml-2 text-green-600 hover:text-green-800"
-                >
-                  [copy]
-                </button>
-              )}
-              <button
-                onClick={() => { setShareUrl(null); setCopySuccess(false); }}
-                className="ml-2 text-green-500 hover:text-green-700"
-              >
-                [dismiss]
-              </button>
-            </div>
-          )}
 
           {/* Error Message */}
           {error && (
@@ -939,10 +991,13 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   label="Export"
                   items={[
                     { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
+                    { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
                     { label: "Markdown", hint: ".md", onClick: exportMarkdown },
                     { label: "HTML", hint: ".html", onClick: exportHTML },
+                    { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
                     { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
-                    { label: "RIS (Zotero, EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
+                    { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
+                    { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
                     { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
                   ]}
                 />
@@ -1009,6 +1064,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                       newTagInput={newTagInput}
                       setNewTagInput={setNewTagInput}
                       onEditDone={() => setEditingCitationId(null)}
+                      onSaveNotes={handleSaveNotes}
+                      onSaveQuotes={handleSaveQuotes}
                     />
                   ))}
                 </div>
@@ -1024,6 +1081,14 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
       </div>
+
+      <ShareDialog
+        isOpen={isShareDialogOpen}
+        onClose={() => setIsShareDialogOpen(false)}
+        type="list"
+        targetId={listId}
+        targetName={list?.name}
+      />
 
       {/* Print Animation Modal */}
       <PrintAnimation

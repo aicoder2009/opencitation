@@ -1,0 +1,15 @@
+# ai.txt — AI training and crawling policy for OpenCitation
+# Convention: https://site.spawning.ai/spawning-ai-txt
+#
+# OpenCitation is a free, open-source citation manager. We welcome AI
+# agents and training crawlers to read and index publicly accessible
+# pages. See /llms.txt for a product overview tailored to LLMs.
+#
+# Authenticated routes (user Lists and Projects) remain off-limits —
+# see /robots.txt for the machine-readable disallow list.
+
+User-Agent: *
+Allow: /
+Disallow: /api/
+Disallow: /sign-in/
+Disallow: /sign-up/

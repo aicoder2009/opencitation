@@ -25,6 +25,10 @@ export default function ProjectsPage() {
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -85,6 +89,51 @@ export default function ProjectsPage() {
       setError("Failed to create project");
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const startEditing = (project: Project) => {
+    setEditingProjectId(project.id);
+    setEditName(project.name);
+    setEditDescription(project.description || "");
+    setError(null);
+  };
+
+  const cancelEditing = () => {
+    setEditingProjectId(null);
+    setEditName("");
+    setEditDescription("");
+  };
+
+  const handleSaveEdit = async (projectId: string) => {
+    if (!editName.trim()) return;
+
+    try {
+      setIsSavingEdit(true);
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          description: editDescription.trim(),
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setProjects((prev) =>
+          prev.map((p) => (p.id === projectId ? result.data : p))
+        );
+        cancelEditing();
+      } else {
+        setError(result.error || "Failed to update project");
+      }
+    } catch (err) {
+      console.error("Error updating project:", err);
+      setError("Failed to update project");
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -221,53 +270,114 @@ export default function ProjectsPage() {
               </WikiButton>
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-wiki-border-light">
-                  <th className="text-left py-2 px-2 font-semibold">Name</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden md:table-cell">Description</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Created</th>
-                  <th className="text-right py-2 px-2 font-semibold">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((project) => (
-                  <tr
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {projects.map((project) => {
+                const isEditing = editingProjectId === project.id;
+                return (
+                  <div
                     key={project.id}
-                    className="border-b border-wiki-border-light hover:bg-wiki-offwhite"
+                    className="flex flex-col border border-wiki-border-light bg-wiki-white hover:bg-wiki-offwhite transition-colors"
                   >
-                    <td className="py-3 px-2">
-                      <a
-                        href={`/projects/${project.id}`}
-                        className="text-wiki-link hover:underline font-medium"
-                      >
-                        {project.name}
-                      </a>
-                    </td>
-                    <td className="py-3 px-2 text-wiki-text-muted hidden md:table-cell">
-                      {project.description || "-"}
-                    </td>
-                    <td className="py-3 px-2 text-wiki-text-muted hidden sm:table-cell">
-                      {formatDate(project.createdAt)}
-                    </td>
-                    <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() => router.push(`/projects/${project.id}`)}
-                        className="text-wiki-link hover:underline mr-3"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProject(project.id, project.name)}
-                        className="text-red-600 hover:underline"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    <div className="p-4 flex-1">
+                      {isEditing ? (
+                        <div className="space-y-2">
+                          <div>
+                            <label className="block text-xs font-medium text-wiki-text-muted mb-1">
+                              Name
+                            </label>
+                            <input
+                              type="text"
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                              placeholder="Project name"
+                              disabled={isSavingEdit}
+                              autoFocus
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-wiki-text-muted mb-1">
+                              Description (optional)
+                            </label>
+                            <textarea
+                              value={editDescription}
+                              onChange={(e) => setEditDescription(e.target.value)}
+                              className="w-full px-2 py-1 text-sm border border-wiki-border-light h-20"
+                              placeholder="Project description"
+                              disabled={isSavingEdit}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <h2 className="text-lg font-bold mb-1 leading-tight">
+                            <a
+                              href={`/projects/${project.id}`}
+                              className="text-wiki-link hover:underline"
+                            >
+                              {project.name}
+                            </a>
+                          </h2>
+                          <p className="text-xs text-wiki-text-muted mb-3">
+                            Created {formatDate(project.createdAt)}
+                          </p>
+                          {project.description ? (
+                            <p className="text-sm line-clamp-3">{project.description}</p>
+                          ) : (
+                            <p className="text-sm text-wiki-text-muted italic">
+                              No description
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 px-4 py-2 border-t border-wiki-border-light bg-wiki-tab-bg text-sm">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={() => handleSaveEdit(project.id)}
+                            disabled={isSavingEdit || !editName.trim()}
+                            className="text-wiki-link hover:underline disabled:opacity-50 disabled:no-underline"
+                          >
+                            {isSavingEdit ? "Saving..." : "Save"}
+                          </button>
+                          <span className="text-wiki-border-light">|</span>
+                          <button
+                            onClick={cancelEditing}
+                            disabled={isSavingEdit}
+                            className="text-wiki-text-muted hover:underline"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => router.push(`/projects/${project.id}`)}
+                            className="text-wiki-link hover:underline"
+                          >
+                            View
+                          </button>
+                          <span className="text-wiki-border-light">|</span>
+                          <button
+                            onClick={() => startEditing(project)}
+                            className="text-wiki-link hover:underline"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProject(project.id, project.name)}
+                            className="text-red-600 hover:underline ml-auto"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
 
           {/* Quick Actions */}

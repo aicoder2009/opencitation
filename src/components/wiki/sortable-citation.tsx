@@ -9,11 +9,18 @@ import type { CitationFields as FullCitationFields, CitationStyle } from "@/type
 
 interface CitationFields {
   title?: string;
-  authors?: Array<{ firstName?: string; middleName?: string; lastName: string }>;
+  authors?: Array<{ firstName?: string; middleName?: string; lastName: string; isOrganization?: boolean }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
   [key: string]: unknown;
+}
+
+type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+interface CitationQuote {
+  text: string;
+  page?: string;
 }
 
 interface Citation {
@@ -24,6 +31,9 @@ interface Citation {
   formattedHtml: string;
   fields?: CitationFields;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,6 +43,7 @@ interface EditableFields {
   authorFirst: string;
   authorMiddle: string;
   authorLast: string;
+  authorIsOrganization: boolean;
   year: string;
   url: string;
 }
@@ -54,6 +65,8 @@ interface SortableCitationProps {
   newTagInput: string;
   setNewTagInput: (value: string) => void;
   onEditDone?: () => void;
+  onSaveNotes?: (id: string, notes: string) => void | Promise<void>;
+  onSaveQuotes?: (id: string, quotes: CitationQuote[]) => void | Promise<void>;
 }
 
 export function SortableCitation({
@@ -73,16 +86,23 @@ export function SortableCitation({
   newTagInput,
   setNewTagInput,
   onEditDone,
+  onSaveNotes,
+  onSaveQuotes,
 }: SortableCitationProps) {
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
   const [isSaving, setIsSaving] = useState(false);
   const { getColor } = useTagColors();
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesDraft, setNotesDraft] = useState("");
+  const [editingQuotes, setEditingQuotes] = useState(false);
+  const [quotesDraft, setQuotesDraft] = useState<CitationQuote[]>([]);
   const [editFields, setEditFields] = useState<EditableFields>({
     title: "",
     authorFirst: "",
     authorMiddle: "",
     authorLast: "",
+    authorIsOrganization: false,
     year: "",
     url: "",
   });
@@ -110,6 +130,7 @@ export function SortableCitation({
       authorFirst: firstAuthor?.firstName || "",
       authorMiddle: firstAuthor?.middleName || "",
       authorLast: firstAuthor?.lastName || "",
+      authorIsOrganization: firstAuthor?.isOrganization || false,
       year: fields.publicationDate?.year?.toString() || "",
       url: (fields.url as string) || "",
     });
@@ -188,37 +209,67 @@ export function SortableCitation({
                 placeholder="Title"
               />
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">First Name</label>
+            <div className="space-y-1">
+              <label className="flex items-center gap-2 text-xs text-wiki-text-muted">
                 <input
-                  type="text"
-                  value={editFields.authorFirst}
-                  onChange={(e) => setEditFields({ ...editFields, authorFirst: e.target.value })}
-                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="First"
+                  type="checkbox"
+                  checked={editFields.authorIsOrganization}
+                  onChange={(e) =>
+                    setEditFields({
+                      ...editFields,
+                      authorIsOrganization: e.target.checked,
+                      authorFirst: e.target.checked ? "" : editFields.authorFirst,
+                      authorMiddle: e.target.checked ? "" : editFields.authorMiddle,
+                    })
+                  }
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Middle</label>
-                <input
-                  type="text"
-                  value={editFields.authorMiddle}
-                  onChange={(e) => setEditFields({ ...editFields, authorMiddle: e.target.value })}
-                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="M."
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-wiki-text-muted mb-1">Last Name</label>
-                <input
-                  type="text"
-                  value={editFields.authorLast}
-                  onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
-                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
-                  placeholder="Last"
-                />
-              </div>
+                Organization / group author
+              </label>
+              {editFields.authorIsOrganization ? (
+                <div>
+                  <label className="block text-xs font-medium text-wiki-text-muted mb-1">Organization name</label>
+                  <input
+                    type="text"
+                    value={editFields.authorLast}
+                    onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
+                    className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                    placeholder="World Health Organization"
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-xs font-medium text-wiki-text-muted mb-1">First Name</label>
+                    <input
+                      type="text"
+                      value={editFields.authorFirst}
+                      onChange={(e) => setEditFields({ ...editFields, authorFirst: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="First"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-wiki-text-muted mb-1">Middle</label>
+                    <input
+                      type="text"
+                      value={editFields.authorMiddle}
+                      onChange={(e) => setEditFields({ ...editFields, authorMiddle: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="M."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-wiki-text-muted mb-1">Last Name</label>
+                    <input
+                      type="text"
+                      value={editFields.authorLast}
+                      onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="Last"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
@@ -301,6 +352,195 @@ export function SortableCitation({
               </button>
             </div>
           </>
+        )}
+
+        {/* Notes Section */}
+        {onSaveNotes && (
+          <div className="pt-3 border-t border-wiki-border-light mb-3">
+            {editingNotes ? (
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-wiki-text-muted">
+                  Notes (annotation / summary)
+                </label>
+                <textarea
+                  value={notesDraft}
+                  onChange={(e) => setNotesDraft(e.target.value)}
+                  rows={4}
+                  className="w-full px-2 py-1 text-sm border border-wiki-border-light"
+                  placeholder="Summarize this source, capture an argument, or note why it matters..."
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      await onSaveNotes(citation.id, notesDraft.trim());
+                      setEditingNotes(false);
+                    }}
+                    className="px-3 py-1 text-sm bg-wiki-link text-white hover:bg-wiki-link-hover"
+                  >
+                    Save notes
+                  </button>
+                  <button
+                    onClick={() => setEditingNotes(false)}
+                    className="px-3 py-1 text-sm border border-wiki-border-light hover:bg-wiki-offwhite"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : citation.notes ? (
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium text-wiki-text-muted">Notes</span>
+                  <button
+                    onClick={() => {
+                      setNotesDraft(citation.notes ?? "");
+                      setEditingNotes(true);
+                    }}
+                    className="text-wiki-link text-xs hover:underline"
+                  >
+                    [edit]
+                  </button>
+                  <button
+                    onClick={() => onSaveNotes(citation.id, "")}
+                    className="text-red-600 text-xs hover:underline"
+                  >
+                    [clear]
+                  </button>
+                </div>
+                <p className="text-sm whitespace-pre-wrap">{citation.notes}</p>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setNotesDraft("");
+                  setEditingNotes(true);
+                }}
+                className="text-wiki-link text-xs hover:underline"
+              >
+                [+ add notes]
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Quotes Section */}
+        {onSaveQuotes && (
+          <div className="pt-3 border-t border-wiki-border-light mb-3">
+            {editingQuotes ? (
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-wiki-text-muted">
+                  Pulled quotes
+                </label>
+                {quotesDraft.map((q, i) => (
+                  <div key={i} className="flex gap-2 items-start">
+                    <textarea
+                      value={q.text}
+                      onChange={(e) => {
+                        const next = [...quotesDraft];
+                        next[i] = { ...next[i], text: e.target.value };
+                        setQuotesDraft(next);
+                      }}
+                      rows={2}
+                      className="flex-1 px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder='"A direct quotation from the source..."'
+                    />
+                    <input
+                      type="text"
+                      value={q.page ?? ""}
+                      onChange={(e) => {
+                        const next = [...quotesDraft];
+                        next[i] = { ...next[i], page: e.target.value };
+                        setQuotesDraft(next);
+                      }}
+                      className="w-20 px-2 py-1 text-sm border border-wiki-border-light"
+                      placeholder="p. 42"
+                    />
+                    <button
+                      onClick={() =>
+                        setQuotesDraft(quotesDraft.filter((_, idx) => idx !== i))
+                      }
+                      className="text-red-600 text-xs hover:underline pt-1"
+                    >
+                      remove
+                    </button>
+                  </div>
+                ))}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() =>
+                      setQuotesDraft([...quotesDraft, { text: "", page: "" }])
+                    }
+                    className="text-wiki-link text-xs hover:underline"
+                  >
+                    + add quote
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      const cleaned = quotesDraft
+                        .map((q) => ({
+                          text: q.text.trim(),
+                          page: q.page?.trim() || undefined,
+                        }))
+                        .filter((q) => q.text.length > 0);
+                      await onSaveQuotes(citation.id, cleaned);
+                      setEditingQuotes(false);
+                    }}
+                    className="px-3 py-1 text-sm bg-wiki-link text-white hover:bg-wiki-link-hover"
+                  >
+                    Save quotes
+                  </button>
+                  <button
+                    onClick={() => setEditingQuotes(false)}
+                    className="px-3 py-1 text-sm border border-wiki-border-light hover:bg-wiki-offwhite"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : citation.quotes && citation.quotes.length > 0 ? (
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-medium text-wiki-text-muted">
+                    Quotes ({citation.quotes.length})
+                  </span>
+                  <button
+                    onClick={() => {
+                      setQuotesDraft(citation.quotes ?? []);
+                      setEditingQuotes(true);
+                    }}
+                    className="text-wiki-link text-xs hover:underline"
+                  >
+                    [edit]
+                  </button>
+                </div>
+                <ul className="space-y-1">
+                  {citation.quotes.map((q, i) => (
+                    <li key={i} className="text-sm border-l-2 border-wiki-border-light pl-2">
+                      <span className="italic">&ldquo;{q.text}&rdquo;</span>
+                      {q.page && (
+                        <span className="text-wiki-text-muted text-xs ml-1">
+                          ({q.page})
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  setQuotesDraft([{ text: "", page: "" }]);
+                  setEditingQuotes(true);
+                }}
+                className="text-wiki-link text-xs hover:underline"
+              >
+                [+ add quote]
+              </button>
+            )}
+          </div>
         )}
 
         {/* Tags Section */}

@@ -183,7 +183,11 @@ describe("Citations API - /api/lists/[id]/citations", () => {
         sampleCitationFields,
         "apa",
         "Doe, J. (2024). Sample Article.",
-        "<p>Doe, J. (2024). <em>Sample Article</em>.</p>"
+        "<p>Doe, J. (2024). <em>Sample Article</em>.</p>",
+        undefined,
+        undefined,
+        undefined,
+        undefined
       );
     });
 

@@ -2,6 +2,7 @@
 // This is a simple mock that stores data in memory
 // Data persists only for the lifetime of the server process
 
+import { randomBytes } from "node:crypto";
 import type { CitationFields, CitationStyle } from "@/types";
 
 // In-memory data store
@@ -24,6 +25,7 @@ export interface List {
   id: string;
   userId: string;
   name: string;
+  description?: string;
   projectId?: string;
   createdAt: string;
   updatedAt: string;
@@ -38,6 +40,13 @@ export interface Project {
   updatedAt: string;
 }
 
+export type ReadingStatus = "to-read" | "reading" | "read" | "cited";
+
+export interface CitationQuote {
+  text: string;
+  page?: string;
+}
+
 export interface Citation {
   id: string;
   listId: string;
@@ -46,6 +55,9 @@ export interface Citation {
   formattedText: string;
   formattedHtml: string;
   tags?: string[];
+  notes?: string;
+  quotes?: CitationQuote[];
+  readingStatus?: ReadingStatus;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;
@@ -53,6 +65,7 @@ export interface Citation {
 
 export interface ShareLink {
   code: string;
+  userId: string;
   type: "list" | "project";
   targetId: string;
   createdAt: string;
@@ -65,15 +78,20 @@ function generateId(): string {
 }
 
 function generateShareCode(): string {
-  return Math.random().toString(36).substring(2, 10);
+  return randomBytes(9).toString("base64url");
 }
 
 // ============ LISTS ============
 
-export async function createList(userId: string, name: string, projectId?: string): Promise<List> {
+export async function createList(
+  userId: string,
+  name: string,
+  projectId?: string,
+  description?: string
+): Promise<List> {
   const id = generateId();
   const now = new Date().toISOString();
-  const list: List = { id, userId, name, projectId, createdAt: now, updatedAt: now };
+  const list: List = { id, userId, name, description, projectId, createdAt: now, updatedAt: now };
   store.lists.set(`${userId}:${id}`, list);
   return list;
 }
@@ -95,16 +113,19 @@ export async function getUserLists(userId: string): Promise<List[]> {
 export async function updateList(
   userId: string,
   listId: string,
-  updates: { name?: string; projectId?: string | null }
+  updates: { name?: string; description?: string; projectId?: string | null }
 ): Promise<List | null> {
   const key = `${userId}:${listId}`;
   const list = store.lists.get(key);
   if (!list) return null;
 
-  const updated = {
+  const updated: List = {
     ...list,
     ...updates,
-    projectId: updates.projectId === null ? undefined : (updates.projectId ?? list.projectId),
+    description:
+      updates.description === "" ? undefined : (updates.description ?? list.description),
+    projectId:
+      updates.projectId === null ? undefined : (updates.projectId ?? list.projectId),
     updatedAt: new Date().toISOString(),
   };
   store.lists.set(key, updated);
@@ -116,6 +137,12 @@ export async function deleteList(userId: string, listId: string): Promise<void> 
   store.citations.forEach((citation, key) => {
     if (citation.listId === listId) {
       store.citations.delete(key);
+    }
+  });
+  // Revoke any share links pointing at this list.
+  store.shareLinks.forEach((share, code) => {
+    if (share.userId === userId && share.type === "list" && share.targetId === listId) {
+      store.shareLinks.delete(code);
     }
   });
   store.lists.delete(`${userId}:${listId}`);
@@ -166,6 +193,12 @@ export async function deleteProject(userId: string, projectId: string): Promise<
       store.lists.set(key, { ...list, projectId: undefined, updatedAt: new Date().toISOString() });
     }
   });
+  // Revoke any share links pointing at this project.
+  store.shareLinks.forEach((share, code) => {
+    if (share.userId === userId && share.type === "project" && share.targetId === projectId) {
+      store.shareLinks.delete(code);
+    }
+  });
   store.projects.delete(`${userId}:${projectId}`);
 }
 
@@ -187,11 +220,18 @@ export async function addCitation(
   style: CitationStyle,
   formattedText: string,
   formattedHtml: string,
-  tags?: string[]
+  tags?: string[],
+  notes?: string,
+  quotes?: CitationQuote[],
+  readingStatus?: ReadingStatus
 ): Promise<Citation> {
   const id = generateId();
   const now = new Date().toISOString();
-  const citation: Citation = { id, listId, fields, style, formattedText, formattedHtml, tags, createdAt: now, updatedAt: now };
+  const citation: Citation = {
+    id, listId, fields, style, formattedText, formattedHtml,
+    tags, notes, quotes, readingStatus,
+    createdAt: now, updatedAt: now,
+  };
   store.citations.set(`${listId}:${id}`, citation);
   return citation;
 }
@@ -219,13 +259,31 @@ export async function getListCitations(listId: string): Promise<Citation[]> {
 export async function updateCitation(
   listId: string,
   citationId: string,
-  updates: { fields?: CitationFields; style?: CitationStyle; formattedText?: string; formattedHtml?: string; tags?: string[] }
+  updates: {
+    fields?: CitationFields;
+    style?: CitationStyle;
+    formattedText?: string;
+    formattedHtml?: string;
+    tags?: string[];
+    notes?: string;
+    quotes?: CitationQuote[];
+    readingStatus?: ReadingStatus | null;
+  }
 ): Promise<Citation | null> {
   const key = `${listId}:${citationId}`;
   const citation = store.citations.get(key);
   if (!citation) return null;
 
-  const updated = { ...citation, ...updates, updatedAt: new Date().toISOString() };
+  const updated: Citation = {
+    ...citation,
+    ...updates,
+    notes: updates.notes === "" ? undefined : (updates.notes ?? citation.notes),
+    readingStatus:
+      updates.readingStatus === null
+        ? undefined
+        : (updates.readingStatus ?? citation.readingStatus),
+    updatedAt: new Date().toISOString(),
+  };
   store.citations.set(key, updated);
   return updated;
 }
@@ -251,6 +309,7 @@ export async function reorderCitations(listId: string, citationIds: string[]): P
 // ============ SHARE LINKS ============
 
 export async function createShareLink(
+  userId: string,
   type: "list" | "project",
   targetId: string,
   expiresInDays?: number
@@ -260,7 +319,14 @@ export async function createShareLink(
   const expiresAt = expiresInDays
     ? new Date(now.getTime() + expiresInDays * 24 * 60 * 60 * 1000).toISOString()
     : undefined;
-  const shareLink: ShareLink = { code, type, targetId, createdAt: now.toISOString(), expiresAt };
+  const shareLink: ShareLink = {
+    code,
+    userId,
+    type,
+    targetId,
+    createdAt: now.toISOString(),
+    expiresAt,
+  };
   store.shareLinks.set(code, shareLink);
   return shareLink;
 }
@@ -274,6 +340,34 @@ export async function getShareLink(code: string): Promise<ShareLink | null> {
 
 export async function deleteShareLink(code: string): Promise<void> {
   store.shareLinks.delete(code);
+}
+
+export async function listUserShares(userId: string): Promise<ShareLink[]> {
+  const shares: ShareLink[] = [];
+  const now = new Date();
+  store.shareLinks.forEach((share) => {
+    if (share.userId !== userId) return;
+    if (share.expiresAt && new Date(share.expiresAt) < now) return;
+    shares.push(share);
+  });
+  return shares.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
+export async function deleteSharesForTarget(
+  userId: string,
+  type: "list" | "project",
+  targetId: string
+): Promise<number> {
+  let deleted = 0;
+  store.shareLinks.forEach((share, code) => {
+    if (share.userId === userId && share.type === type && share.targetId === targetId) {
+      store.shareLinks.delete(code);
+      deleted++;
+    }
+  });
+  return deleted;
 }
 
 // Helper to find list by ID (for share functionality)

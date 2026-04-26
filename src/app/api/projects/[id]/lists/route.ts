@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getProject, getProjectLists, createList } from "@/lib/db";
+import { isListNameTaken } from "@/lib/db/validation";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { name } = body as { name: string };
+    const { name, description } = body as { name: string; description?: string };
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json(
@@ -75,7 +76,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const list = await createList(userId, name.trim(), projectId);
+    if (await isListNameTaken(userId, name.trim())) {
+      return NextResponse.json(
+        { success: false, error: "A list with this name already exists" },
+        { status: 409 }
+      );
+    }
+
+    const list = await createList(userId, name.trim(), projectId, description?.trim() || undefined);
 
     return NextResponse.json({
       success: true,

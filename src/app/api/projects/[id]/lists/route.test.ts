@@ -14,6 +14,11 @@ vi.mock("@/lib/db", () => ({
   createList: vi.fn(),
 }));
 
+vi.mock("@/lib/db/validation", () => ({
+  isListNameTaken: vi.fn().mockResolvedValue(false),
+  isProjectNameTaken: vi.fn().mockResolvedValue(false),
+}));
+
 import { auth } from "@clerk/nextjs/server";
 import { getProject, getProjectLists, createList } from "@/lib/db";
 
@@ -140,7 +145,7 @@ describe("Project Lists API - /api/projects/[id]/lists", () => {
       expect(data.success).toBe(true);
       expect(data.data.name).toBe("New List");
       expect(data.data.projectId).toBe("project-123");
-      expect(mockCreateList).toHaveBeenCalledWith("user-123", "New List", "project-123");
+      expect(mockCreateList).toHaveBeenCalledWith("user-123", "New List", "project-123", undefined);
     });
 
     it("should return 400 if name is missing", async () => {

@@ -58,6 +58,7 @@ describe("Share Code API - /api/share/[code]", () => {
     it("should return shared list with citations", async () => {
       mockGetShareLink.mockResolvedValue({
         code: "abc123",
+        userId: "user-123",
         type: "list",
         targetId: "list-123",
         createdAt: "2024-01-01",
@@ -95,36 +96,29 @@ describe("Share Code API - /api/share/[code]", () => {
       expect(data.data.citations).toHaveLength(2);
     });
 
-    it("should return list with 'Shared List' name if list not found", async () => {
+    it("should return 410 when the underlying list has been deleted", async () => {
       mockGetShareLink.mockResolvedValue({
         code: "abc123",
+        userId: "user-123",
         type: "list",
         targetId: "list-123",
         createdAt: "2024-01-01",
       });
       mockFindListById.mockResolvedValue(null);
-      mockGetListCitations.mockResolvedValue([
-        {
-          id: "citation-1",
-          style: "apa",
-          formattedText: "Citation text",
-          formattedHtml: "<p>Citation</p>",
-          createdAt: "2024-01-01",
-        },
-      ]);
 
       const request = new NextRequest("http://localhost/api/share/abc123");
       const response = await GET(request, createParams("abc123"));
       const data = await response.json();
 
-      expect(data.success).toBe(true);
-      expect(data.data.name).toBe("Shared List");
-      expect(data.data.citations).toHaveLength(1);
+      expect(response.status).toBe(410);
+      expect(data.success).toBe(false);
+      expect(data.error).toMatch(/no longer available/i);
     });
 
     it("should return shared project with lists and citations", async () => {
       mockGetShareLink.mockResolvedValue({
         code: "xyz789",
+        userId: "user-123",
         type: "project",
         targetId: "project-123",
         createdAt: "2024-01-01",
@@ -154,9 +148,10 @@ describe("Share Code API - /api/share/[code]", () => {
       expect(data.data.lists).toHaveLength(2); // Only lists in this project
     });
 
-    it("should return project with 'Shared Project' name if project not found", async () => {
+    it("should return 410 when the underlying project has been deleted", async () => {
       mockGetShareLink.mockResolvedValue({
         code: "xyz789",
+        userId: "user-123",
         type: "project",
         targetId: "project-123",
         createdAt: "2024-01-01",
@@ -167,9 +162,9 @@ describe("Share Code API - /api/share/[code]", () => {
       const response = await GET(request, createParams("xyz789"));
       const data = await response.json();
 
-      expect(data.success).toBe(true);
-      expect(data.data.name).toBe("Shared Project");
-      expect(data.data.lists).toEqual([]);
+      expect(response.status).toBe(410);
+      expect(data.success).toBe(false);
+      expect(data.error).toMatch(/no longer available/i);
     });
 
     it("should handle database errors", async () => {
@@ -214,10 +209,11 @@ describe("Share Code API - /api/share/[code]", () => {
       expect(data.error).toBe("Share link not found");
     });
 
-    it("should delete share link", async () => {
+    it("should delete share link owned by the caller", async () => {
       mockAuth.mockResolvedValue({ userId: "user-123" });
       mockGetShareLink.mockResolvedValue({
         code: "abc123",
+        userId: "user-123",
         type: "list",
         targetId: "list-123",
       });
@@ -233,6 +229,26 @@ describe("Share Code API - /api/share/[code]", () => {
       expect(data.success).toBe(true);
       expect(data.message).toBe("Share link revoked");
       expect(mockDeleteShareLink).toHaveBeenCalledWith("abc123");
+    });
+
+    it("should return 403 when deleting another user's share", async () => {
+      mockAuth.mockResolvedValue({ userId: "user-123" });
+      mockGetShareLink.mockResolvedValue({
+        code: "abc123",
+        userId: "other-user",
+        type: "list",
+        targetId: "list-123",
+      });
+
+      const request = new NextRequest("http://localhost/api/share/abc123", {
+        method: "DELETE",
+      });
+      const response = await DELETE(request, createParams("abc123"));
+      const data = await response.json();
+
+      expect(response.status).toBe(403);
+      expect(data.success).toBe(false);
+      expect(mockDeleteShareLink).not.toHaveBeenCalled();
     });
 
     it("should handle database errors", async () => {

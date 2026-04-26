@@ -471,7 +471,7 @@ describe("Local Store - Share Links", () => {
   describe("createShareLink", () => {
     it("should create a share link for a list", async () => {
       const list = await createList(testUserId, "Shareable List");
-      const shareLink = await createShareLink("list", list.id);
+      const shareLink = await createShareLink(testUserId, "list", list.id);
 
       expect(shareLink).toBeDefined();
       expect(shareLink.code).toBeDefined();
@@ -482,7 +482,7 @@ describe("Local Store - Share Links", () => {
 
     it("should create a share link for a project", async () => {
       const project = await createProject(testUserId, "Shareable Project");
-      const shareLink = await createShareLink("project", project.id);
+      const shareLink = await createShareLink(testUserId, "project", project.id);
 
       expect(shareLink.type).toBe("project");
       expect(shareLink.targetId).toBe(project.id);
@@ -490,7 +490,7 @@ describe("Local Store - Share Links", () => {
 
     it("should create share link with expiry", async () => {
       const list = await createList(testUserId, "Expiring Share");
-      const shareLink = await createShareLink("list", list.id, 7);
+      const shareLink = await createShareLink(testUserId, "list", list.id, 7);
 
       expect(shareLink.expiresAt).toBeDefined();
       const expiryDate = new Date(shareLink.expiresAt!);
@@ -502,8 +502,8 @@ describe("Local Store - Share Links", () => {
 
     it("should generate unique codes", async () => {
       const list = await createList(testUserId, "Multi Share");
-      const share1 = await createShareLink("list", list.id);
-      const share2 = await createShareLink("list", list.id);
+      const share1 = await createShareLink(testUserId, "list", list.id);
+      const share2 = await createShareLink(testUserId, "list", list.id);
 
       expect(share1.code).not.toBe(share2.code);
     });
@@ -512,7 +512,7 @@ describe("Local Store - Share Links", () => {
   describe("getShareLink", () => {
     it("should retrieve a share link by code", async () => {
       const list = await createList(testUserId, "Get Share Test");
-      const created = await createShareLink("list", list.id);
+      const created = await createShareLink(testUserId, "list", list.id);
 
       const retrieved = await getShareLink(created.code);
 
@@ -527,7 +527,7 @@ describe("Local Store - Share Links", () => {
 
     it("should return null for expired share link", async () => {
       const list = await createList(testUserId, "Expired Share");
-      const shareLink = await createShareLink("list", list.id, -1); // Expired yesterday
+      const shareLink = await createShareLink(testUserId, "list", list.id, -1); // Expired yesterday
 
       const result = await getShareLink(shareLink.code);
       expect(result).toBeNull();
@@ -537,7 +537,7 @@ describe("Local Store - Share Links", () => {
   describe("deleteShareLink", () => {
     it("should delete a share link", async () => {
       const list = await createList(testUserId, "Delete Share Test");
-      const shareLink = await createShareLink("list", list.id);
+      const shareLink = await createShareLink(testUserId, "list", list.id);
 
       await deleteShareLink(shareLink.code);
 
