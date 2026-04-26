@@ -15,6 +15,7 @@ import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
 import { parseBibTeX } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
+import DOMPurify from "isomorphic-dompurify";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
 
 interface List {
@@ -2398,7 +2399,7 @@ function CitePageContent() {
               <div className="p-4 bg-wiki-offwhite border border-wiki-border-light">
                 <p
                   className="citation-text"
-                  dangerouslySetInnerHTML={{ __html: generatedCitation.html }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedCitation.html) }}
                 />
               </div>
               <div className="mt-4 flex flex-wrap gap-3">

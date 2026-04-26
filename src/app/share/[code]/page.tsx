@@ -6,6 +6,7 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { toRTF } from "@/lib/citation/exporters";
+import DOMPurify from "isomorphic-dompurify";
 
 interface SharedCitation {
   id: string;
@@ -267,7 +268,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                     <div className="p-4 bg-wiki-offwhite border border-wiki-border-light">
                       <p
                         className="citation-text mb-4"
-                        dangerouslySetInnerHTML={{ __html: citation.formattedHtml }}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(citation.formattedHtml) }}
                       />
                       <button
                         onClick={() => copyOne(citation.formattedText)}
@@ -385,7 +386,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                             </div>
                             <p
                               className="citation-text text-sm"
-                              dangerouslySetInnerHTML={{ __html: citation.formattedHtml }}
+                              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(citation.formattedHtml) }}
                             />
                             <button
                               onClick={() => copyOne(citation.formattedText)}
