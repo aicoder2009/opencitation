@@ -329,6 +329,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <button
                 onClick={() => setError(null)}
                 className="ml-2 text-red-500 hover:text-red-700"
+                aria-label="Dismiss error"
               >
                 [dismiss]
               </button>
