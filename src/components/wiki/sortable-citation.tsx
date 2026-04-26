@@ -68,6 +68,9 @@ interface SortableCitationProps {
   onEditDone?: () => void;
   onSaveNotes?: (id: string, notes: string) => void | Promise<void>;
   onSaveQuotes?: (id: string, quotes: CitationQuote[]) => void | Promise<void>;
+  isSelectMode?: boolean;
+  isChecked?: boolean;
+  onCheckToggle?: () => void;
 }
 
 export function SortableCitation({
@@ -89,6 +92,9 @@ export function SortableCitation({
   onEditDone,
   onSaveNotes,
   onSaveQuotes,
+  isSelectMode = false,
+  isChecked = false,
+  onCheckToggle,
 }: SortableCitationProps) {
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
@@ -176,6 +182,16 @@ export function SortableCitation({
     >
       {/* Header with drag handle */}
       <div className="flex items-center gap-2 p-3 bg-wiki-tab-bg border-b border-wiki-border-light">
+        {isSelectMode && (
+          <input
+            type="checkbox"
+            checked={isChecked}
+            onChange={(e) => { e.stopPropagation(); onCheckToggle?.(); }}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={`Select citation ${index + 1}`}
+            className="w-4 h-4 cursor-pointer"
+          />
+        )}
         <button
           {...attributes}
           {...listeners}

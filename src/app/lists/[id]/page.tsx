@@ -111,6 +111,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [reformatTarget, setReformatTarget] = useState<CitationStyle>("apa");
   const [isReformatting, setIsReformatting] = useState(false);
   const [factoid, setFactoid] = useState<string>("");
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedCitationIds, setSelectedCitationIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setFactoid(pickFactoid());
@@ -413,6 +415,83 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
+  };
+
+  const toggleSelectMode = () => {
+    setIsSelectMode((prev) => !prev);
+    setSelectedCitationIds(new Set());
+  };
+
+  const toggleCitationSelect = (id: string) => {
+    setSelectedCitationIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectedCitations = filteredCitations.filter((c) => selectedCitationIds.has(c.id));
+
+  const selectAll = () => setSelectedCitationIds(new Set(filteredCitations.map((c) => c.id)));
+  const deselectAll = () => setSelectedCitationIds(new Set());
+
+  const copySelected = () => {
+    const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
+    navigator.clipboard.writeText(text);
+  };
+
+  const deleteSelected = async () => {
+    const count = selectedCitationIds.size;
+    if (!confirm(`Delete ${count} citation${count === 1 ? "" : "s"}?`)) return;
+    const ids = [...selectedCitationIds];
+    setCitations((prev) => prev.filter((c) => !selectedCitationIds.has(c.id)));
+    setSelectedCitationIds(new Set());
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/lists/${listId}/citations/${id}`, { method: "DELETE" })
+        )
+      );
+    } catch (err) {
+      console.error("Error deleting selected citations:", err);
+      setError("Some citations could not be deleted.");
+      fetchListAndCitations();
+    }
+  };
+
+  const exportSelectedText = () => {
+    const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
+    downloadFile(text, "txt", "text/plain");
+  };
+
+  const exportSelectedMarkdown = () => {
+    downloadFile(toMarkdown(selectedCitations, list?.name), "md", "text/markdown");
+  };
+
+  const exportSelectedHTML = () => {
+    downloadFile(toHTML(selectedCitations, list?.name), "html", "text/html");
+  };
+
+  const exportSelectedRTF = () => {
+    downloadFile(toRTF(selectedCitations, list?.name), "rtf", "application/rtf");
+  };
+
+  const exportSelectedBibTeX = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
+    downloadFile(toBibTeXMultiple(fields), "bib", "application/x-bibtex");
+  };
+
+  const exportSelectedRIS = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for RIS."); return; }
+    downloadFile(toRISMultiple(fields), "ris", "application/x-research-info-systems");
+  };
+
+  const exportSelectedCSLJSON = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for CSL JSON."); return; }
+    downloadFile(toCSLJSON(fields), "json", "application/vnd.citationstyles.csl+json");
   };
 
   const downloadFile = (content: string, extension: string, mimeType: string) => {
@@ -978,35 +1057,81 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               )}
               {/* Actions */}
-              <div className="flex flex-wrap gap-3">
-                <WikiButton onClick={copyAllCitations}>
-                  Copy All
-                </WikiButton>
-                <WikiButton
-                  onClick={handleAlphabetize}
-                  disabled={citations.length < 2}
-                  title="Sort citations alphabetically by author (or title)"
-                >
-                  Sort A–Z
-                </WikiButton>
-                <WikiButton onClick={() => setShowPrintAnimation(true)}>
-                  Print
-                </WikiButton>
-                <WikiDropdown
-                  label="Export"
-                  items={[
-                    { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
-                    { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
-                    { label: "Markdown", hint: ".md", onClick: exportMarkdown },
-                    { label: "HTML", hint: ".html", onClick: exportHTML },
-                    { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
-                    { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
-                    { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
-                    { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
-                    { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
-                  ]}
-                />
-              </div>
+              {!isSelectMode ? (
+                <div className="flex flex-wrap gap-3">
+                  <WikiButton onClick={copyAllCitations}>
+                    Copy All
+                  </WikiButton>
+                  <WikiButton
+                    onClick={handleAlphabetize}
+                    disabled={citations.length < 2}
+                    title="Sort citations alphabetically by author (or title)"
+                  >
+                    Sort A–Z
+                  </WikiButton>
+                  <WikiButton onClick={() => setShowPrintAnimation(true)}>
+                    Print
+                  </WikiButton>
+                  <WikiDropdown
+                    label="Export"
+                    items={[
+                      { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
+                      { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
+                      { label: "Markdown", hint: ".md", onClick: exportMarkdown },
+                      { label: "HTML", hint: ".html", onClick: exportHTML },
+                      { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
+                      { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
+                      { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
+                      { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
+                      { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
+                    ]}
+                  />
+                  <WikiButton onClick={toggleSelectMode} title="Select citations for bulk actions">
+                    Select
+                  </WikiButton>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-wiki-text-muted">
+                    {selectedCitationIds.size} of {filteredCitations.length} selected
+                  </span>
+                  <WikiButton
+                    onClick={selectedCitationIds.size === filteredCitations.length ? deselectAll : selectAll}
+                  >
+                    {selectedCitationIds.size === filteredCitations.length ? "Deselect All" : "Select All"}
+                  </WikiButton>
+                  <WikiButton
+                    onClick={copySelected}
+                    disabled={selectedCitationIds.size === 0}
+                    title="Copy selected citations to clipboard"
+                  >
+                    Copy
+                  </WikiButton>
+                  <WikiDropdown
+                    label="Export"
+                    disabled={selectedCitationIds.size === 0}
+                    items={[
+                      { label: "Plain text", hint: ".txt", onClick: exportSelectedText },
+                      { label: "Word (hanging indent)", hint: ".rtf", onClick: exportSelectedRTF },
+                      { label: "Markdown", hint: ".md", onClick: exportSelectedMarkdown },
+                      { label: "HTML", hint: ".html", onClick: exportSelectedHTML },
+                      { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportSelectedBibTeX },
+                      { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportSelectedRIS },
+                      { label: "CSL JSON", hint: ".json", onClick: exportSelectedCSLJSON },
+                    ]}
+                  />
+                  <WikiButton
+                    onClick={deleteSelected}
+                    disabled={selectedCitationIds.size === 0}
+                    title="Delete selected citations"
+                  >
+                    Delete
+                  </WikiButton>
+                  <WikiButton onClick={toggleSelectMode}>
+                    Done
+                  </WikiButton>
+                </div>
+              )}
             </div>
           )}
 
@@ -1071,6 +1196,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                       onEditDone={() => setEditingCitationId(null)}
                       onSaveNotes={handleSaveNotes}
                       onSaveQuotes={handleSaveQuotes}
+                      isSelectMode={isSelectMode}
+                      isChecked={selectedCitationIds.has(citation.id)}
+                      onCheckToggle={() => toggleCitationSelect(citation.id)}
                     />
                   ))}
                 </div>
