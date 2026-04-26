@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use, useRef } from "react";
+import { useState, useEffect, use, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -115,29 +115,33 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   }, []);
 
   // Detect mixed citation styles
-  const styleCounts = citations.reduce<Record<string, number>>((acc, c) => {
-    acc[c.style] = (acc[c.style] || 0) + 1;
-    return acc;
-  }, {});
-  const uniqueStyles = Object.keys(styleCounts);
-  const hasMixedStyles = uniqueStyles.length > 1;
+  const { styleCounts, uniqueStyles, hasMixedStyles } = useMemo(() => {
+    const counts = citations.reduce<Record<string, number>>((acc, c) => {
+      acc[c.style] = (acc[c.style] || 0) + 1;
+      return acc;
+    }, {});
+    const styles = Object.keys(counts);
+    return { styleCounts: counts, uniqueStyles: styles, hasMixedStyles: styles.length > 1 };
+  }, [citations]);
 
   // Get all unique tags from citations
-  const allTags = Array.from(
-    new Set(citations.flatMap((c) => c.tags || []))
-  ).sort();
+  const allTags = useMemo(
+    () => Array.from(new Set(citations.flatMap((c) => c.tags || []))).sort(),
+    [citations]
+  );
 
   // Filter citations based on search query and tag filter
-  const filteredCitations = citations.filter((citation) => {
-    // Tag filter
-    if (filterTag && (!citation.tags || !citation.tags.includes(filterTag))) {
-      return false;
-    }
-    // Search filter
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return citation.formattedText.toLowerCase().includes(query);
-  });
+  const filteredCitations = useMemo(
+    () => citations.filter((citation) => {
+      if (filterTag && (!citation.tags || !citation.tags.includes(filterTag))) {
+        return false;
+      }
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      return citation.formattedText.toLowerCase().includes(query);
+    }),
+    [citations, filterTag, searchQuery]
+  );
 
   // Keyboard shortcuts
   useKeyboardShortcuts(
@@ -211,9 +215,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     try {
       setIsLoading(true);
 
-      // Fetch list details
-      const listResponse = await fetch(`/api/lists/${listId}`);
-      const listResult = await listResponse.json();
+      const [listResponse, citationsResponse] = await Promise.all([
+        fetch(`/api/lists/${listId}`),
+        fetch(`/api/lists/${listId}/citations`),
+      ]);
+
+      const [listResult, citationsResult] = await Promise.all([
+        listResponse.json(),
+        citationsResponse.json(),
+      ]);
 
       if (!listResult.success) {
         setError(listResult.error || "List not found");
@@ -223,10 +233,6 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       setList(listResult.data);
       setEditName(listResult.data.name);
       setEditDescription(listResult.data.description || "");
-
-      // Fetch citations
-      const citationsResponse = await fetch(`/api/lists/${listId}/citations`);
-      const citationsResult = await citationsResponse.json();
 
       if (citationsResult.success) {
         setCitations(citationsResult.data);
@@ -436,36 +442,33 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     downloadFile(toRTF(citations, list?.name), "rtf", "application/rtf");
   };
 
-  const citationsWithFields = (): FullCitationFields[] =>
-    citations
-      .map((c) => c.fields)
-      .filter(Boolean) as unknown as FullCitationFields[];
+  const citationsWithFields = useMemo(
+    (): FullCitationFields[] => citations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[],
+    [citations]
+  );
 
   const exportBibTeX = () => {
-    const fieldsList = citationsWithFields();
-    if (fieldsList.length === 0) {
+    if (citationsWithFields.length === 0) {
       setError("No citations with structured fields to export as BibTeX.");
       return;
     }
-    downloadFile(toBibTeXMultiple(fieldsList), "bib", "application/x-bibtex");
+    downloadFile(toBibTeXMultiple(citationsWithFields), "bib", "application/x-bibtex");
   };
 
   const copyBibTeX = () => {
-    const fieldsList = citationsWithFields();
-    if (fieldsList.length === 0) {
+    if (citationsWithFields.length === 0) {
       setError("No citations with structured fields to copy as BibTeX.");
       return;
     }
-    navigator.clipboard.writeText(toBibTeXMultiple(fieldsList));
+    navigator.clipboard.writeText(toBibTeXMultiple(citationsWithFields));
   };
 
   const exportRIS = () => {
-    const fieldsList = citationsWithFields();
-    if (fieldsList.length === 0) {
+    if (citationsWithFields.length === 0) {
       setError("No citations with structured fields to export as RIS.");
       return;
     }
-    downloadFile(toRISMultiple(fieldsList), "ris", "application/x-research-info-systems");
+    downloadFile(toRISMultiple(citationsWithFields), "ris", "application/x-research-info-systems");
   };
 
   const exportZotero = () => {
@@ -494,12 +497,11 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const exportCSLJSON = () => {
-    const fieldsList = citationsWithFields();
-    if (fieldsList.length === 0) {
+    if (citationsWithFields.length === 0) {
       setError("No citations with structured fields to export as CSL JSON.");
       return;
     }
-    downloadFile(toCSLJSON(fieldsList), "json", "application/vnd.citationstyles.csl+json");
+    downloadFile(toCSLJSON(citationsWithFields), "json", "application/vnd.citationstyles.csl+json");
   };
 
   // Drag and drop sensors
