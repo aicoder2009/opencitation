@@ -7,6 +7,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { pickFactoid } from "@/lib/did-you-know";
+import posthog from "posthog-js";
 
 interface List {
   id: string;
@@ -104,6 +105,9 @@ export default function ListsPage() {
         setNewListName("");
         setNewListDescription("");
         setShowCreateForm(false);
+        posthog.capture("list_created", {
+          has_description: !!newListDescription.trim(),
+        });
       } else {
         setError(result.error || "Failed to create list");
       }
@@ -129,6 +133,7 @@ export default function ListsPage() {
 
       if (result.success) {
         setLists((prev) => prev.filter((list) => list.id !== listId));
+        posthog.capture("list_deleted");
       } else {
         setError(result.error || "Failed to delete list");
       }

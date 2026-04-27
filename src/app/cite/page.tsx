@@ -18,6 +18,7 @@ import { parseBibTeX } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
 import DOMPurify from "isomorphic-dompurify";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
+import posthog from "posthog-js";
 
 interface List {
   id: string;
@@ -446,6 +447,18 @@ function CitePageContent() {
       // Save to recent citations
       saveToRecentCitations(fields.title, formatted.text, selectedStyle);
 
+      posthog.capture("lookup_performed", {
+        lookup_type: apiEndpoint.replace("/api/lookup/", ""),
+        source_type: effectiveType,
+        citation_style: selectedStyle,
+      });
+
+      posthog.capture("citation_generated", {
+        source_type: effectiveType,
+        citation_style: selectedStyle,
+        method: "lookup",
+      });
+
       // Increment citation counter
       fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
     } catch (err) {
@@ -506,6 +519,12 @@ function CitePageContent() {
 
     // Save to recent citations
     saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+
+    posthog.capture("citation_generated", {
+      source_type: fields.sourceType,
+      citation_style: selectedStyle,
+      method: "manual",
+    });
 
     // Increment citation counter
     fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
@@ -871,6 +890,10 @@ function CitePageContent() {
   const copyToClipboard = () => {
     if (generatedCitation) {
       navigator.clipboard.writeText(generatedCitation.text);
+      posthog.capture("citation_copied", {
+        citation_style: selectedStyle,
+        source_type: citationFields?.sourceType,
+      });
     }
   };
 
@@ -1043,11 +1066,17 @@ function CitePageContent() {
         setShowDuplicateWarning(false);
         setPendingListId(null);
         recordCitationSave();
+        posthog.capture("citation_saved_to_list", {
+          source_type: citationFields?.sourceType,
+          citation_style: selectedStyle,
+          list_id: listId,
+        });
       } else {
         setError(result.error || "Failed to add citation");
       }
     } catch (err) {
       console.error("Error adding citation:", err);
+      posthog.captureException(err);
       setError("Failed to add citation");
     } finally {
       setIsAddingToList(false);

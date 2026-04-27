@@ -8,6 +8,7 @@ import {
   getUserProjects,
   listUserShares,
 } from "@/lib/db";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 // GET /api/share - List active share links owned by the current user
 export async function GET() {
@@ -109,6 +110,17 @@ export async function POST(request: NextRequest) {
     }
 
     const shareLink = await createShareLink(userId, type, targetId, expiresInDays);
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: userId,
+      event: "share_link_created",
+      properties: {
+        share_type: type,
+        has_expiry: !!expiresInDays,
+        expires_in_days: expiresInDays ?? null,
+      },
+    });
 
     return NextResponse.json({
       success: true,

@@ -41,6 +41,7 @@ import { useTagColors } from "@/lib/tag-colors";
 import { pickFactoid } from "@/lib/did-you-know";
 import type { SourceType, AccessType, CitationFields as FullCitationFields, CitationStyle } from "@/types";
 import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
+import posthog from "posthog-js";
 
 interface List {
   id: string;
@@ -509,18 +510,22 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const exportAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     downloadFile(allText, "txt", "text/plain");
+    posthog.capture("citation_exported", { format: "txt", citation_count: citations.length });
   };
 
   const exportMarkdown = () => {
     downloadFile(toMarkdown(citations, list?.name), "md", "text/markdown");
+    posthog.capture("citation_exported", { format: "md", citation_count: citations.length });
   };
 
   const exportHTML = () => {
     downloadFile(toHTML(citations, list?.name), "html", "text/html");
+    posthog.capture("citation_exported", { format: "html", citation_count: citations.length });
   };
 
   const exportRTF = () => {
     downloadFile(toRTF(citations, list?.name), "rtf", "application/rtf");
+    posthog.capture("citation_exported", { format: "rtf", citation_count: citations.length });
   };
 
   const citationsWithFields = useMemo(
@@ -534,6 +539,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toBibTeXMultiple(citationsWithFields), "bib", "application/x-bibtex");
+    posthog.capture("citation_exported", { format: "bibtex", citation_count: citationsWithFields.length });
   };
 
   const copyBibTeX = () => {
@@ -550,6 +556,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toRISMultiple(citationsWithFields), "ris", "application/x-research-info-systems");
+    posthog.capture("citation_exported", { format: "ris", citation_count: citationsWithFields.length });
   };
 
   const exportZotero = () => {
@@ -575,6 +582,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    posthog.capture("citation_exported", { format: "ris_zotero", citation_count: items.length });
   };
 
   const exportCSLJSON = () => {
@@ -583,6 +591,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toCSLJSON(citationsWithFields), "json", "application/vnd.citationstyles.csl+json");
+    posthog.capture("citation_exported", { format: "csl_json", citation_count: citationsWithFields.length });
   };
 
   // Drag and drop sensors

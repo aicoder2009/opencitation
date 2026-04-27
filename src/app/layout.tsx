@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { PWAProvider } from "@/components/pwa/pwa-provider";
 import { BarnstarToast } from "@/components/wiki/barnstar-toast";
+import { PostHogIdentify } from "@/components/posthog-identify";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -91,6 +92,7 @@ export default function RootLayout({
         </head>
         <body className="antialiased">
           <PWAProvider>
+            <PostHogIdentify />
             {children}
             <BarnstarToast />
           </PWAProvider>

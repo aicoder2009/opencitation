@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import posthog from "posthog-js";
 
 interface Project {
   id: string;
@@ -81,6 +82,9 @@ export default function ProjectsPage() {
         setNewProjectName("");
         setNewProjectDescription("");
         setShowCreateForm(false);
+        posthog.capture("project_created", {
+          has_description: !!newProjectDescription.trim(),
+        });
       } else {
         setError(result.error || "Failed to create project");
       }
