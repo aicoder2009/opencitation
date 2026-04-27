@@ -9,7 +9,42 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { lookup } from 'dns/promises';
 import type { SourceType } from '@/types';
+
+// Utility to check if an IP is private/local
+function isPrivateIP(ip: string): boolean {
+  // IPv4 Private/Reserved Ranges
+  if (
+    ip.startsWith('10.') ||
+    ip.startsWith('127.') ||
+    ip.startsWith('169.254.') ||
+    ip.startsWith('192.168.') ||
+    ip === '0.0.0.0' ||
+    ip === '255.255.255.255'
+  ) {
+    return true;
+  }
+
+  // 172.16.0.0/12
+  if (ip.startsWith('172.')) {
+    const secondOctet = parseInt(ip.split('.')[1], 10);
+    if (secondOctet >= 16 && secondOctet <= 31) return true;
+  }
+
+  // IPv6 Private/Reserved Ranges
+  if (
+    ip === '::1' ||
+    ip === '::' ||
+    ip.toLowerCase().startsWith('fc00:') ||
+    ip.toLowerCase().startsWith('fd00:') ||
+    ip.toLowerCase().startsWith('fe80:')
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 interface MetadataResult {
   title?: string;
@@ -73,6 +108,33 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
     } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid URL format' },
+        { status: 400 }
+      );
+    }
+
+    // SSRF Protection: Only allow HTTP and HTTPS
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      return NextResponse.json(
+        { success: false, error: 'Invalid protocol' },
+        { status: 400 }
+      );
+    }
+
+    // SSRF Protection: DNS rebinding and internal network check
+    let resolvedIp: string;
+    try {
+      const { address } = await lookup(parsedUrl.hostname);
+      if (isPrivateIP(address)) {
+        return NextResponse.json(
+          { success: false, error: 'Access to internal networks is forbidden' },
+          { status: 403 }
+        );
+      }
+      resolvedIp = address;
+    } catch (dnsError) {
+      console.warn(`DNS lookup failed for ${parsedUrl.hostname}:`, dnsError);
+      return NextResponse.json(
+        { success: false, error: 'Could not resolve hostname' },
         { status: 400 }
       );
     }
