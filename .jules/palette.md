@@ -1,0 +1,3 @@
+## 2024-04-27 - Icon-only buttons lacking ARIA labels
+**Learning:** Found multiple instances where icon-only buttons (like those using `&times;` to denote close actions) were missing `aria-label` attributes in `src/app/page.tsx` for modals like Privacy Policy, Terms of Service, and Report Issue. This makes them inaccessible to screen readers as the entity `&times;` provides no semantic meaning.
+**Action:** Always verify that interactive elements, especially those lacking visible descriptive text, include appropriate `aria-label` or `aria-labelledby` attributes to ensure screen reader accessibility.
