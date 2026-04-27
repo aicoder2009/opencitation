@@ -178,7 +178,13 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       c: () => {
         // Copy selected citation
         if (selectedIndex >= 0 && selectedIndex < filteredCitations.length) {
-          navigator.clipboard.writeText(filteredCitations[selectedIndex].formattedText);
+          const cit = filteredCitations[selectedIndex];
+          navigator.clipboard.writeText(cit.formattedText);
+          posthog.capture("citation_copied", {
+            citation_style: cit.style,
+            source_type: cit.fields?.sourceType,
+            method: "keyboard_shortcut",
+          });
         }
       },
       "/": () => {
@@ -297,6 +303,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
 
+    const citation = citations.find((c) => c.id === citationId);
     try {
       const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
         method: "DELETE",
@@ -306,6 +313,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
       if (result.success) {
         setCitations((prev) => prev.filter((c) => c.id !== citationId));
+        posthog.capture("citation_deleted", {
+          citation_style: citation?.style,
+          source_type: citation?.fields?.sourceType,
+        });
       } else {
         setError(result.error || "Failed to delete citation");
       }
@@ -416,6 +427,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
+    posthog.capture("citations_copied_all", { citation_count: citations.length });
   };
 
   const toggleSelectMode = () => {
@@ -439,6 +451,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const copySelected = () => {
     const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(text);
+    posthog.capture("citations_bulk_copied", { citation_count: selectedCitations.length });
   };
 
   const deleteSelected = async () => {
@@ -453,6 +466,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           fetch(`/api/lists/${listId}/citations/${id}`, { method: "DELETE" })
         )
       );
+      posthog.capture("citations_bulk_deleted", { count });
     } catch (err) {
       console.error("Error deleting selected citations:", err);
       setError("Some citations could not be deleted.");
@@ -463,36 +477,43 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const exportSelectedText = () => {
     const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
     downloadFile(text, "txt", "text/plain");
+    posthog.capture("citation_exported", { format: "txt", citation_count: selectedCitations.length, bulk: true });
   };
 
   const exportSelectedMarkdown = () => {
     downloadFile(toMarkdown(selectedCitations, list?.name), "md", "text/markdown");
+    posthog.capture("citation_exported", { format: "md", citation_count: selectedCitations.length, bulk: true });
   };
 
   const exportSelectedHTML = () => {
     downloadFile(toHTML(selectedCitations, list?.name), "html", "text/html");
+    posthog.capture("citation_exported", { format: "html", citation_count: selectedCitations.length, bulk: true });
   };
 
   const exportSelectedRTF = () => {
     downloadFile(toRTF(selectedCitations, list?.name), "rtf", "application/rtf");
+    posthog.capture("citation_exported", { format: "rtf", citation_count: selectedCitations.length, bulk: true });
   };
 
   const exportSelectedBibTeX = () => {
     const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
     if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
     downloadFile(toBibTeXMultiple(fields), "bib", "application/x-bibtex");
+    posthog.capture("citation_exported", { format: "bibtex", citation_count: fields.length, bulk: true });
   };
 
   const exportSelectedRIS = () => {
     const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
     if (fields.length === 0) { setError("No selected citations have structured fields for RIS."); return; }
     downloadFile(toRISMultiple(fields), "ris", "application/x-research-info-systems");
+    posthog.capture("citation_exported", { format: "ris", citation_count: fields.length, bulk: true });
   };
 
   const exportSelectedCSLJSON = () => {
     const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
     if (fields.length === 0) { setError("No selected citations have structured fields for CSL JSON."); return; }
     downloadFile(toCSLJSON(fields), "json", "application/vnd.citationstyles.csl+json");
+    posthog.capture("citation_exported", { format: "csl_json", citation_count: fields.length, bulk: true });
   };
 
   const downloadFile = (content: string, extension: string, mimeType: string) => {
@@ -548,6 +569,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     navigator.clipboard.writeText(toBibTeXMultiple(citationsWithFields));
+    posthog.capture("citation_exported", { format: "bibtex_copy", citation_count: citationsWithFields.length });
   };
 
   const exportRIS = () => {
@@ -653,6 +675,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           return u ? { ...c, ...u } : c;
         })
       );
+      posthog.capture("citations_reformatted", { target_style: target, count: updates.length });
       if (missingFields.length > 0) {
         setError(
           `Reformatted ${updates.length}. ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} could not be converted (no structured fields).`
@@ -685,6 +708,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ citationIds: sorted.map((c) => c.id) }),
       });
       if (!response.ok) throw new Error("Failed to save order");
+      posthog.capture("citations_sorted", { citation_count: sorted.length });
     } catch (err) {
       console.error("Failed to save order:", err);
       setCitations(previous);
@@ -711,6 +735,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
             citationIds: newCitations.map((c) => c.id),
           }),
         });
+        posthog.capture("citation_reordered");
       } catch (err) {
         console.error("Failed to save order:", err);
         // Revert on error
@@ -785,6 +810,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               : c
           )
         );
+        posthog.capture("citation_edited", { citation_style: style });
       } else {
         throw new Error(result.error || "Failed to update citation");
       }

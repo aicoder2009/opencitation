@@ -130,6 +130,7 @@ export default function ProjectsPage() {
           prev.map((p) => (p.id === projectId ? result.data : p))
         );
         cancelEditing();
+        posthog.capture("project_updated");
       } else {
         setError(result.error || "Failed to update project");
       }
@@ -155,6 +156,7 @@ export default function ProjectsPage() {
 
       if (result.success) {
         setProjects((prev) => prev.filter((project) => project.id !== projectId));
+        posthog.capture("project_deleted");
       } else {
         setError(result.error || "Failed to delete project");
       }
