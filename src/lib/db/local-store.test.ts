@@ -169,7 +169,7 @@ describe("Local Store - Lists", () => {
 
     it("should delete all citations in the list", async () => {
       const list = await createList(testUserId, "List With Citations");
-      const citation = await addCitation(
+      await addCitation(
         list.id,
         createSampleCitationFields(),
         "apa",

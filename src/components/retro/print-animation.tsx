@@ -38,10 +38,6 @@ const PRINTER_FRAMES = [
     ╚═══════════════════════════════════╝`,
 ];
 
-const PAPER_TOP = `┌────────────────────────────────┐`;
-const PAPER_LINE = `│                                │`;
-const PAPER_BOTTOM = `└────────────────────────────────┘`;
-
 const SPINNERS = ["◐", "◓", "◑", "◒"];
 const PROGRESS_CHARS = ["░", "▒", "▓", "█"];
 
