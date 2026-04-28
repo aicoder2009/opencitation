@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { SourceType } from '@/types';
+import { lookup } from 'dns/promises';
 
 interface MetadataResult {
   title?: string;
@@ -54,6 +55,45 @@ interface APIResponse {
   error?: string;
 }
 
+
+/**
+ * Check if an IP address is private/local.
+ */
+function isPrivateIP(ip: string): boolean {
+
+  // IPv6 unspecified address
+  if (ip === '::') return true;
+
+  // IPv6 loopback
+
+  if (ip === '::1') return true;
+
+  // IPv6 unique local address
+  if (ip.match(/^(fc|fd)/i)) return true;
+
+  // IPv6 link-local address
+  if (ip.match(/^fe80/i)) return true;
+
+  // IPv4 mapping
+  if (ip.startsWith('::ffff:')) {
+    ip = ip.replace('::ffff:', '');
+  }
+
+  const parts = ip.split('.');
+  if (parts.length !== 4) return false;
+
+  const numParts = parts.map(Number);
+
+  return (
+    numParts[0] === 10 || // 10.0.0.0/8
+    (numParts[0] === 172 && numParts[1] >= 16 && numParts[1] <= 31) || // 172.16.0.0/12
+    (numParts[0] === 192 && numParts[1] === 168) || // 192.168.0.0/16
+    numParts[0] === 127 || // 127.0.0.0/8
+    numParts[0] === 0 || // 0.0.0.0/8
+    (numParts[0] === 169 && numParts[1] === 254) // 169.254.0.0/16
+  );
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<APIResponse>> {
   try {
     const body = await request.json();
@@ -77,8 +117,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       );
     }
 
+
     // Detect the source type from the URL and grab any type-specific hints
     const detection = detectSourceTypeFromUrl(parsedUrl);
+
+    // SSRF Protection: Pre-fetch DNS validation
+    try {
+      const { address } = await lookup(parsedUrl.hostname);
+      if (isPrivateIP(address)) {
+        return NextResponse.json(
+          { success: false, error: 'Access to internal networks is not allowed' },
+          { status: 403 }
+        );
+      }
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Failed to resolve hostname' },
+        { status: 400 }
+      );
+    }
+
 
     // For arXiv URLs, short-circuit to the arXiv API which gives richer metadata
     if (detection.sourceType === 'preprint' && detection.arxivId) {
