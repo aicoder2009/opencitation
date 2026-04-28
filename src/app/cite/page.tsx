@@ -1960,7 +1960,11 @@ function CitePageContent() {
           onTabChange={setActiveTab}
         />
 
-        <div className="border border-wiki-border-light border-t-0 bg-wiki-white p-6 md:p-8">
+        <div
+          className="border border-wiki-border-light border-t-0 bg-wiki-white p-6 md:p-8"
+          role="tabpanel"
+          id={`panel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}>
           {activeTab === "quick-add" && (
             <div>
               <h2 className="text-lg font-bold mb-4">Quick Add</h2>

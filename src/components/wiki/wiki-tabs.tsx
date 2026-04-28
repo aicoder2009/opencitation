@@ -14,10 +14,14 @@ interface WikiTabsProps {
 
 export function WikiTabs({ tabs, onTabChange }: WikiTabsProps) {
   return (
-    <div className="flex border-b border-wiki-border-light">
+    <div className="flex border-b border-wiki-border-light" role="tablist">
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          role="tab"
+          aria-selected={tab.active}
+          aria-controls={`panel-${tab.id}`}
+          id={`tab-${tab.id}`}
           onClick={() => onTabChange?.(tab.id)}
           className={`
             px-4 py-2 text-sm border border-b-0 -mb-px
