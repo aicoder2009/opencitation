@@ -454,6 +454,13 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     posthog.capture("citations_bulk_copied", { citation_count: selectedCitations.length });
   };
 
+  const copySelectedBibTeX = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
+    navigator.clipboard.writeText(toBibTeXMultiple(fields));
+    posthog.capture("citations_bulk_copied", { format: "bibtex", citation_count: fields.length });
+  };
+
   const deleteSelected = async () => {
     const count = selectedCitationIds.size;
     if (!confirm(`Delete ${count} citation${count === 1 ? "" : "s"}?`)) return;
@@ -1141,6 +1148,13 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                     title="Copy selected citations to clipboard"
                   >
                     Copy
+                  </WikiButton>
+                  <WikiButton
+                    onClick={copySelectedBibTeX}
+                    disabled={selectedCitationIds.size === 0}
+                    title="Copy selected citations as BibTeX to clipboard"
+                  >
+                    Copy BibTeX
                   </WikiButton>
                   <WikiDropdown
                     label="Export"
