@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import { WikiButton } from "./wiki-button";
 import { formatCitation } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
@@ -266,7 +267,7 @@ export function CitationAddModal({
               </p>
               <p
                 className="text-wiki-text leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: generatedCitation.html }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedCitation.html) }}
               />
             </div>
           )}
