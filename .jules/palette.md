@@ -1,0 +1,3 @@
+## 2025-04-30 - Accessible Interactive Widgets with useId
+**Learning:** In the `opencitation` Next.js codebase, when building or enhancing accessible React interactive widgets like collapsibles, tabs, or dropdowns, it's critical to use React's `useId` hook to generate unique IDs for ARIA mappings (e.g., `aria-controls` to the content container). This prevents ID collisions across multiple component instances on the same page, ensuring correct screen reader context.
+**Action:** Always check `aria-controls` and `id` mappings for dynamic components and standardize on using `useId()` when creating or improving interactive UI patterns in this project.
