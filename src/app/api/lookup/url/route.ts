@@ -9,7 +9,29 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import dns from 'dns/promises';
 import type { SourceType } from '@/types';
+
+/**
+ * Checks if an IP address is a private/internal IP.
+ * Helps prevent Server-Side Request Forgery (SSRF).
+ */
+function isPrivateIP(ip: string): boolean {
+  const parts = ip.split('.');
+  if (parts.length === 4) {
+    const [a, b] = parts.map(Number);
+    return (
+      a === 10 || // 10.0.0.0/8
+      (a === 172 && b >= 16 && b <= 31) || // 172.16.0.0/12
+      (a === 192 && b === 168) || // 192.168.0.0/16
+      a === 127 || // 127.0.0.0/8
+      a === 0 || // 0.0.0.0/8
+      (a === 169 && b === 254) // 169.254.0.0/16
+    );
+  }
+  // Basic IPv6 check for localhost/private
+  return ip === '::1' || ip.startsWith('fe80:') || ip.startsWith('fc00:') || ip.startsWith('fd00:');
+}
 
 interface MetadataResult {
   title?: string;
@@ -73,6 +95,23 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
     } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid URL format' },
+        { status: 400 }
+      );
+    }
+
+    // SSRF Prevention: Resolve the hostname and block internal/private IP networks
+    try {
+      const records = await dns.lookup(parsedUrl.hostname, { all: true });
+      if (records.some((r) => isPrivateIP(r.address))) {
+        return NextResponse.json(
+          { success: false, error: 'Access to internal networks is forbidden' },
+          { status: 403 }
+        );
+      }
+    } catch (_dnsError) {
+      // If we can't resolve the domain, it's either invalid or intentionally hidden
+      return NextResponse.json(
+        { success: false, error: 'Failed to resolve hostname' },
         { status: 400 }
       );
     }
