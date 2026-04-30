@@ -25,6 +25,9 @@ export const TAG_COLORS: TagColor[] = [
   { name: "pink",   bg: "bg-pink-100 dark:bg-pink-950",       text: "text-pink-700 dark:text-pink-300",     border: "border-pink-200 dark:border-pink-900",     activeBg: "bg-pink-600 dark:bg-pink-500",     activeText: "text-white",                        activeBorder: "border-pink-700 dark:border-pink-400" },
 ];
 
+// O(1) optimized lookup map for constant tag color data
+const TAG_COLORS_MAP = new Map(TAG_COLORS.map(c => [c.name, c]));
+
 const STORAGE_KEY = "opencitation:tag-colors";
 const CHANGE_EVENT = "opencitation:tag-colors-changed";
 
@@ -56,7 +59,8 @@ function writeMap(map: Record<string, string>) {
 export function resolveTagColor(tag: string, map: Record<string, string>): TagColor {
   const named = map[tag];
   if (named) {
-    const found = TAG_COLORS.find((c) => c.name === named);
+    // ⚡ Bolt: Replace O(N) array .find() with O(1) Map lookup
+    const found = TAG_COLORS_MAP.get(named);
     if (found) return found;
   }
   return hashColor(tag);
