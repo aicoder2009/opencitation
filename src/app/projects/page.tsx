@@ -143,6 +143,7 @@ export default function ProjectsPage() {
   };
 
   const handleDeleteProject = async (projectId: string, projectName: string) => {
+    // eslint-disable-next-line no-alert
     if (!confirm(`Are you sure you want to delete "${projectName}"? Lists in this project will not be deleted but will become standalone.`)) {
       return;
     }
