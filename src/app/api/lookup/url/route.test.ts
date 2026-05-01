@@ -5,6 +5,13 @@ import { NextRequest } from 'next/server';
 // Mock fetch globally
 global.fetch = vi.fn();
 
+// Mock dns globally to prevent SSRF block from failing tests
+vi.mock('dns/promises', () => ({
+  default: {
+    lookup: vi.fn().mockResolvedValue([{ address: '93.184.216.34', family: 4 }])
+  }
+}));
+
 describe('URL Lookup API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
