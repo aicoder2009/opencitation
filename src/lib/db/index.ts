@@ -10,42 +10,42 @@ const useLocalStore = !process.env.AWS_ACCESS_KEY_ID || process.env.USE_LOCAL_DB
 const db = useLocalStore ? localStore : dynamoDB;
 
 // ============ LISTS ============
-export const createList = db.createList;
-export const getList = db.getList;
-export const getUserLists = db.getUserLists;
-export const updateList = db.updateList;
-export const deleteList = db.deleteList;
+export const {createList} = db;
+export const {getList} = db;
+export const {getUserLists} = db;
+export const {updateList} = db;
+export const {deleteList} = db;
 
 // ============ PROJECTS ============
-export const createProject = db.createProject;
-export const getProject = db.getProject;
-export const getUserProjects = db.getUserProjects;
-export const updateProject = db.updateProject;
-export const deleteProject = db.deleteProject;
-export const getProjectLists = db.getProjectLists;
+export const {createProject} = db;
+export const {getProject} = db;
+export const {getUserProjects} = db;
+export const {updateProject} = db;
+export const {deleteProject} = db;
+export const {getProjectLists} = db;
 
 // ============ CITATIONS ============
-export const addCitation = db.addCitation;
-export const getCitation = db.getCitation;
-export const getListCitations = db.getListCitations;
-export const updateCitation = db.updateCitation;
-export const deleteCitation = db.deleteCitation;
-export const reorderCitations = db.reorderCitations;
+export const {addCitation} = db;
+export const {getCitation} = db;
+export const {getListCitations} = db;
+export const {updateCitation} = db;
+export const {deleteCitation} = db;
+export const {reorderCitations} = db;
 
 // ============ SHARE LINKS ============
-export const createShareLink = db.createShareLink;
-export const getShareLink = db.getShareLink;
-export const deleteShareLink = db.deleteShareLink;
-export const listUserShares = db.listUserShares;
-export const deleteSharesForTarget = db.deleteSharesForTarget;
+export const {createShareLink} = db;
+export const {getShareLink} = db;
+export const {deleteShareLink} = db;
+export const {listUserShares} = db;
+export const {deleteSharesForTarget} = db;
 
 // ============ HELPERS ============
-export const findListById = db.findListById;
-export const findProjectById = db.findProjectById;
+export const {findListById} = db;
+export const {findProjectById} = db;
 
 // ============ STATS ============
-export const getStats = db.getStats;
-export const incrementCitationCount = db.incrementCitationCount;
+export const {getStats} = db;
+export const {incrementCitationCount} = db;
 
 // ============ TYPES ============
 export type { List, Project, Citation, ShareLink } from "./local-store";
