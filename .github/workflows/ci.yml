@@ -34,46 +34,26 @@ jobs:
       - run: npm ci
       - run: npm run test:run
 
-  build:
-    name: Next.js Build
+  gpt-review:
+    name: GPT-5 Code Review & Auto-Merge
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_placeholder
-      CLERK_SECRET_KEY: sk_test_placeholder
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-
-  claude-review:
-    name: Claude Code Review
-    runs-on: ubuntu-latest
+    needs: [lint, test]
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'aicoder2009'
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: anthropic-ai/claude-code-action@v1
+      - uses: actions/setup-python@v5
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          direct_prompt: |
-            Review this pull request with two passes:
-
-            **Pass 1 — Code Quality**
-            Check for: code smells, unclear logic, missing edge cases, naming issues, unnecessary
-            complexity, and adherence to project conventions (Next.js 16 App Router, React 19,
-            Tailwind 4, citation engine patterns in src/lib/citation/).
-
-            **Pass 2 — Security Scan**
-            Look for: OWASP Top 10 issues, injection vulnerabilities, auth bypasses, exposed secrets
-            or credentials, XSS/CSRF risks, insecure API route handling, and unsafe DynamoDB query
-            patterns.
-
-            Post inline review comments on specific lines where you find issues. End with a brief
-            summary comment covering the overall verdict for each pass.
+          python-version: '3.12'
+      - run: pip install openai
+      - name: GPT-5 Review & Auto-Merge
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: python .github/scripts/gpt_review.py
