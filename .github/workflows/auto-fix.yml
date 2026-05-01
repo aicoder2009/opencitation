@@ -69,7 +69,12 @@ jobs:
                a. `git add -A`
                b. `git commit -m "<type>: <concise description>"`
                c. `git push origin HEAD`
-               d. `gh pr create --title "<type>: <concise description>" --body "$(cat <<'EOF'
+               d. Choose the correct label(s) for the PR based on what you fixed:
+                  - Bug fix → `bug,auto-fix`
+                  - Performance improvement → `performance,auto-fix`
+                  - UI consistency / accessibility → `ui-consistency,auto-fix`
+                  - Type safety → `type-safety,auto-fix`
+               e. `gh pr create --title "<type>: <concise description>" --label "<labels>" --body "$(cat <<'EOF'
             ## What
             <1-3 bullets describing the specific changes>
 

@@ -91,6 +91,13 @@ subprocess.run(
     check=True,
 )
 
+# Apply label based on outcome
+label = "auto-merged" if verdict == "approve" else "needs-human"
+subprocess.run(
+    ["gh", "pr", "edit", PR_NUMBER, "--repo", REPO, "--add-label", label],
+    check=False,
+)
+
 # Merge if approved
 if verdict == "approve":
     subprocess.run(
