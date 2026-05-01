@@ -12,9 +12,10 @@ interface WikiDropdownProps {
   label: string;
   items: DropdownItem[];
   align?: "left" | "right";
+  disabled?: boolean;
 }
 
-export function WikiDropdown({ label, items, align = "left" }: WikiDropdownProps) {
+export function WikiDropdown({ label, items, align = "left", disabled = false }: WikiDropdownProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -38,10 +39,11 @@ export function WikiDropdown({ label, items, align = "left" }: WikiDropdownProps
     <div ref={ref} className="relative inline-block">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => !disabled && setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg active:bg-wiki-border-light focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text cursor-pointer"
+        disabled={disabled}
+        className="px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg active:bg-wiki-border-light focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {label} <span aria-hidden>▾</span>
       </button>

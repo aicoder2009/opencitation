@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getList, getListCitations, addCitation } from "@/lib/db";
 import type { CitationFields, CitationStyle } from "@/types";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -90,6 +91,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       listId, fields, style, formattedText, formattedHtml,
       tags, notes, quotes, readingStatus
     );
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: userId,
+      event: "citation_added_to_list",
+      properties: {
+        source_type: fields.sourceType,
+        citation_style: style,
+        list_id: listId,
+        has_tags: !!(tags && tags.length > 0),
+        has_notes: !!notes,
+      },
+    });
 
     return NextResponse.json({
       success: true,

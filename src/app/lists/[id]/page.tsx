@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use, useRef, useMemo } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -24,8 +25,8 @@ import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
 import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { ShareDialog } from "@/components/wiki/share-dialog";
+import { CitationAddModal } from "@/components/wiki/citation-add-modal";
 import { TagColorPicker } from "@/components/wiki/tag-color-picker";
-import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
 import { formatCitation } from "@/lib/citation";
 import {
@@ -38,8 +39,8 @@ import {
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
 import { pickFactoid } from "@/lib/did-you-know";
-import type { SourceType, AccessType, CitationFields as FullCitationFields, CitationStyle } from "@/types";
-import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
+import { CITATION_STYLES, CITATION_STYLE_LABELS, type SourceType, type AccessType, type CitationFields as FullCitationFields, type CitationStyle } from "@/types";
+import posthog from "posthog-js";
 
 interface List {
   id: string;
@@ -95,8 +96,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [showPrintAnimation, setShowPrintAnimation] = useState(false);
-  const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
+  const [showCiteModal, setShowCiteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [editingTagsCitationId, setEditingTagsCitationId] = useState<string | null>(null);
@@ -109,6 +109,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [reformatTarget, setReformatTarget] = useState<CitationStyle>("apa");
   const [isReformatting, setIsReformatting] = useState(false);
   const [factoid, setFactoid] = useState<string>("");
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedCitationIds, setSelectedCitationIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setFactoid(pickFactoid());
@@ -173,7 +175,13 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       c: () => {
         // Copy selected citation
         if (selectedIndex >= 0 && selectedIndex < filteredCitations.length) {
-          navigator.clipboard.writeText(filteredCitations[selectedIndex].formattedText);
+          const cit = filteredCitations[selectedIndex];
+          navigator.clipboard.writeText(cit.formattedText);
+          posthog.capture("citation_copied", {
+            citation_style: cit.style,
+            source_type: cit.fields?.sourceType,
+            method: "keyboard_shortcut",
+          });
         }
       },
       "/": () => {
@@ -288,10 +296,12 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleDeleteCitation = async (citationId: string) => {
+    // eslint-disable-next-line no-alert
     if (!confirm("Are you sure you want to delete this citation?")) {
       return;
     }
 
+    const citation = citations.find((c) => c.id === citationId);
     try {
       const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
         method: "DELETE",
@@ -301,6 +311,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
       if (result.success) {
         setCitations((prev) => prev.filter((c) => c.id !== citationId));
+        posthog.capture("citation_deleted", {
+          citation_style: citation?.style,
+          source_type: citation?.fields?.sourceType,
+        });
       } else {
         setError(result.error || "Failed to delete citation");
       }
@@ -411,6 +425,101 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
+    posthog.capture("citations_copied_all", { citation_count: citations.length });
+  };
+
+  const toggleSelectMode = () => {
+    setIsSelectMode((prev) => !prev);
+    setSelectedCitationIds(new Set());
+  };
+
+  const toggleCitationSelect = (id: string) => {
+    setSelectedCitationIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectedCitations = filteredCitations.filter((c) => selectedCitationIds.has(c.id));
+
+  const selectAll = () => setSelectedCitationIds(new Set(filteredCitations.map((c) => c.id)));
+  const deselectAll = () => setSelectedCitationIds(new Set());
+
+  const copySelected = () => {
+    const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
+    navigator.clipboard.writeText(text);
+    posthog.capture("citations_bulk_copied", { citation_count: selectedCitations.length });
+  };
+
+  const copySelectedBibTeX = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
+    navigator.clipboard.writeText(toBibTeXMultiple(fields));
+    posthog.capture("citations_bulk_copied", { format: "bibtex", citation_count: fields.length });
+  };
+
+  const deleteSelected = async () => {
+    const count = selectedCitationIds.size;
+    // eslint-disable-next-line no-alert
+    if (!confirm(`Delete ${count} citation${count === 1 ? "" : "s"}?`)) return;
+    const ids = [...selectedCitationIds];
+    setCitations((prev) => prev.filter((c) => !selectedCitationIds.has(c.id)));
+    setSelectedCitationIds(new Set());
+    try {
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`/api/lists/${listId}/citations/${id}`, { method: "DELETE" })
+        )
+      );
+      posthog.capture("citations_bulk_deleted", { count });
+    } catch (err) {
+      console.error("Error deleting selected citations:", err);
+      setError("Some citations could not be deleted.");
+      fetchListAndCitations();
+    }
+  };
+
+  const exportSelectedText = () => {
+    const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
+    downloadFile(text, "txt", "text/plain");
+    posthog.capture("citation_exported", { format: "txt", citation_count: selectedCitations.length, bulk: true });
+  };
+
+  const exportSelectedMarkdown = () => {
+    downloadFile(toMarkdown(selectedCitations, list?.name), "md", "text/markdown");
+    posthog.capture("citation_exported", { format: "md", citation_count: selectedCitations.length, bulk: true });
+  };
+
+  const exportSelectedHTML = () => {
+    downloadFile(toHTML(selectedCitations, list?.name), "html", "text/html");
+    posthog.capture("citation_exported", { format: "html", citation_count: selectedCitations.length, bulk: true });
+  };
+
+  const exportSelectedRTF = () => {
+    downloadFile(toRTF(selectedCitations, list?.name), "rtf", "application/rtf");
+    posthog.capture("citation_exported", { format: "rtf", citation_count: selectedCitations.length, bulk: true });
+  };
+
+  const exportSelectedBibTeX = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
+    downloadFile(toBibTeXMultiple(fields), "bib", "application/x-bibtex");
+    posthog.capture("citation_exported", { format: "bibtex", citation_count: fields.length, bulk: true });
+  };
+
+  const exportSelectedRIS = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for RIS."); return; }
+    downloadFile(toRISMultiple(fields), "ris", "application/x-research-info-systems");
+    posthog.capture("citation_exported", { format: "ris", citation_count: fields.length, bulk: true });
+  };
+
+  const exportSelectedCSLJSON = () => {
+    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) { setError("No selected citations have structured fields for CSL JSON."); return; }
+    downloadFile(toCSLJSON(fields), "json", "application/vnd.citationstyles.csl+json");
+    posthog.capture("citation_exported", { format: "csl_json", citation_count: fields.length, bulk: true });
   };
 
   const downloadFile = (content: string, extension: string, mimeType: string) => {
@@ -428,18 +537,22 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const exportAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     downloadFile(allText, "txt", "text/plain");
+    posthog.capture("citation_exported", { format: "txt", citation_count: citations.length });
   };
 
   const exportMarkdown = () => {
     downloadFile(toMarkdown(citations, list?.name), "md", "text/markdown");
+    posthog.capture("citation_exported", { format: "md", citation_count: citations.length });
   };
 
   const exportHTML = () => {
     downloadFile(toHTML(citations, list?.name), "html", "text/html");
+    posthog.capture("citation_exported", { format: "html", citation_count: citations.length });
   };
 
   const exportRTF = () => {
     downloadFile(toRTF(citations, list?.name), "rtf", "application/rtf");
+    posthog.capture("citation_exported", { format: "rtf", citation_count: citations.length });
   };
 
   const citationsWithFields = useMemo(
@@ -453,6 +566,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toBibTeXMultiple(citationsWithFields), "bib", "application/x-bibtex");
+    posthog.capture("citation_exported", { format: "bibtex", citation_count: citationsWithFields.length });
   };
 
   const copyBibTeX = () => {
@@ -461,6 +575,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     navigator.clipboard.writeText(toBibTeXMultiple(citationsWithFields));
+    posthog.capture("citation_exported", { format: "bibtex_copy", citation_count: citationsWithFields.length });
   };
 
   const exportRIS = () => {
@@ -469,6 +584,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toRISMultiple(citationsWithFields), "ris", "application/x-research-info-systems");
+    posthog.capture("citation_exported", { format: "ris", citation_count: citationsWithFields.length });
   };
 
   const exportZotero = () => {
@@ -494,6 +610,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    posthog.capture("citation_exported", { format: "ris_zotero", citation_count: items.length });
   };
 
   const exportCSLJSON = () => {
@@ -502,6 +619,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     downloadFile(toCSLJSON(citationsWithFields), "json", "application/vnd.citationstyles.csl+json");
+    posthog.capture("citation_exported", { format: "csl_json", citation_count: citationsWithFields.length });
   };
 
   // Drag and drop sensors
@@ -563,6 +681,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
           return u ? { ...c, ...u } : c;
         })
       );
+      posthog.capture("citations_reformatted", { target_style: target, count: updates.length });
       if (missingFields.length > 0) {
         setError(
           `Reformatted ${updates.length}. ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} could not be converted (no structured fields).`
@@ -595,6 +714,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         body: JSON.stringify({ citationIds: sorted.map((c) => c.id) }),
       });
       if (!response.ok) throw new Error("Failed to save order");
+      posthog.capture("citations_sorted", { citation_count: sorted.length });
     } catch (err) {
       console.error("Failed to save order:", err);
       setCitations(previous);
@@ -621,6 +741,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
             citationIds: newCitations.map((c) => c.id),
           }),
         });
+        posthog.capture("citation_reordered");
       } catch (err) {
         console.error("Failed to save order:", err);
         // Revert on error
@@ -695,6 +816,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               : c
           )
         );
+        posthog.capture("citation_edited", { citation_style: style });
       } else {
         throw new Error(result.error || "Failed to update citation");
       }
@@ -814,7 +936,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <WikiButton onClick={() => setIsShareDialogOpen(true)}>
                 Share
               </WikiButton>
-              <WikiButton variant="primary" onClick={() => router.push("/cite")}>
+              <WikiButton variant="primary" onClick={() => setShowCiteModal(true)}>
                 Add Citation
               </WikiButton>
             </div>
@@ -976,35 +1098,88 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               )}
               {/* Actions */}
-              <div className="flex flex-wrap gap-3">
-                <WikiButton onClick={copyAllCitations}>
-                  Copy All
-                </WikiButton>
-                <WikiButton
-                  onClick={handleAlphabetize}
-                  disabled={citations.length < 2}
-                  title="Sort citations alphabetically by author (or title)"
-                >
-                  Sort A–Z
-                </WikiButton>
-                <WikiButton onClick={() => setShowPrintAnimation(true)}>
-                  Print
-                </WikiButton>
-                <WikiDropdown
-                  label="Export"
-                  items={[
-                    { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
-                    { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
-                    { label: "Markdown", hint: ".md", onClick: exportMarkdown },
-                    { label: "HTML", hint: ".html", onClick: exportHTML },
-                    { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
-                    { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
-                    { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
-                    { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
-                    { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
-                  ]}
-                />
-              </div>
+              {!isSelectMode ? (
+                <div className="flex flex-wrap gap-3">
+                  <WikiButton onClick={copyAllCitations}>
+                    Copy All
+                  </WikiButton>
+                  <WikiButton
+                    onClick={handleAlphabetize}
+                    disabled={citations.length < 2}
+                    title="Sort citations alphabetically by author (or title)"
+                  >
+                    Sort A–Z
+                  </WikiButton>
+                  <WikiButton onClick={exportAllCitations}>
+                    Print
+                  </WikiButton>
+                  <WikiDropdown
+                    label="Export"
+                    items={[
+                      { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
+                      { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
+                      { label: "Markdown", hint: ".md", onClick: exportMarkdown },
+                      { label: "HTML", hint: ".html", onClick: exportHTML },
+                      { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
+                      { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
+                      { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
+                      { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
+                      { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
+                    ]}
+                  />
+                  <WikiButton onClick={toggleSelectMode} title="Select citations for bulk actions">
+                    Select
+                  </WikiButton>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-wiki-text-muted">
+                    {selectedCitationIds.size} of {filteredCitations.length} selected
+                  </span>
+                  <WikiButton
+                    onClick={selectedCitationIds.size === filteredCitations.length ? deselectAll : selectAll}
+                  >
+                    {selectedCitationIds.size === filteredCitations.length ? "Deselect All" : "Select All"}
+                  </WikiButton>
+                  <WikiButton
+                    onClick={copySelected}
+                    disabled={selectedCitationIds.size === 0}
+                    title="Copy selected citations to clipboard"
+                  >
+                    Copy
+                  </WikiButton>
+                  <WikiButton
+                    onClick={copySelectedBibTeX}
+                    disabled={selectedCitationIds.size === 0}
+                    title="Copy selected citations as BibTeX to clipboard"
+                  >
+                    Copy BibTeX
+                  </WikiButton>
+                  <WikiDropdown
+                    label="Export"
+                    disabled={selectedCitationIds.size === 0}
+                    items={[
+                      { label: "Plain text", hint: ".txt", onClick: exportSelectedText },
+                      { label: "Word (hanging indent)", hint: ".rtf", onClick: exportSelectedRTF },
+                      { label: "Markdown", hint: ".md", onClick: exportSelectedMarkdown },
+                      { label: "HTML", hint: ".html", onClick: exportSelectedHTML },
+                      { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportSelectedBibTeX },
+                      { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportSelectedRIS },
+                      { label: "CSL JSON", hint: ".json", onClick: exportSelectedCSLJSON },
+                    ]}
+                  />
+                  <WikiButton
+                    onClick={deleteSelected}
+                    disabled={selectedCitationIds.size === 0}
+                    title="Delete selected citations"
+                  >
+                    Delete
+                  </WikiButton>
+                  <WikiButton onClick={toggleSelectMode}>
+                    Done
+                  </WikiButton>
+                </div>
+              )}
             </div>
           )}
 
@@ -1014,7 +1189,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-wiki-text-muted mb-4">
                 This list is empty. Add your first citation!
               </p>
-              <WikiButton variant="primary" onClick={() => router.push("/cite")}>
+              <WikiButton variant="primary" onClick={() => setShowCiteModal(true)}>
                 Create Citation
               </WikiButton>
               {factoid && (
@@ -1069,6 +1244,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                       onEditDone={() => setEditingCitationId(null)}
                       onSaveNotes={handleSaveNotes}
                       onSaveQuotes={handleSaveQuotes}
+                      isSelectMode={isSelectMode}
+                      isChecked={selectedCitationIds.has(citation.id)}
+                      onCheckToggle={() => toggleCitationSelect(citation.id)}
                     />
                   ))}
                 </div>
@@ -1078,9 +1256,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Back Link */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <a href="/lists" className="text-wiki-link hover:underline">
+            <Link href="/lists" className="text-wiki-link hover:underline">
               &larr; Back to My Lists
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -1093,18 +1271,12 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         targetName={list?.name}
       />
 
-      {/* Print Animation Modal */}
-      <PrintAnimation
-        isOpen={showPrintAnimation}
-        onClose={() => setShowPrintAnimation(false)}
-        onComplete={() => {
-          setShowPrintAnimation(false);
-          exportAllCitations();
-        }}
-        itemCount={citations.length || 1}
-        fileName={`${list?.name || "citations"}.txt`}
-        soundEnabled={printSoundEnabled}
-        onSoundToggle={setPrintSoundEnabled}
+      <CitationAddModal
+        isOpen={showCiteModal}
+        onClose={() => setShowCiteModal(false)}
+        listId={listId}
+        listName={list?.name ?? ""}
+        onCitationAdded={fetchListAndCitations}
       />
 
       {/* Keyboard Shortcuts Help - press ? to show */}

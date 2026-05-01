@@ -6,6 +6,7 @@ import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import posthog from "posthog-js";
 
 interface Project {
   id: string;
@@ -81,6 +82,9 @@ export default function ProjectsPage() {
         setNewProjectName("");
         setNewProjectDescription("");
         setShowCreateForm(false);
+        posthog.capture("project_created", {
+          has_description: !!newProjectDescription.trim(),
+        });
       } else {
         setError(result.error || "Failed to create project");
       }
@@ -126,6 +130,7 @@ export default function ProjectsPage() {
           prev.map((p) => (p.id === projectId ? result.data : p))
         );
         cancelEditing();
+        posthog.capture("project_updated");
       } else {
         setError(result.error || "Failed to update project");
       }
@@ -138,6 +143,7 @@ export default function ProjectsPage() {
   };
 
   const handleDeleteProject = async (projectId: string, projectName: string) => {
+    // eslint-disable-next-line no-alert
     if (!confirm(`Are you sure you want to delete "${projectName}"? Lists in this project will not be deleted but will become standalone.`)) {
       return;
     }
@@ -151,6 +157,7 @@ export default function ProjectsPage() {
 
       if (result.success) {
         setProjects((prev) => prev.filter((project) => project.id !== projectId));
+        posthog.capture("project_deleted");
       } else {
         setError(result.error || "Failed to delete project");
       }

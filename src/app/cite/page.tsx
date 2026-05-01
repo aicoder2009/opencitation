@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
@@ -11,12 +12,14 @@ import { WikiButton } from "@/components/wiki/wiki-button";
 import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
+import { buildCitationFields } from "@/lib/citation/build-fields";
 import type { CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
 import { parseBibTeX } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
 import DOMPurify from "isomorphic-dompurify";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
+import posthog from "posthog-js";
 
 interface List {
   id: string;
@@ -445,6 +448,18 @@ function CitePageContent() {
       // Save to recent citations
       saveToRecentCitations(fields.title, formatted.text, selectedStyle);
 
+      posthog.capture("lookup_performed", {
+        lookup_type: apiEndpoint.replace("/api/lookup/", ""),
+        source_type: effectiveType,
+        citation_style: selectedStyle,
+      });
+
+      posthog.capture("citation_generated", {
+        source_type: effectiveType,
+        citation_style: selectedStyle,
+        method: "lookup",
+      });
+
       // Increment citation counter
       fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
     } catch (err) {
@@ -505,6 +520,12 @@ function CitePageContent() {
 
     // Save to recent citations
     saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+
+    posthog.capture("citation_generated", {
+      source_type: fields.sourceType,
+      citation_style: selectedStyle,
+      method: "manual",
+    });
 
     // Increment citation counter
     fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
@@ -651,170 +672,6 @@ function CitePageContent() {
       console.error(err);
     } finally {
       setIsResearchLoading(false);
-    }
-  };
-
-  const buildCitationFields = (data: Record<string, unknown>, sourceType: SourceType, accessType: AccessType): CitationFields => {
-    // Build citation fields from API response
-    const baseFields = {
-      sourceType,
-      accessType,
-      title: (data.title as string) || "Untitled",
-      subtitle: data.subtitle as string | undefined,
-      url: data.url as string | undefined,
-      doi: data.doi as string | undefined,
-      publisher: data.publisher as string | undefined,
-    };
-
-    // Parse authors if available
-    const authors = [];
-    if (data.authors && Array.isArray(data.authors)) {
-      for (const author of data.authors) {
-        if (typeof author === "object" && author !== null) {
-          authors.push({
-            firstName: (author as { firstName?: string }).firstName,
-            lastName: (author as { lastName?: string }).lastName || "Unknown",
-          });
-        }
-      }
-    } else if (data.author && typeof data.author === "string") {
-      const parts = (data.author as string).split(" ");
-      authors.push({
-        firstName: parts.slice(0, -1).join(" "),
-        lastName: parts[parts.length - 1] || data.author as string,
-      });
-    }
-
-    if (authors.length > 0) {
-      (baseFields as Record<string, unknown>).authors = authors;
-    }
-
-    // Parse date
-    if (data.publicationDate && typeof data.publicationDate === "object") {
-      (baseFields as Record<string, unknown>).publicationDate = data.publicationDate;
-    } else if (data.publishedDate && typeof data.publishedDate === "string") {
-      const match = (data.publishedDate as string).match(/(\d{4})/);
-      if (match) {
-        (baseFields as Record<string, unknown>).publicationDate = { year: parseInt(match[1]) };
-      }
-    }
-
-    // Add source-type specific fields
-    switch (sourceType) {
-      case "journal":
-        return {
-          ...baseFields,
-          sourceType: "journal" as const,
-          journalTitle: (data.journalTitle as string) || "Unknown Journal",
-          volume: data.volume as string | undefined,
-          issue: data.issue as string | undefined,
-          pageRange: data.pageRange as string | undefined,
-        };
-      case "website":
-        return {
-          ...baseFields,
-          sourceType: "website" as const,
-          siteName: (data.siteName as string) || undefined,
-        };
-      case "blog":
-        return {
-          ...baseFields,
-          sourceType: "blog" as const,
-          blogName: (data.siteName as string) || "Unknown Blog",
-        };
-      case "newspaper":
-        return {
-          ...baseFields,
-          sourceType: "newspaper" as const,
-          newspaperTitle: (data.siteName as string) || "Unknown Newspaper",
-        };
-      case "book":
-        return {
-          ...baseFields,
-          sourceType: "book" as const,
-          isbn: data.isbn as string | undefined,
-          edition: data.edition as string | undefined,
-        };
-      case "preprint":
-        return {
-          ...baseFields,
-          sourceType: "preprint" as const,
-          repository: (data.repository as string) || "arXiv",
-          preprintId: data.preprintId as string | undefined,
-        };
-      case "video":
-        return {
-          ...baseFields,
-          sourceType: "video" as const,
-          channelName: (data.channelName as string) || (data.siteName as string) || undefined,
-          platform: data.platform as string | undefined,
-        };
-      case "social-media": {
-        const post = data.postType as string | undefined;
-        const isKnownPost = post === "post" || post === "tweet" || post === "reel" || post === "story" || post === "comment";
-        return {
-          ...baseFields,
-          sourceType: "social-media" as const,
-          platform: data.platform as string | undefined,
-          handle: data.handle as string | undefined,
-          postType: isKnownPost ? (post as "post" | "tweet" | "reel" | "story" | "comment") : undefined,
-        };
-      }
-      case "ai-generated":
-        return {
-          ...baseFields,
-          sourceType: "ai-generated" as const,
-          company: data.company as string | undefined,
-          modelName: data.modelName as string | undefined,
-        };
-      case "song":
-        return {
-          ...baseFields,
-          sourceType: "song" as const,
-          album: data.album as string | undefined,
-          label: data.label as string | undefined,
-        };
-      case "album":
-        return {
-          ...baseFields,
-          sourceType: "album" as const,
-          label: data.label as string | undefined,
-        };
-      case "podcast-episode":
-        return {
-          ...baseFields,
-          sourceType: "podcast-episode" as const,
-          showName: (data.showName as string) || (data.siteName as string) || "Unknown Show",
-        };
-      case "dataset":
-        return {
-          ...baseFields,
-          sourceType: "dataset" as const,
-          repository: data.repository as string | undefined,
-        };
-      case "software":
-        return {
-          ...baseFields,
-          sourceType: "software" as const,
-          repository: data.repository as string | undefined,
-        };
-      case "video-game":
-        return {
-          ...baseFields,
-          sourceType: "video-game" as const,
-          platform: data.platform as string | undefined,
-        };
-      case "encyclopedia":
-        return {
-          ...baseFields,
-          sourceType: "encyclopedia" as const,
-          encyclopediaTitle: (data.encyclopediaTitle as string) || (data.siteName as string) || "Encyclopedia",
-        };
-      default:
-        return {
-          ...baseFields,
-          sourceType: "miscellaneous" as const,
-        };
     }
   };
 
@@ -1034,6 +891,10 @@ function CitePageContent() {
   const copyToClipboard = () => {
     if (generatedCitation) {
       navigator.clipboard.writeText(generatedCitation.text);
+      posthog.capture("citation_copied", {
+        citation_style: selectedStyle,
+        source_type: citationFields?.sourceType,
+      });
     }
   };
 
@@ -1206,11 +1067,17 @@ function CitePageContent() {
         setShowDuplicateWarning(false);
         setPendingListId(null);
         recordCitationSave();
+        posthog.capture("citation_saved_to_list", {
+          source_type: citationFields?.sourceType,
+          citation_style: selectedStyle,
+          list_id: listId,
+        });
       } else {
         setError(result.error || "Failed to add citation");
       }
     } catch (err) {
       console.error("Error adding citation:", err);
+      posthog.captureException(err);
       setError("Failed to add citation");
     } finally {
       setIsAddingToList(false);
@@ -2061,7 +1928,7 @@ function CitePageContent() {
           Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry.
           {!isSignedIn && (
             <span className="ml-1">
-              <a href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</a> to save citations to lists.
+              <Link href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</Link> to save citations to lists.
             </span>
           )}
         </p>

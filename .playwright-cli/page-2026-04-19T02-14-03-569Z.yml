@@ -1,0 +1,95 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e154] [cursor=pointer]:
+    - img [ref=e155]
+  - alert [ref=e158]
+  - generic [ref=e169]:
+    - button "Keyless prompt" [expanded] [ref=e170] [cursor=pointer]:
+      - img [ref=e171]
+      - generic [ref=e175]: Configure your application
+      - img [ref=e176]
+    - generic [ref=e179]:
+      - generic [ref=e180]:
+        - paragraph [ref=e181]: Temporary API keys are enabled so you can get started immediately.
+        - list [ref=e182]:
+          - listitem [ref=e183]: Add SSO connections (eg. GitHub)
+          - listitem [ref=e184]: Set up B2B authentication
+          - listitem [ref=e185]: Enable MFA
+        - paragraph [ref=e186]: Access the dashboard to customize auth settings and explore Clerk features.
+      - link "Configure your application" [ref=e187] [cursor=pointer]:
+        - /url: https://dashboard.clerk.com/apps/claim?token=6kz5d1jjljya0zoevpvl99vg2zj3370b8bmh015v&return_url=http%3A%2F%2Flocalhost%3A3000%2F
+  - generic [ref=e188]:
+    - banner [ref=e189]:
+      - generic [ref=e190]:
+        - link "OpenCitation OpenCitation" [ref=e191] [cursor=pointer]:
+          - /url: /
+          - img "OpenCitation" [ref=e192]
+          - text: OpenCitation
+        - navigation [ref=e193]:
+          - link "Cite" [ref=e194] [cursor=pointer]:
+            - /url: /cite
+          - link "Sign In" [ref=e195] [cursor=pointer]:
+            - /url: /sign-in
+          - link "Create Account" [ref=e196] [cursor=pointer]:
+            - /url: /sign-up
+          - link "GitHub" [ref=e197] [cursor=pointer]:
+            - /url: https://github.com/aicoder2009/opencitation
+            - img [ref=e198]
+            - text: GitHub
+          - button "Switch to dark mode" [ref=e200]:
+            - img [ref=e201]
+    - main [ref=e203]:
+      - navigation "Breadcrumb" [ref=e204]:
+        - list [ref=e205]:
+          - listitem [ref=e206]:
+            - link "Home" [ref=e207] [cursor=pointer]:
+              - /url: /
+            - generic [ref=e208]: ">"
+          - listitem [ref=e209]:
+            - generic [ref=e210]: Cite
+      - generic [ref=e211]:
+        - heading "Create Citation" [level=1] [ref=e212]
+        - paragraph [ref=e213]:
+          - text: Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry.
+          - generic [ref=e214]:
+            - link "Sign in" [ref=e215] [cursor=pointer]:
+              - /url: /sign-in?redirect_url=/cite
+            - text: to save citations to lists.
+        - generic [ref=e216]:
+          - generic [ref=e217]: Citation Style
+          - generic [ref=e218]:
+            - button "APA 7th" [ref=e219] [cursor=pointer]
+            - button "MLA 9th" [ref=e220] [cursor=pointer]
+            - button "Chicago 17th" [ref=e221] [cursor=pointer]
+            - button "Harvard" [ref=e222] [cursor=pointer]
+        - generic [ref=e223]:
+          - button "Quick Add" [ref=e224]
+          - button "Research Lookup" [ref=e225]
+          - button "Manual Entry" [ref=e226]
+          - button "Bulk Import" [ref=e227]
+        - generic [ref=e229]:
+          - heading "Quick Add" [level=2] [ref=e230]
+          - paragraph [ref=e231]: Enter a URL, DOI, or ISBN to automatically extract citation information.
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: URL, DOI, or ISBN
+              - textbox "https://example.com/article or 10.1000/xyz123 or 978-3-16-148410-0" [ref=e235]: https://example.com
+            - generic [ref=e236]:
+              - generic [ref=e237]: Source Type
+              - combobox [ref=e238]:
+                - option "Book"
+                - option "Journal"
+                - option "Website" [selected]
+                - option "Blog"
+                - option "Newspaper"
+                - option "Video"
+                - option "Image"
+                - option "Film"
+                - option "TV Series"
+                - option "TV Episode"
+                - option "Miscellaneous"
+            - button "Generate Citation" [ref=e239] [cursor=pointer]
+    - contentinfo [ref=e240]:
+      - paragraph [ref=e242]:
+        - text: OpenCitation is a free citation manager.
+        - link "View source on GitHub" [ref=e243] [cursor=pointer]:
+          - /url: https://github.com/aicoder2009/opencitation

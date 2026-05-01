@@ -1,0 +1,175 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - link "OpenCitation OpenCitation" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "OpenCitation" [ref=e6]
+          - text: OpenCitation
+        - navigation
+    - main [ref=e7]:
+      - generic [ref=e8]:
+        - generic [ref=e10]:
+          - heading "OpenCitation" [level=1] [ref=e11]
+          - paragraph [ref=e12]: The free, open source citation manager
+          - paragraph [ref=e13]:
+            - text: Generate, organize, and share properly formatted citations.
+            - text: No ads. No tracking. No account required.
+          - generic [ref=e14]:
+            - button "Try It Now" [ref=e15] [cursor=pointer]
+            - button "View on GitHub" [ref=e16] [cursor=pointer]:
+              - img [ref=e17]
+              - text: View on GitHub
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - heading "What is OpenCitation?" [level=2] [ref=e21]
+            - paragraph [ref=e22]: OpenCitation is a citation generator and organizer for students, researchers, and anyone who needs properly formatted references.
+            - list [ref=e23]:
+              - listitem [ref=e24]:
+                - generic [ref=e25]: •
+                - generic [ref=e26]: Free to use — no premium tiers, no paywalls
+              - listitem [ref=e27]:
+                - generic [ref=e28]: •
+                - generic [ref=e29]: Ad-free — no trackers, no pop-ups, no distractions
+              - listitem [ref=e30]:
+                - generic [ref=e31]: •
+                - generic [ref=e32]:
+                  - text: Open source —
+                  - link "MIT licensed" [ref=e33] [cursor=pointer]:
+                    - /url: https://github.com/aicoder2009/opencitation/blob/main/LICENSE
+                  - text: ", community-driven"
+              - listitem [ref=e34]:
+                - generic [ref=e35]: •
+                - generic [ref=e36]: Privacy-respecting — we don't collect or sell your data
+          - generic [ref=e37]:
+            - heading "Features" [level=2] [ref=e38]
+            - generic [ref=e39]:
+              - generic [ref=e40]:
+                - heading "Citation Styles" [level=3] [ref=e41]
+                - list [ref=e42]:
+                  - listitem [ref=e43]: • APA 7th Edition
+                  - listitem [ref=e44]: • MLA 9th Edition
+                  - listitem [ref=e45]: • Chicago 17th Edition
+                  - listitem [ref=e46]: • Harvard
+              - generic [ref=e47]:
+                - heading "Source Types" [level=3] [ref=e48]
+                - list [ref=e49]:
+                  - listitem [ref=e50]: • Books
+                  - listitem [ref=e51]: • Academic Journals
+                  - listitem [ref=e52]: • Websites & Blogs
+                  - listitem [ref=e53]: • Videos, Film, TV
+                  - listitem [ref=e54]: + 7 more types
+              - generic [ref=e55]:
+                - heading "Smart Lookup" [level=3] [ref=e56]
+                - list [ref=e57]:
+                  - listitem [ref=e58]: • URL auto-detection
+                  - listitem [ref=e59]: • DOI lookup (CrossRef)
+                  - listitem [ref=e60]: • ISBN lookup
+                  - listitem [ref=e61]: Paste and generate
+              - generic [ref=e62]:
+                - heading "Organization" [level=3] [ref=e63]
+                - list [ref=e64]:
+                  - listitem [ref=e65]: • Lists — group by topic
+                  - listitem [ref=e66]: • Projects — organize lists
+                  - listitem [ref=e67]: Like playlists for citations
+              - generic [ref=e68]:
+                - heading "Sharing" [level=3] [ref=e69]
+                - list [ref=e70]:
+                  - listitem [ref=e71]: • Public share links
+                  - listitem [ref=e72]: • View-only access
+                  - listitem [ref=e73]: Share with classmates
+              - generic [ref=e74]:
+                - heading "Export" [level=3] [ref=e75]
+                - list [ref=e76]:
+                  - listitem [ref=e77]: • Copy to clipboard
+                  - listitem [ref=e78]: • Download as .txt
+                  - listitem [ref=e79]: Retro print animation
+          - generic [ref=e80]:
+            - heading "Try It" [level=2] [ref=e81]
+            - paragraph [ref=e82]: "Enter a URL, DOI, or ISBN to generate a citation:"
+            - generic [ref=e83]:
+              - textbox "https://example.com or 10.1000/xyz or 978-0-123456-78-9" [ref=e84]
+              - button "Generate" [ref=e85] [cursor=pointer]
+            - paragraph [ref=e86]: "Or select a source type to enter details manually:"
+            - generic [ref=e87]:
+              - button "Book" [ref=e88] [cursor=pointer]
+              - button "Journal" [ref=e89] [cursor=pointer]
+              - button "Website" [ref=e90] [cursor=pointer]
+              - button "More..." [ref=e91] [cursor=pointer]
+          - generic [ref=e92]:
+            - heading "Open Source" [level=2] [ref=e93]
+            - paragraph [ref=e94]:
+              - text: OpenCitation is free software, released under the
+              - link "MIT License" [ref=e95] [cursor=pointer]:
+                - /url: https://github.com/aicoder2009/opencitation/blob/main/LICENSE
+              - text: . The complete source code is available on GitHub.
+            - generic [ref=e96]:
+              - button "Star on GitHub" [ref=e97] [cursor=pointer]:
+                - img [ref=e98]
+                - text: Star on GitHub
+              - button "Report an Issue" [ref=e100] [cursor=pointer]
+              - button "Contribute" [ref=e101] [cursor=pointer]:
+                - img [ref=e102]
+                - text: Contribute
+            - paragraph [ref=e104]: "Built with: Next.js 16 • React 19 • Tailwind CSS • DynamoDB"
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - generic [ref=e107]:
+                - heading "Product" [level=4] [ref=e108]
+                - list [ref=e109]:
+                  - listitem [ref=e110]:
+                    - link "Cite" [ref=e111] [cursor=pointer]:
+                      - /url: /cite
+                  - listitem [ref=e112]:
+                    - link "Lists" [ref=e113] [cursor=pointer]:
+                      - /url: /lists
+                  - listitem [ref=e114]:
+                    - link "Projects" [ref=e115] [cursor=pointer]:
+                      - /url: /projects
+              - generic [ref=e116]:
+                - heading "Resources" [level=4] [ref=e117]
+                - list [ref=e118]:
+                  - listitem [ref=e119]:
+                    - link "Documentation" [ref=e120] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation/wiki
+                  - listitem [ref=e121]:
+                    - link "API Reference" [ref=e122] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation/wiki/API-Reference
+                  - listitem [ref=e123]:
+                    - link "FAQ" [ref=e124] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation/wiki/FAQ
+                  - listitem [ref=e125]:
+                    - link "Embed Badge" [ref=e126] [cursor=pointer]:
+                      - /url: /embed
+              - generic [ref=e127]:
+                - heading "Community" [level=4] [ref=e128]
+                - list [ref=e129]:
+                  - listitem [ref=e130]:
+                    - link "GitHub" [ref=e131] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation
+                  - listitem [ref=e132]:
+                    - link "Changelog" [ref=e133] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation/releases
+                  - listitem [ref=e134]:
+                    - link "Contributing" [ref=e135] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation/wiki/Contributing
+              - generic [ref=e136]:
+                - heading "Legal" [level=4] [ref=e137]
+                - list [ref=e138]:
+                  - listitem [ref=e139]:
+                    - button "Privacy Policy" [ref=e140]
+                  - listitem [ref=e141]:
+                    - button "Terms of Service" [ref=e142]
+                  - listitem [ref=e143]:
+                    - link "MIT License" [ref=e144] [cursor=pointer]:
+                      - /url: https://github.com/aicoder2009/opencitation/blob/main/LICENSE
+            - generic [ref=e145]:
+              - paragraph [ref=e146]:
+                - text: OpenCitation is free software.
+                - link "View source on GitHub" [ref=e147] [cursor=pointer]:
+                  - /url: https://github.com/aicoder2009/opencitation
+                - text: .
+              - paragraph [ref=e148]: Made by a student, for students who hate citation generators with ads.
+  - button "Open Next.js Dev Tools" [ref=e154] [cursor=pointer]:
+    - img [ref=e155]
+  - alert [ref=e158]
