@@ -1,0 +1,3 @@
+## 2025-02-28 - [Accessible Collapsible Pattern]
+**Learning:** For accessible React interactive widgets (like tabs or collapsibles), it's best to use React's `useId` hook to generate unique IDs for `aria-controls` mappings to ensure correct screen reader context without ID collisions when multiple components exist on the same page.
+**Action:** When creating or modifying widgets that show/hide content, utilize `useId` for `id` and `aria-controls` bindings along with proper `aria-expanded` attributes.
