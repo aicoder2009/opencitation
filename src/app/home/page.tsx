@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser, SignedIn, SignedOut } from "@clerk/nextjs";
 import posthog from "posthog-js";
@@ -203,7 +204,7 @@ export default function Dashboard() {
 
             <SignedOut>
               <p className="text-wiki-text-muted">
-                <a href="/sign-in" className="text-wiki-link hover:underline">Sign in</a> to save and organize your citations
+                <Link href="/sign-in" className="text-wiki-link hover:underline">Sign in</Link> to save and organize your citations
                 into Lists and Projects.
               </p>
             </SignedOut>
@@ -219,7 +220,7 @@ export default function Dashboard() {
                     {recentLists.length === 0 ? (
                       <p className="text-wiki-text-muted text-sm">
                         No lists yet.{" "}
-                        <a href="/lists" className="text-wiki-link hover:underline">Create your first list</a>
+                        <Link href="/lists" className="text-wiki-link hover:underline">Create your first list</Link>
                       </p>
                     ) : (
                       <ul className="space-y-1">
@@ -235,12 +236,12 @@ export default function Dashboard() {
                         ))}
                         {recentLists.length > 0 && (
                           <li>
-                            <a
+                            <Link
                               href="/lists"
                               className="text-wiki-link hover:underline text-sm"
                             >
                               View all lists &rarr;
-                            </a>
+                            </Link>
                           </li>
                         )}
                       </ul>
@@ -253,7 +254,7 @@ export default function Dashboard() {
                     {recentProjects.length === 0 ? (
                       <p className="text-wiki-text-muted text-sm">
                         No projects yet.{" "}
-                        <a href="/projects" className="text-wiki-link hover:underline">Create your first project</a>
+                        <Link href="/projects" className="text-wiki-link hover:underline">Create your first project</Link>
                       </p>
                     ) : (
                       <ul className="space-y-1">
@@ -269,12 +270,12 @@ export default function Dashboard() {
                         ))}
                         {recentProjects.length > 0 && (
                           <li>
-                            <a
+                            <Link
                               href="/projects"
                               className="text-wiki-link hover:underline text-sm"
                             >
                               View all projects &rarr;
-                            </a>
+                            </Link>
                           </li>
                         )}
                       </ul>
