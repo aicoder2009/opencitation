@@ -1,0 +1,88 @@
+name: Auto Fix & Optimize
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # 3 AM UTC daily
+  workflow_dispatch:
+
+jobs:
+  auto-fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Configure git
+        run: |
+          git config user.name "aicoder2009"
+          git config user.email "karthickarun2009@gmail.com"
+
+      - uses: anthropic-ai/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            You are an autonomous software agent. Your job is to find and fix real issues in the
+            OpenCitation codebase (Next.js 16 App Router, React 19, Tailwind CSS 4, DynamoDB
+            single-table design). The app is a citation manager — src/lib/citation/ has formatters,
+            src/app/api/ has API routes, src/components/wiki/ has the UI.
+
+            ## Priority order — pick ONE category per run
+
+            1. **Bugs** — incorrect logic, unhandled promise rejections, missing null/undefined
+               checks on API responses, broken edge cases in citation formatting
+            2. **Performance** — N+1 DynamoDB queries, missing React.memo/useMemo/useCallback
+               where re-renders are provably wasteful, redundant fetch calls
+            3. **Type safety** — variables typed as `any` that have an obvious correct type,
+               unchecked casts, missing return type annotations on public functions
+
+            ## Process
+
+            1. Read relevant source files to identify real, concrete issues.
+            2. Choose ONE focused fix or a small batch of closely related fixes in the same area.
+            3. Create a new branch:
+               `git checkout -b auto/fix-$(date +%Y-%m-%d-%H%M%S)`
+            4. Make the changes — surgical and minimal only.
+            5. Run `npm run lint`. Fix any lint errors your changes introduced. If you cannot fix
+               them, revert with `git checkout -- .` and exit without creating a PR.
+            6. Run `npm run test:run`. If any tests fail, revert ALL changes with
+               `git checkout -- .` and exit without creating a PR.
+            7. If both pass:
+               a. `git add -A`
+               b. `git commit -m "<type>: <concise description>"`
+               c. `git push origin HEAD`
+               d. `gh pr create --title "<type>: <concise description>" --body "$(cat <<'EOF'
+            ## What
+            <1-3 bullets describing the specific changes>
+
+            ## Why
+            <the bug/perf issue this fixes, with evidence from the code>
+
+            ## Verified
+            - [ ] `npm run lint` passes
+            - [ ] `npm run test:run` passes
+            EOF
+            )"`
+
+            ## Hard rules
+
+            - Do NOT commit directly to main.
+            - Do NOT refactor for style, rename symbols, or reorganize files.
+            - Do NOT add new features or dependencies.
+            - Do NOT modify test files unless a test is itself broken/wrong.
+            - Do NOT make more than ~150 lines of changes total.
+            - If you find nothing safe to fix, print "NO_CHANGES" and stop — do not create an
+              empty or trivial PR.
+            - One PR per run.
