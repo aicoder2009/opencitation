@@ -9,6 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { lookup } from 'dns/promises';
 import type { SourceType } from '@/types';
 
 interface MetadataResult {
@@ -75,6 +76,53 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
         { success: false, error: 'Invalid URL format' },
         { status: 400 }
       );
+    }
+
+
+    // SSRF Protection: Prevent requests to internal networks
+    try {
+      let hostname = parsedUrl.hostname;
+
+      // Strip IPv6 brackets for lookup
+      if (hostname.startsWith('[') && hostname.endsWith(']')) {
+        hostname = hostname.slice(1, -1);
+      }
+
+      if (hostname === 'localhost') {
+        throw new Error('Forbidden IP');
+      }
+
+      // Try to resolve the hostname. If it's an IP literal, lookup returns it.
+      const { address } = await lookup(hostname);
+
+      // Comprehensive regex for private IPv4, IPv6 loopback, IPv6 unique local, IPv6 link local, etc.
+      const privateIPRegex = /^(::f{4}:)?(10\.\d{1,3}\.\d{1,3}\.\d{1,3}|192\.168\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}|127\.\d{1,3}\.\d{1,3}\.\d{1,3}|169\.254\.\d{1,3}\.\d{1,3}|0\.0\.0\.0)$/i;
+
+      // Check IPv4 private and basic IPv6 local
+      const isPrivateIPv4 = privateIPRegex.test(address);
+      const isLocalIPv6 = address === '::1' || address === '::' || address.toLowerCase().startsWith('fe80:') || address.toLowerCase().match(/^f[cd][0-9a-f]{2}:/i);
+
+      if (isPrivateIPv4 || isLocalIPv6) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden: Cannot fetch from internal networks' },
+          { status: 403 }
+        );
+      }
+    } catch (err: any) {
+      if (err.message === 'Forbidden IP') {
+         return NextResponse.json(
+          { success: false, error: 'Forbidden: Cannot fetch from internal networks' },
+          { status: 403 }
+        );
+      }
+      // If the domain doesn't resolve (ENOTFOUND), we still want to block if it was an IPv6 literal that failed lookup
+      if (err.code === 'ENOTFOUND' && parsedUrl.hostname.startsWith('[')) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden: Cannot fetch from internal networks' },
+          { status: 403 }
+        );
+      }
+      // If it's a general lookup failure for a domain, let fetch handle it to give a natural error
     }
 
     // Detect the source type from the URL and grab any type-specific hints
