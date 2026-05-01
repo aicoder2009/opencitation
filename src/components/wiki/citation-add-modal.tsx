@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { WikiButton } from "./wiki-button";
+import DOMPurify from "isomorphic-dompurify";
 import { formatCitation } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import type { CitationStyle, SourceType, CitationFields } from "@/types";
@@ -266,7 +267,7 @@ export function CitationAddModal({
               </p>
               <p
                 className="text-wiki-text leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: generatedCitation.html }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedCitation.html) }}
               />
             </div>
           )}
