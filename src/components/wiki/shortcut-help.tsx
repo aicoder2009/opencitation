@@ -143,8 +143,8 @@ export function useKeyboardShortcuts(
       const key = event.key.toLowerCase();
 
       // Allow Escape in input fields
-      if (key === "escape" && handlers["escape"]) {
-        handlers["escape"](event);
+      if (key === "escape" && handlers.escape) {
+        handlers.escape(event);
         return;
       }
 
