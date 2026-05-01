@@ -1,43 +1,33 @@
 <wizard-report>
 # PostHog post-wizard report
 
-The wizard has completed a deep integration of PostHog analytics into OpenCitation. The following changes were made:
+The wizard has completed a deep integration of your project. The existing PostHog setup was already comprehensive — `instrumentation-client.ts` initialises the client, `next.config.ts` has the reverse proxy, `src/lib/posthog-server.ts` provides the server-side singleton, and `PostHogIdentify` links Clerk users to PostHog profiles. This run supplemented the existing coverage by adding four new events to three previously untracked files, and refreshed the environment variable values.
 
-- **`instrumentation-client.ts`** (new): Initialises PostHog client-side using the Next.js 15.3+ `instrumentation-client` pattern — no provider component required. Enables automatic session replay, exception capture, and pageview tracking.
-- **`next.config.ts`**: Added reverse-proxy rewrites for `/ingest/*` → PostHog ingestion, plus `skipTrailingSlashRedirect: true`. This improves ad-blocker resilience.
-- **`src/lib/posthog-server.ts`** (new): Singleton `posthog-node` client for server-side event capture in API routes.
-- **`src/components/posthog-identify.tsx`** (new): Client component that calls `posthog.identify()` on app load using Clerk user data (ID, email, name). Included in root layout so every authenticated session is linked to a person profile.
-- **`src/app/layout.tsx`**: Imported and rendered `<PostHogIdentify />` inside the PWA provider.
-- **`src/app/cite/page.tsx`**: Added `lookup_performed`, `citation_generated` (lookup & manual paths), `citation_copied`, `citation_saved_to_list`, and `posthog.captureException()` on citation-save failure.
-- **`src/app/lists/page.tsx`**: Added `list_created` and `list_deleted` events.
-- **`src/app/projects/page.tsx`**: Added `project_created` event.
-- **`src/app/lists/[id]/page.tsx`**: Added `citation_exported` event on all 7 export formats (txt, md, html, rtf, bibtex, ris, ris_zotero, csl_json).
-- **`src/app/api/share/route.ts`**: Server-side `share_link_created` event via `posthog-node` after successful share link creation.
-- **`src/app/api/lists/[id]/citations/route.ts`**: Server-side `citation_added_to_list` event via `posthog-node` after citation is persisted to DynamoDB.
+**Files edited this run:**
+- `src/app/home/page.tsx` — added `posthog-js` import and two capture calls in the quick-add and source-type-click handlers
+- `src/app/embed/page.tsx` — added `posthog-js` import and a capture call in the copy handler
+- `src/app/api/report-issue/route.ts` — added Clerk `auth()`, `getPostHogClient()` import, and a server-side capture after a successful GitHub issue creation
 
 | Event | Description | File |
 |---|---|---|
-| `lookup_performed` | Auto-lookup via URL, DOI, ISBN, or arXiv | `src/app/cite/page.tsx` |
-| `citation_generated` | Citation successfully generated (lookup or manual) | `src/app/cite/page.tsx` |
-| `citation_copied` | Formatted citation copied to clipboard | `src/app/cite/page.tsx` |
-| `citation_saved_to_list` | Citation saved to a list (client-side confirmation) | `src/app/cite/page.tsx` |
-| `citation_added_to_list` | Citation persisted to database (server-side) | `src/app/api/lists/[id]/citations/route.ts` |
-| `citation_exported` | Citations exported to file (format tracked as property) | `src/app/lists/[id]/page.tsx` |
-| `list_created` | User created a new citation list | `src/app/lists/page.tsx` |
-| `list_deleted` | User deleted a citation list | `src/app/lists/page.tsx` |
-| `project_created` | User created a new project | `src/app/projects/page.tsx` |
-| `share_link_created` | Public share link created (server-side) | `src/app/api/share/route.ts` |
+| `quick_add_initiated` | User clicked Generate Citation from the dashboard quick add input | `src/app/home/page.tsx` |
+| `dashboard_source_type_clicked` | User clicked a source type button on the dashboard manual entry section | `src/app/home/page.tsx` |
+| `embed_badge_code_copied` | User copied the embed badge code (HTML or Markdown format) | `src/app/embed/page.tsx` |
+| `issue_reported` | User successfully submitted an issue report via the report form | `src/app/api/report-issue/route.ts` |
+
+**Pre-existing events (tracked before this run):**
+`lookup_performed`, `citation_generated`, `citation_copied`, `citation_saved_to_list`, `citation_deleted`, `citations_copied_all`, `citations_bulk_copied`, `citations_bulk_deleted`, `citation_exported`, `citations_reformatted`, `citations_sorted`, `citation_reordered`, `citation_edited`, `list_created`, `list_deleted`, `project_created`, `project_updated`, `project_deleted`, `list_removed_from_project`, `list_added_to_project`, `citation_added_to_list` (server-side), `share_link_created` (server-side), `share_page_viewed`, `share_all_copied`, `share_citation_copied`, `share_exported`
 
 ## Next steps
 
-We've built some insights and a dashboard for you to keep an eye on user behavior, based on the events we just instrumented:
+We've built a dashboard and five insights to track the most important user behavior:
 
-- **Dashboard — Analytics basics**: https://us.posthog.com/project/399086/dashboard/1513735
-- **Citation generation funnel** (lookup → generated → saved): https://us.posthog.com/project/399086/insights/GaUla2xp
-- **Daily citations generated** (30-day line chart): https://us.posthog.com/project/399086/insights/dP8EToDj
-- **Export format breakdown** (bar chart by format): https://us.posthog.com/project/399086/insights/cHj976v3
-- **Lookup type breakdown** (URL vs DOI vs ISBN vs arXiv): https://us.posthog.com/project/399086/insights/7jMKcCu5
-- **Organization activity** (lists, projects, shares per week): https://us.posthog.com/project/399086/insights/pzO9ftM7
+- **Dashboard — Analytics basics:** https://us.posthog.com/project/399086/dashboard/1517383
+- **Citation Generation Funnel** (lookup → generate → save): https://us.posthog.com/project/399086/insights/xCIDBQyP
+- **Citations Generated Over Time** (daily trend): https://us.posthog.com/project/399086/insights/MUKm8sAq
+- **Export Format Breakdown** (bibtex, ris, txt, md, etc.): https://us.posthog.com/project/399086/insights/4ztTQcqO
+- **List & Project Creation Trend** (retention signal): https://us.posthog.com/project/399086/insights/L5YZKEhR
+- **Share Page Engagement** (viral/sharing behavior): https://us.posthog.com/project/399086/insights/m5C6x5wp
 
 ### Agent skill
 

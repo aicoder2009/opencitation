@@ -7,7 +7,6 @@ import {
   QueryCommand,
   UpdateCommand,
   DeleteCommand,
-  ScanCommand,
   BatchWriteCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { CitationFields, CitationStyle } from "@/types";
