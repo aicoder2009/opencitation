@@ -120,6 +120,7 @@ export default function ListsPage() {
   };
 
   const handleDeleteList = async (listId: string, listName: string) => {
+    // eslint-disable-next-line no-alert
     if (!confirm(`Are you sure you want to delete "${listName}"? This will also delete all citations in this list.`)) {
       return;
     }
