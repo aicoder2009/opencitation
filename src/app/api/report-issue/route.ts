@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 const GITHUB_REPO = "aicoder2009/opencitation";
 
 export async function POST(request: NextRequest) {
   try {
+    const { userId } = await auth();
     const { title, description, issueType, email } = await request.json();
 
     // Validate required fields
@@ -62,6 +65,17 @@ ${email ? `**Contact:** ${email}` : ""}
     }
 
     const issue = await response.json();
+
+    const posthog = getPostHogClient();
+    posthog.capture({
+      distinctId: userId ?? "anonymous",
+      event: "issue_reported",
+      properties: {
+        issue_type: issueType || "general",
+        has_email: !!email,
+        issue_number: issue.number,
+      },
+    });
 
     return NextResponse.json({
       success: true,
