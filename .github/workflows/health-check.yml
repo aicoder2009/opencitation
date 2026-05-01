@@ -1,0 +1,83 @@
+name: Full App Health Check
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # midnight UTC = 5 PM MST (UTC-7)
+  workflow_dispatch:
+
+jobs:
+  health-check:
+    name: Full Test Suite + Type Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        id: lint
+        run: npm run lint 2>&1 | tee lint-output.txt; exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Type check
+        id: typecheck
+        run: npx tsc --noEmit 2>&1 | tee typecheck-output.txt; exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Full test suite
+        id: tests
+        run: npm run test:run 2>&1 | tee test-output.txt; exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Report failures
+        if: steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.tests.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          BODY="## Health Check Failed — $(date -u '+%Y-%m-%d %H:%M UTC')\n\n"
+
+          if [ "${{ steps.lint.outcome }}" = "failure" ]; then
+            BODY+="### ❌ Lint\n\`\`\`\n$(tail -30 lint-output.txt)\n\`\`\`\n\n"
+          else
+            BODY+="### ✅ Lint passed\n\n"
+          fi
+
+          if [ "${{ steps.typecheck.outcome }}" = "failure" ]; then
+            BODY+="### ❌ Type check\n\`\`\`\n$(tail -30 typecheck-output.txt)\n\`\`\`\n\n"
+          else
+            BODY+="### ✅ Type check passed\n\n"
+          fi
+
+          if [ "${{ steps.tests.outcome }}" = "failure" ]; then
+            BODY+="### ❌ Tests\n\`\`\`\n$(tail -40 test-output.txt)\n\`\`\`\n\n"
+          else
+            BODY+="### ✅ All tests passed\n\n"
+          fi
+
+          # Open issue only if none already open for today
+          DATE=$(date -u '+%Y-%m-%d')
+          EXISTING=$(gh issue list --repo "$REPO" --label "health-check" --state open --json number --jq 'length')
+          if [ "$EXISTING" = "0" ]; then
+            printf "$BODY" | gh issue create \
+              --repo "$REPO" \
+              --title "🔴 Health check failed ($DATE)" \
+              --body-file - \
+              --label "bug,health-check" || \
+            gh issue create \
+              --repo "$REPO" \
+              --title "🔴 Health check failed ($DATE)" \
+              --body "$(printf "$BODY")"
+          fi
+
+      - name: Fail workflow if any check failed
+        if: steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.tests.outcome == 'failure'
+        run: exit 1

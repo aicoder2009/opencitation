@@ -45,7 +45,13 @@ jobs:
                checks on API responses, broken edge cases in citation formatting
             2. **Performance** — N+1 DynamoDB queries, missing React.memo/useMemo/useCallback
                where re-renders are provably wasteful, redundant fetch calls
-            3. **Type safety** — variables typed as `any` that have an obvious correct type,
+            3. **UI consistency** — components using raw HTML elements (button, a, input) instead
+               of the wiki/* design system equivalents (WikiButton, WikiInput etc), missing
+               dark-mode CSS variable coverage, inconsistent spacing/typography tokens, broken
+               or missing loading/error states in page components, accessibility gaps (missing
+               aria-label on icon-only controls, keyboard traps, focus management after modals
+               close)
+            4. **Type safety** — variables typed as `any` that have an obvious correct type,
                unchecked casts, missing return type annotations on public functions
 
             ## Process
