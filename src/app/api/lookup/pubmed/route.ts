@@ -7,12 +7,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-interface PubMedAuthor {
-  lastName: string;
-  firstName?: string;
-  initials?: string;
-  collectiveName?: string; // For group/organization authors
-}
 
 interface PubMedMetadataResult {
   pmid: string;
