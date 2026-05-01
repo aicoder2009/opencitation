@@ -39,7 +39,7 @@ const createSampleCitationFields = (): CitationFields => ({
 });
 
 describe("Local Store - Lists", () => {
-  const testUserId = "test-user-" + Date.now();
+  const testUserId = `test-user-${  Date.now()}`;
 
   describe("createList", () => {
     it("should create a new list with required fields", async () => {
@@ -92,7 +92,7 @@ describe("Local Store - Lists", () => {
 
   describe("getUserLists", () => {
     it("should return all lists for a user", async () => {
-      const uniqueUserId = "list-user-" + Date.now();
+      const uniqueUserId = `list-user-${  Date.now()}`;
       await createList(uniqueUserId, "List A");
       await createList(uniqueUserId, "List B");
       await createList(uniqueUserId, "List C");
@@ -106,12 +106,12 @@ describe("Local Store - Lists", () => {
     });
 
     it("should return empty array for user with no lists", async () => {
-      const lists = await getUserLists("user-with-no-lists-" + Date.now());
+      const lists = await getUserLists(`user-with-no-lists-${  Date.now()}`);
       expect(lists).toEqual([]);
     });
 
     it("should sort lists by creation date (newest first)", async () => {
-      const uniqueUserId = "sort-user-" + Date.now();
+      const uniqueUserId = `sort-user-${  Date.now()}`;
       await createList(uniqueUserId, "First");
       await new Promise(r => setTimeout(r, 10));
       await createList(uniqueUserId, "Second");
@@ -169,7 +169,7 @@ describe("Local Store - Lists", () => {
 
     it("should delete all citations in the list", async () => {
       const list = await createList(testUserId, "List With Citations");
-      const citation = await addCitation(
+      const _citation = await addCitation(
         list.id,
         createSampleCitationFields(),
         "apa",
@@ -201,7 +201,7 @@ describe("Local Store - Lists", () => {
 });
 
 describe("Local Store - Projects", () => {
-  const testUserId = "project-user-" + Date.now();
+  const testUserId = `project-user-${  Date.now()}`;
 
   describe("createProject", () => {
     it("should create a new project", async () => {
@@ -238,7 +238,7 @@ describe("Local Store - Projects", () => {
 
   describe("getUserProjects", () => {
     it("should return all projects for a user", async () => {
-      const uniqueUserId = "projects-user-" + Date.now();
+      const uniqueUserId = `projects-user-${  Date.now()}`;
       await createProject(uniqueUserId, "Project X");
       await createProject(uniqueUserId, "Project Y");
 
@@ -248,7 +248,7 @@ describe("Local Store - Projects", () => {
     });
 
     it("should sort projects by creation date (newest first)", async () => {
-      const uniqueUserId = "sort-projects-" + Date.now();
+      const uniqueUserId = `sort-projects-${  Date.now()}`;
       await createProject(uniqueUserId, "First Project");
       await new Promise(r => setTimeout(r, 10));
       await createProject(uniqueUserId, "Second Project");
@@ -298,7 +298,7 @@ describe("Local Store - Projects", () => {
 
   describe("getProjectLists", () => {
     it("should return lists belonging to a project", async () => {
-      const uniqueUserId = "project-lists-" + Date.now();
+      const uniqueUserId = `project-lists-${  Date.now()}`;
       const project = await createProject(uniqueUserId, "Project with Lists");
       await createList(uniqueUserId, "List 1", project.id);
       await createList(uniqueUserId, "List 2", project.id);
@@ -322,11 +322,11 @@ describe("Local Store - Projects", () => {
 });
 
 describe("Local Store - Citations", () => {
-  const testUserId = "citation-user-" + Date.now();
+  const testUserId = `citation-user-${  Date.now()}`;
   let testListId: string;
 
   beforeEach(async () => {
-    const list = await createList(testUserId, "Citation Test List " + Date.now());
+    const list = await createList(testUserId, `Citation Test List ${  Date.now()}`);
     testListId = list.id;
   });
 
@@ -466,7 +466,7 @@ describe("Local Store - Citations", () => {
 });
 
 describe("Local Store - Share Links", () => {
-  const testUserId = "share-user-" + Date.now();
+  const testUserId = `share-user-${  Date.now()}`;
 
   describe("createShareLink", () => {
     it("should create a share link for a list", async () => {
