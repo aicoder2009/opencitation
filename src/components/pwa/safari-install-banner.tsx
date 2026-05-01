@@ -3,6 +3,16 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
+function ShareIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 inline-block align-middle" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v12" />
+      <path d="M8 7l4-4 4 4" />
+      <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
+    </svg>
+  );
+}
+
 /**
  * Safari Install Banner - Apple Smart App Banner style
  * Shows install instructions when VIEW is clicked (Safari can't trigger install programmatically)
@@ -25,6 +35,7 @@ export function SafariInstallBanner() {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsIOS(isIOSDevice);
 
     if (isSafari && !isStandalone) {
@@ -42,15 +53,6 @@ export function SafariInstallBanner() {
   };
 
   if (!showBanner) return null;
-
-  // Share icon for iOS instructions
-  const ShareIcon = () => (
-    <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 inline-block align-middle" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v12" />
-      <path d="M8 7l4-4 4 4" />
-      <path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5" />
-    </svg>
-  );
 
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] safe-area-top bg-[#f2f2f2] border-b border-[#c8c8c8]">
