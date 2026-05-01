@@ -58,9 +58,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     try {
       setIsLoading(true);
 
-      // Fetch project details
-      const projectResponse = await fetch(`/api/projects/${projectId}`);
-      const projectResult = await projectResponse.json();
+      // Fetch all required data concurrently
+      const [projectResponse, listsResponse, allListsResponse] = await Promise.all([
+        fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/lists`),
+        fetch("/api/lists"),
+      ]);
+
+      const [projectResult, listsResult, allListsResult] = await Promise.all([
+        projectResponse.json(),
+        listsResponse.json(),
+        allListsResponse.json(),
+      ]);
 
       if (!projectResult.success) {
         setError(projectResult.error || "Project not found");
@@ -71,17 +80,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       setEditName(projectResult.data.name);
       setEditDescription(projectResult.data.description || "");
 
-      // Fetch lists in project
-      const listsResponse = await fetch(`/api/projects/${projectId}/lists`);
-      const listsResult = await listsResponse.json();
-
       if (listsResult.success) {
         setLists(listsResult.data);
       }
-
-      // Fetch all user lists (for adding to project)
-      const allListsResponse = await fetch("/api/lists");
-      const allListsResult = await allListsResponse.json();
 
       if (allListsResult.success) {
         setAllLists(allListsResult.data);
