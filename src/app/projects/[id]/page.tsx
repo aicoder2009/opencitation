@@ -39,11 +39,48 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [showAddList, setShowAddList] = useState(false);
+  const [hasFetchedAllLists, setHasFetchedAllLists] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   useEffect(() => {
+    const fetchProjectAndLists = async () => {
+      try {
+        setIsLoading(true);
+
+        // ⚡ Bolt: Fetch project details and project lists concurrently
+        const [projectResponse, listsResponse] = await Promise.all([
+          fetch(`/api/projects/${projectId}`),
+          fetch(`/api/projects/${projectId}/lists`),
+        ]);
+
+        // ⚡ Bolt: Parse JSON concurrently
+        const [projectResult, listsResult] = await Promise.all([
+          projectResponse.json(),
+          listsResponse.json(),
+        ]);
+
+        if (!projectResult.success) {
+          setError(projectResult.error || "Project not found");
+          return;
+        }
+
+        setProject(projectResult.data);
+        setEditName(projectResult.data.name);
+        setEditDescription(projectResult.data.description || "");
+
+        if (listsResult.success) {
+          setLists(listsResult.data);
+        }
+      } catch (err) {
+        console.error("Error fetching project:", err);
+        setError("Failed to load project");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (isLoaded && !isSignedIn) {
       router.push(`/sign-in?redirect_url=/projects/${projectId}`);
       return;
@@ -54,43 +91,24 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     }
   }, [isLoaded, isSignedIn, projectId, router]);
 
-  const fetchProjectAndLists = async () => {
+  const fetchAllUserLists = async () => {
     try {
-      setIsLoading(true);
-
-      // Fetch project details
-      const projectResponse = await fetch(`/api/projects/${projectId}`);
-      const projectResult = await projectResponse.json();
-
-      if (!projectResult.success) {
-        setError(projectResult.error || "Project not found");
-        return;
-      }
-
-      setProject(projectResult.data);
-      setEditName(projectResult.data.name);
-      setEditDescription(projectResult.data.description || "");
-
-      // Fetch lists in project
-      const listsResponse = await fetch(`/api/projects/${projectId}/lists`);
-      const listsResult = await listsResponse.json();
-
-      if (listsResult.success) {
-        setLists(listsResult.data);
-      }
-
-      // Fetch all user lists (for adding to project)
       const allListsResponse = await fetch("/api/lists");
       const allListsResult = await allListsResponse.json();
 
       if (allListsResult.success) {
         setAllLists(allListsResult.data);
+        setHasFetchedAllLists(true);
       }
     } catch (err) {
-      console.error("Error fetching project:", err);
-      setError("Failed to load project");
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching all user lists:", err);
+    }
+  };
+
+  const handleToggleAddList = () => {
+    setShowAddList(!showAddList);
+    if (!showAddList && !hasFetchedAllLists) {
+      fetchAllUserLists();
     }
   };
 
@@ -322,7 +340,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <WikiButton onClick={() => setIsShareDialogOpen(true)}>
                 Share
               </WikiButton>
-              <WikiButton variant="primary" onClick={() => setShowAddList(!showAddList)}>
+              <WikiButton variant="primary" onClick={handleToggleAddList}>
                 {showAddList ? "Cancel" : "Add List"}
               </WikiButton>
             </div>
@@ -401,7 +419,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <p className="text-wiki-text-muted mb-4">
                 This project has no lists yet.
               </p>
-              <WikiButton variant="primary" onClick={() => setShowAddList(true)}>
+              <WikiButton variant="primary" onClick={() => { setShowAddList(true); if (!hasFetchedAllLists) fetchAllUserLists(); }}>
                 Add Your First List
               </WikiButton>
             </div>
