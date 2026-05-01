@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser, SignedIn, SignedOut } from "@clerk/nextjs";
+import posthog from "posthog-js";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
@@ -62,6 +63,9 @@ export default function Dashboard() {
   };
 
   const handleQuickAdd = () => {
+    posthog.capture("quick_add_initiated", {
+      has_input: !!quickAddInput.trim(),
+    });
     if (quickAddInput.trim()) {
       // Navigate to cite page with the input pre-filled
       router.push(`/cite?input=${encodeURIComponent(quickAddInput.trim())}`);
@@ -71,6 +75,7 @@ export default function Dashboard() {
   };
 
   const handleSourceTypeClick = (sourceType: string) => {
+    posthog.capture("dashboard_source_type_clicked", { source_type: sourceType });
     router.push(`/cite?tab=manual&source=${sourceType}`);
   };
 
