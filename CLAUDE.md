@@ -122,3 +122,63 @@ Early-mid 2000s Wikipedia aesthetic: clean, information-dense, utilitarian. Gene
 - Comments only where the *why* isn't self-evident
 - Keep dependencies minimal — prefer a small helper over a new package
 - All writes should go through the offline store so the app keeps working without network
+
+## Design System
+
+Full reference: `docs/design-system.md`
+
+### Non-negotiables
+- **No `border-radius` anywhere.** Not on buttons, inputs, cards, modals, avatars — nothing.
+- **No filled/solid buttons.** Both `default` and `primary` variants are white background with a border. The only difference is `primary` uses `text-wiki-link` and `font-medium`.
+- **No drop shadows by default.** Shadow is allowed only on: dragging citation cards (`shadow-lg`), modals (`shadow-lg`), and dropdowns (`shadow-md`).
+- **No hard-coded colors.** Always use a `wiki-*` token or a Tailwind semantic utility (e.g. `text-wiki-link`, `bg-wiki-tab-bg`).
+
+### Color tokens (always use these)
+| Token (CSS var / Tailwind utility) | Light | Dark | Use |
+|---|---|---|---|
+| `wiki-white` | `#ffffff` | `#101418` | Page bg, card bg, input bg |
+| `wiki-offwhite` | `#f8f8f8` | `#202122` | Section fills, code blocks |
+| `wiki-tab-bg` | `#f0f0f0` | `#27292d` | Tab bg, button hover, drag handles |
+| `wiki-border` | `#aaaaaa` | `#72777d` | Strong dividers (header, modal outer edge) |
+| `wiki-border-light` | `#cccccc` | `#54595d` | Subtle borders (cards, inputs, dropdowns) |
+| `wiki-text` | `#202122` | `#eaecf0` | All body text |
+| `wiki-text-muted` | `#54595d` | `#a2a9b1` | Captions, placeholders, secondary labels |
+| `wiki-link` | `#0645ad` | `#88a4d8` | Every interactive element |
+
+### Typography
+- Font stack: `Arial, Helvetica, sans-serif` for all UI; `"Courier New", Courier, monospace` for citation output only (use `.citation-text` class).
+- Base: `14px / 1.6`. Never set a larger base; the compact density is intentional.
+- Headings: `text-2xl font-bold` (page), `text-lg font-semibold` (section), `font-bold text-base` (modal). No display sizes.
+
+### Interactive affordances
+- **All clickable things that aren't buttons use the link pattern:** `text-wiki-link hover:underline`.
+- Inline card actions (`[copy]`, `[edit]`, `[delete]`) are bracketed text links, not icon buttons.
+- Focus ring on all interactive elements: `focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text`. Never remove this.
+- Disabled: `opacity-50 cursor-not-allowed`.
+
+### Components
+- All new UI components go in `src/components/wiki/` and are named `Wiki*`.
+- Buttons: `WikiButton` — use it, don't write inline button styles.
+- Tabs: `WikiTabs` — active tab uses `-mb-px` trick to merge with border below.
+- Dropdowns: `WikiDropdown` — menu is `absolute z-20 min-w-[200px] bg-wiki-white border border-wiki-border-light shadow-md`.
+- Modals: overlay is `fixed inset-0 bg-black/50`, dialog is `max-w-xl shadow-lg border border-wiki-border-light` with header/body/footer regions separated by `border-wiki-border-light`.
+
+### Tags
+- Colors come from `src/lib/tag-colors.ts` — assigned by hashing tag name to one of 10 palette slots. Never hardcode a tag color.
+- Manual override via `TagColorPicker` only.
+- Tag shape: `inline-flex items-center px-2 py-0.5 text-xs border` + color classes from the tag-colors utility.
+
+### Spacing cheatsheet
+| Context | Classes |
+|---|---|
+| Button (default) | `px-4 py-2 text-sm` |
+| Card body | `p-4` or `p-5` |
+| Header bar | `px-4 py-3` |
+| List item | `px-3 py-2` |
+| Between form fields | `space-y-4` |
+| Layout max-width | `max-w-[960px] mx-auto px-4` |
+
+### Motion
+- Hover transitions: `transition-colors` only. No transforms, no opacity transitions on hover.
+- Loading: `animate-spin` on an inline SVG icon. No skeletons, no shimmer.
+- Drag source while dragging: `opacity-50` (handled by dnd-kit, don't override).
