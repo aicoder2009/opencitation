@@ -66,7 +66,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         },
         { headers: { "Cache-Control": "public, max-age=60, must-revalidate" } }
       );
-    } else {
+    } 
       // Project sharing - get project with all its lists and citations
       const projectData = await findProjectById(shareLink.targetId);
 
@@ -115,7 +115,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         },
         { headers: { "Cache-Control": "public, max-age=60, must-revalidate" } }
       );
-    }
+    
   } catch (error) {
     console.error("Error fetching shared content:", error);
     return NextResponse.json(
