@@ -1,0 +1,3 @@
+## 2024-04-27 - [Interactive Widget Context]
+**Learning:** React's `useId` is a very effective tool to ensure accessible context mapping (`aria-controls`) for simple components like `WikiCollapsible`, and mapping visually simple link-text "show"/"hide" to dynamic `aria-label`s makes generic links much more meaningful for screen reader users. Adding ARIA attributes like `role="tab"` and `role="tablist"` to standard div/buttons elements instantly upgrades standard markup into accessible composite widgets without needing a full UI library.
+**Action:** Use `useId` inside isolated components that conditionally render ID-linked sections (e.g. tabs, collapsibles, modals) to create dynamic and guaranteed unique ARIA mappings.
