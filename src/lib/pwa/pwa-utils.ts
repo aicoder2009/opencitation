@@ -155,10 +155,10 @@ class PWAManager {
         this.deferredPrompt = null;
         this.updateState({ isInstallable: false });
         return true;
-      } else {
+      } 
         console.log('[PWA] User dismissed install');
         return false;
-      }
+      
     } catch (error) {
       console.error('[PWA] Install prompt error:', error);
       return false;
@@ -257,7 +257,7 @@ export function formatBytes(bytes: number): string {
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))  } ${  sizes[i]}`;
 }
 
 // Check if PWA features are supported
