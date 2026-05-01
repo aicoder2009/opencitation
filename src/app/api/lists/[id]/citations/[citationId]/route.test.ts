@@ -111,7 +111,7 @@ describe("Citation API - /api/lists/[id]/citations/[citationId]", () => {
         body: JSON.stringify({ style: "mla" }),
       });
       const response = await PUT(request, createParams("list-123", "citation-123"));
-      const data = await response.json();
+      await response.json();
 
       expect(response.status).toBe(401);
     });
@@ -199,7 +199,7 @@ describe("Citation API - /api/lists/[id]/citations/[citationId]", () => {
         method: "DELETE",
       });
       const response = await DELETE(request, createParams("list-123", "citation-123"));
-      const data = await response.json();
+      await response.json();
 
       expect(response.status).toBe(401);
     });
