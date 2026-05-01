@@ -1,0 +1,16 @@
+[     327ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[     830ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[     949ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[     993ms] [LOG] [PWA] Service worker registered @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[     993ms] [LOG] [PWA] Service worker registered @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[    1104ms] [WARNING] Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[    3706ms] [LOG] [Fast Refresh] done in 2859ms @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 5792148ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 5792371ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 5792943ms] [LOG] [Fast Refresh] done in 676ms @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 6599378ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 6600372ms] [LOG] [Fast Refresh] done in 1098ms @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 6628585ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 6629091ms] [LOG] [Fast Refresh] done in 609ms @ http://localhost:3000/_next/static/chunks/0fccc_next_dist_9887db5f._.js:2297
+[ 6629548ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:3000/api/stats/increment:0
+[ 6632566ms] [WARNING] The resource http://localhost:3000/_next/static/chunks/Documents_Personal_repos_opencitation_src_app_globals_c713dc37.css was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/cite?input=https%3A%2F%2Fexample.com:0

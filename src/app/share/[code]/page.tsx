@@ -7,6 +7,7 @@ import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { toRTF } from "@/lib/citation/exporters";
 import DOMPurify from "isomorphic-dompurify";
+import posthog from "posthog-js";
 
 interface SharedCitation {
   id: string;
@@ -88,6 +89,14 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
         if (result.success) {
           setData(result.data);
           setError(null);
+          const d = result.data as SharedData;
+          posthog.capture("share_page_viewed", {
+            share_type: d.type,
+            citation_count: d.type === "list"
+              ? (d.citations?.length ?? 0)
+              : (d.lists?.reduce((s, l) => s + l.citations.length, 0) ?? 0),
+            list_count: d.type === "project" ? (d.lists?.length ?? 0) : 1,
+          });
         } else {
           setError(result.error || "Share link not found or expired");
         }
@@ -115,6 +124,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
     try {
       await navigator.clipboard.writeText(allText);
       flashCopy(`Copied ${citations.length} citation${citations.length === 1 ? "" : "s"}`);
+      posthog.capture("share_all_copied", { citation_count: citations.length, share_code: code });
     } catch {
       flashCopy("Copy failed");
     }
@@ -124,6 +134,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
     try {
       await navigator.clipboard.writeText(text);
       flashCopy("Copied");
+      posthog.capture("share_citation_copied", { share_code: code });
     } catch {
       flashCopy("Copy failed");
     }
@@ -150,10 +161,12 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
   const exportCitations = (citations: SharedCitation[], name: string) => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     downloadBlob(allText, name, "txt", "text/plain");
+    posthog.capture("share_exported", { format: "txt", citation_count: citations.length, share_code: code });
   };
 
   const exportCitationsRTF = (citations: SharedCitation[], name: string) => {
     downloadBlob(toRTF(citations, name), name, "rtf", "application/rtf");
+    posthog.capture("share_exported", { format: "rtf", citation_count: citations.length, share_code: code });
   };
 
   if (isLoading) {

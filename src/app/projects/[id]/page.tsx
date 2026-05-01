@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { ShareDialog } from "@/components/wiki/share-dialog";
+import posthog from "posthog-js";
 
 interface Project {
   id: string;
@@ -113,6 +115,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       if (result.success) {
         setProject(result.data);
         setIsEditing(false);
+        posthog.capture("project_updated");
       } else {
         setError(result.error || "Failed to update project");
       }
@@ -140,6 +143,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         setAllLists((prev) => [result.data, ...prev]);
         setNewListName("");
         setShowAddList(false);
+        posthog.capture("list_created", { in_project: true, project_id: projectId });
       } else {
         setError(result.error || "Failed to create list");
       }
@@ -163,6 +167,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
       if (result.success) {
         setLists((prev) => prev.filter((l) => l.id !== listId));
+        posthog.capture("list_removed_from_project", { project_id: projectId });
       } else {
         setError(result.error || "Failed to remove list from project");
       }
@@ -187,6 +192,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
         if (addedList) {
           setLists((prev) => [...prev, { ...addedList, projectId }]);
         }
+        posthog.capture("list_added_to_project", { project_id: projectId });
       } else {
         setError(result.error || "Failed to add list to project");
       }
@@ -447,9 +453,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Back Link */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <a href="/projects" className="text-wiki-link hover:underline">
+            <Link href="/projects" className="text-wiki-link hover:underline">
               &larr; Back to My Projects
-            </a>
+            </Link>
           </div>
         </div>
       </div>
