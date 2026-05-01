@@ -1,0 +1,3 @@
+## 2024-05-18 - Collapsible Accessible Name and ID Connection
+**Learning:** Generic text like "[hide]" or "[show]" used on toggle buttons lacks context for screen reader users when navigating by controls. Furthermore, screen readers need to associate a toggle button directly with the region it controls using `aria-controls` to understand the state relationship properly.
+**Action:** Always provide a contextual `aria-label` (e.g., "Hide [Title]" or "Show [Title]") for buttons using generic visual text. Use React's `useId` hook to generate unique IDs for content regions and link them to the toggle button via `aria-controls` to avoid ID collisions in lists of collapsibles.
