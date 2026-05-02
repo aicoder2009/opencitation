@@ -78,6 +78,34 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       );
     }
 
+    // Restrict outbound fetches to known, intended public hosts.
+    // This removes attacker control over destination hostnames (primary SSRF vector).
+    const ALLOWED_HOSTS = [
+      'arxiv.org',
+      'www.arxiv.org',
+      'doi.org',
+      'dx.doi.org',
+      'openreview.net',
+      'github.com',
+      'www.github.com',
+      'x.com',
+      'twitter.com',
+      'www.twitter.com',
+      'youtube.com',
+      'www.youtube.com',
+      'youtu.be',
+    ];
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isAllowedHost = ALLOWED_HOSTS.some(
+      (h) => hostname === h || hostname.endsWith(`.${h}`)
+    );
+    if (!isAllowedHost) {
+      return NextResponse.json(
+        { success: false, error: 'URL host is not allowed' },
+        { status: 400 }
+      );
+    }
+
     // Detect the source type from the URL and grab any type-specific hints
     const detection = detectSourceTypeFromUrl(parsedUrl);
 
