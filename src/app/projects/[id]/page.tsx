@@ -52,7 +52,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     if (isSignedIn && projectId) {
       fetchProjectAndLists();
     }
-  }, [isLoaded, isSignedIn, projectId, router]);
+  }, [isLoaded, isSignedIn, projectId, router, fetchProjectAndLists]);
 
   const fetchProjectAndLists = async () => {
     try {

@@ -62,18 +62,16 @@ describe('Badge API', () => {
     const svg = await response.text();
     expect(svg).toContain('1.5M');
   });
-
-  it('uses wider badge width when count is shown', async () => {
+  it("uses wider badge width when count is shown", async () => {
     mockGetStats.mockResolvedValue({ citationsGenerated: 100 });
     const withCount = await (await GET()).text();
     mockGetStats.mockResolvedValue({ citationsGenerated: 0 });
     const withoutCount = await (await GET()).text();
-    const extractWidth = (svg: string) => svg.match(/width="(\d+)"/)?.[1];
-    expect(parseInt(extractWidth(withCount)!)).toBeGreaterThan(
-      parseInt(extractWidth(withoutCount)!)
-    );
+    const extractWidth = (svg: string) => svg.match(/width="(d+)"/)?.[1];
+    const withWidth = extractWidth(withCount);
+    const withoutWidth = extractWidth(withoutCount);
+    expect(withWidth && withoutWidth && parseInt(withWidth)).toBeGreaterThan(parseInt(withoutWidth));
   });
-
   it('returns fallback SVG when db throws', async () => {
     mockGetStats.mockRejectedValue(new Error('db error'));
     const response = await GET();

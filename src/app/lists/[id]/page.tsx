@@ -27,7 +27,10 @@ import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { ShareDialog } from "@/components/wiki/share-dialog";
 import { CitationAddModal } from "@/components/wiki/citation-add-modal";
 import { TagColorPicker } from "@/components/wiki/tag-color-picker";
-import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
+import {
+  ShortcutHelp,
+  useKeyboardShortcuts,
+} from "@/components/wiki/shortcut-help";
 import { formatCitation } from "@/lib/citation";
 import {
   toBibTeXMultiple,
@@ -39,7 +42,14 @@ import {
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
 import { pickFactoid } from "@/lib/did-you-know";
-import { CITATION_STYLES, CITATION_STYLE_LABELS, type SourceType, type AccessType, type CitationFields as FullCitationFields, type CitationStyle } from "@/types";
+import {
+  CITATION_STYLES,
+  CITATION_STYLE_LABELS,
+  type SourceType,
+  type AccessType,
+  type CitationFields as FullCitationFields,
+  type CitationStyle,
+} from "@/types";
 import posthog from "posthog-js";
 
 interface List {
@@ -55,7 +65,12 @@ interface CitationFields {
   sourceType?: SourceType;
   accessType?: AccessType;
   title?: string;
-  authors?: Array<{ firstName?: string; middleName?: string; lastName: string; isOrganization?: boolean }>;
+  authors?: Array<{
+    firstName?: string;
+    middleName?: string;
+    lastName: string;
+    isOrganization?: boolean;
+  }>;
   publicationDate?: { year?: number; month?: number; day?: number };
   url?: string;
   doi?: string;
@@ -84,7 +99,11 @@ interface Citation {
   updatedAt: string;
 }
 
-export default function ListDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function ListDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id: listId } = use(params);
   const router = useRouter();
   const { isLoaded, isSignedIn } = useUser();
@@ -99,18 +118,30 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [showCiteModal, setShowCiteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
-  const [editingTagsCitationId, setEditingTagsCitationId] = useState<string | null>(null);
+  const [editingTagsCitationId, setEditingTagsCitationId] = useState<
+    string | null
+  >(null);
   const [newTagInput, setNewTagInput] = useState("");
   const [selectedIndex, setSelectedIndex] = useState<number>(-1);
-  const [editingCitationId, setEditingCitationId] = useState<string | null>(null);
+  const [editingCitationId, setEditingCitationId] = useState<string | null>(
+    null,
+  );
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { getColor: getTagColor, setColor: setTagColor, clearColor: clearTagColor } = useTagColors();
-  const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(null);
+  const {
+    getColor: getTagColor,
+    setColor: setTagColor,
+    clearColor: clearTagColor,
+  } = useTagColors();
+  const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(
+    null,
+  );
   const [reformatTarget, setReformatTarget] = useState<CitationStyle>("apa");
   const [isReformatting, setIsReformatting] = useState(false);
   const [factoid, setFactoid] = useState<string>("");
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [selectedCitationIds, setSelectedCitationIds] = useState<Set<string>>(new Set());
+  const [selectedCitationIds, setSelectedCitationIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     setFactoid(pickFactoid());
@@ -123,26 +154,34 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return acc;
     }, {});
     const styles = Object.keys(counts);
-    return { styleCounts: counts, uniqueStyles: styles, hasMixedStyles: styles.length > 1 };
+    return {
+      styleCounts: counts,
+      uniqueStyles: styles,
+      hasMixedStyles: styles.length > 1,
+    };
   }, [citations]);
 
   // Get all unique tags from citations
   const allTags = useMemo(
     () => Array.from(new Set(citations.flatMap((c) => c.tags || []))).sort(),
-    [citations]
+    [citations],
   );
 
   // Filter citations based on search query and tag filter
   const filteredCitations = useMemo(
-    () => citations.filter((citation) => {
-      if (filterTag && (!citation.tags || !citation.tags.includes(filterTag))) {
-        return false;
-      }
-      if (!searchQuery.trim()) return true;
-      const query = searchQuery.toLowerCase();
-      return citation.formattedText.toLowerCase().includes(query);
-    }),
-    [citations, filterTag, searchQuery]
+    () =>
+      citations.filter((citation) => {
+        if (
+          filterTag &&
+          (!citation.tags || !citation.tags.includes(filterTag))
+        ) {
+          return false;
+        }
+        if (!searchQuery.trim()) return true;
+        const query = searchQuery.toLowerCase();
+        return citation.formattedText.toLowerCase().includes(query);
+      }),
+    [citations, filterTag, searchQuery],
   );
 
   // Keyboard shortcuts
@@ -152,7 +191,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         // Move selection down
         if (filteredCitations.length === 0) return;
         setSelectedIndex((prev) =>
-          prev < filteredCitations.length - 1 ? prev + 1 : prev
+          prev < filteredCitations.length - 1 ? prev + 1 : prev,
         );
       },
       k: () => {
@@ -198,7 +237,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         }
       },
     },
-    [filteredCitations, selectedIndex]
+    [filteredCitations, selectedIndex],
   );
 
   // Reset selection when citations change
@@ -217,7 +256,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     if (isSignedIn && listId) {
       fetchListAndCitations();
     }
-  }, [isLoaded, isSignedIn, listId, router]);
+  }, [isLoaded, isSignedIn, listId, router, fetchListAndCitations]);
 
   const fetchListAndCitations = async () => {
     try {
@@ -303,9 +342,12 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
     const citation = citations.find((c) => c.id === citationId);
     try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(
+        `/api/lists/${listId}/citations/${citationId}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       const result = await response.json();
 
@@ -337,17 +379,22 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     const updatedTags = [...currentTags, tag];
 
     try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tags: updatedTags }),
-      });
+      const response = await fetch(
+        `/api/lists/${listId}/citations/${citationId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags: updatedTags }),
+        },
+      );
 
       const result = await response.json();
 
       if (result.success) {
         setCitations((prev) =>
-          prev.map((c) => (c.id === citationId ? { ...c, tags: updatedTags } : c))
+          prev.map((c) =>
+            c.id === citationId ? { ...c, tags: updatedTags } : c,
+          ),
         );
       }
     } catch (err) {
@@ -364,20 +411,30 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     const updatedTags = (citation.tags || []).filter((t) => t !== tagToRemove);
 
     try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tags: updatedTags }),
-      });
+      const response = await fetch(
+        `/api/lists/${listId}/citations/${citationId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tags: updatedTags }),
+        },
+      );
 
       const result = await response.json();
 
       if (result.success) {
         setCitations((prev) =>
-          prev.map((c) => (c.id === citationId ? { ...c, tags: updatedTags } : c))
+          prev.map((c) =>
+            c.id === citationId ? { ...c, tags: updatedTags } : c,
+          ),
         );
         // Clear filter if removing the filtered tag
-        if (filterTag === tagToRemove && !citations.some((c) => c.tags?.includes(tagToRemove) && c.id !== citationId)) {
+        if (
+          filterTag === tagToRemove &&
+          !citations.some(
+            (c) => c.tags?.includes(tagToRemove) && c.id !== citationId,
+          )
+        ) {
           setFilterTag(null);
         }
       }
@@ -388,15 +445,20 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const handleSaveNotes = async (citationId: string, notes: string) => {
     try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes }),
-      });
+      const response = await fetch(
+        `/api/lists/${listId}/citations/${citationId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notes }),
+        },
+      );
       const result = await response.json();
       if (result.success) {
         setCitations((prev) =>
-          prev.map((c) => (c.id === citationId ? { ...c, notes: notes || undefined } : c))
+          prev.map((c) =>
+            c.id === citationId ? { ...c, notes: notes || undefined } : c,
+          ),
         );
       }
     } catch (err) {
@@ -404,17 +466,23 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     }
   };
 
-  const handleSaveQuotes = async (citationId: string, quotes: CitationQuote[]) => {
+  const handleSaveQuotes = async (
+    citationId: string,
+    quotes: CitationQuote[],
+  ) => {
     try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quotes }),
-      });
+      const response = await fetch(
+        `/api/lists/${listId}/citations/${citationId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quotes }),
+        },
+      );
       const result = await response.json();
       if (result.success) {
         setCitations((prev) =>
-          prev.map((c) => (c.id === citationId ? { ...c, quotes } : c))
+          prev.map((c) => (c.id === citationId ? { ...c, quotes } : c)),
         );
       }
     } catch (err) {
@@ -425,7 +493,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
-    posthog.capture("citations_copied_all", { citation_count: citations.length });
+    posthog.capture("citations_copied_all", {
+      citation_count: citations.length,
+    });
   };
 
   const toggleSelectMode = () => {
@@ -436,27 +506,41 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const toggleCitationSelect = (id: string) => {
     setSelectedCitationIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
 
-  const selectedCitations = filteredCitations.filter((c) => selectedCitationIds.has(c.id));
+  const selectedCitations = filteredCitations.filter((c) =>
+    selectedCitationIds.has(c.id),
+  );
 
-  const selectAll = () => setSelectedCitationIds(new Set(filteredCitations.map((c) => c.id)));
+  const selectAll = () =>
+    setSelectedCitationIds(new Set(filteredCitations.map((c) => c.id)));
   const deselectAll = () => setSelectedCitationIds(new Set());
 
   const copySelected = () => {
     const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(text);
-    posthog.capture("citations_bulk_copied", { citation_count: selectedCitations.length });
+    posthog.capture("citations_bulk_copied", {
+      citation_count: selectedCitations.length,
+    });
   };
 
   const copySelectedBibTeX = () => {
-    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
-    if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
+    const fields = selectedCitations
+      .map((c) => c.fields)
+      .filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) {
+      setError("No selected citations have structured fields for BibTeX.");
+      return;
+    }
     navigator.clipboard.writeText(toBibTeXMultiple(fields));
-    posthog.capture("citations_bulk_copied", { format: "bibtex", citation_count: fields.length });
+    posthog.capture("citations_bulk_copied", {
+      format: "bibtex",
+      citation_count: fields.length,
+    });
   };
 
   const deleteSelected = async () => {
@@ -469,8 +553,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     try {
       await Promise.all(
         ids.map((id) =>
-          fetch(`/api/lists/${listId}/citations/${id}`, { method: "DELETE" })
-        )
+          fetch(`/api/lists/${listId}/citations/${id}`, { method: "DELETE" }),
+        ),
       );
       posthog.capture("citations_bulk_deleted", { count });
     } catch (err) {
@@ -483,46 +567,109 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const exportSelectedText = () => {
     const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
     downloadFile(text, "txt", "text/plain");
-    posthog.capture("citation_exported", { format: "txt", citation_count: selectedCitations.length, bulk: true });
+    posthog.capture("citation_exported", {
+      format: "txt",
+      citation_count: selectedCitations.length,
+      bulk: true,
+    });
   };
 
   const exportSelectedMarkdown = () => {
-    downloadFile(toMarkdown(selectedCitations, list?.name), "md", "text/markdown");
-    posthog.capture("citation_exported", { format: "md", citation_count: selectedCitations.length, bulk: true });
+    downloadFile(
+      toMarkdown(selectedCitations, list?.name),
+      "md",
+      "text/markdown",
+    );
+    posthog.capture("citation_exported", {
+      format: "md",
+      citation_count: selectedCitations.length,
+      bulk: true,
+    });
   };
 
   const exportSelectedHTML = () => {
     downloadFile(toHTML(selectedCitations, list?.name), "html", "text/html");
-    posthog.capture("citation_exported", { format: "html", citation_count: selectedCitations.length, bulk: true });
+    posthog.capture("citation_exported", {
+      format: "html",
+      citation_count: selectedCitations.length,
+      bulk: true,
+    });
   };
 
   const exportSelectedRTF = () => {
-    downloadFile(toRTF(selectedCitations, list?.name), "rtf", "application/rtf");
-    posthog.capture("citation_exported", { format: "rtf", citation_count: selectedCitations.length, bulk: true });
+    downloadFile(
+      toRTF(selectedCitations, list?.name),
+      "rtf",
+      "application/rtf",
+    );
+    posthog.capture("citation_exported", {
+      format: "rtf",
+      citation_count: selectedCitations.length,
+      bulk: true,
+    });
   };
 
   const exportSelectedBibTeX = () => {
-    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
-    if (fields.length === 0) { setError("No selected citations have structured fields for BibTeX."); return; }
+    const fields = selectedCitations
+      .map((c) => c.fields)
+      .filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) {
+      setError("No selected citations have structured fields for BibTeX.");
+      return;
+    }
     downloadFile(toBibTeXMultiple(fields), "bib", "application/x-bibtex");
-    posthog.capture("citation_exported", { format: "bibtex", citation_count: fields.length, bulk: true });
+    posthog.capture("citation_exported", {
+      format: "bibtex",
+      citation_count: fields.length,
+      bulk: true,
+    });
   };
 
   const exportSelectedRIS = () => {
-    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
-    if (fields.length === 0) { setError("No selected citations have structured fields for RIS."); return; }
-    downloadFile(toRISMultiple(fields), "ris", "application/x-research-info-systems");
-    posthog.capture("citation_exported", { format: "ris", citation_count: fields.length, bulk: true });
+    const fields = selectedCitations
+      .map((c) => c.fields)
+      .filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) {
+      setError("No selected citations have structured fields for RIS.");
+      return;
+    }
+    downloadFile(
+      toRISMultiple(fields),
+      "ris",
+      "application/x-research-info-systems",
+    );
+    posthog.capture("citation_exported", {
+      format: "ris",
+      citation_count: fields.length,
+      bulk: true,
+    });
   };
 
   const exportSelectedCSLJSON = () => {
-    const fields = selectedCitations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[];
-    if (fields.length === 0) { setError("No selected citations have structured fields for CSL JSON."); return; }
-    downloadFile(toCSLJSON(fields), "json", "application/vnd.citationstyles.csl+json");
-    posthog.capture("citation_exported", { format: "csl_json", citation_count: fields.length, bulk: true });
+    const fields = selectedCitations
+      .map((c) => c.fields)
+      .filter(Boolean) as unknown as FullCitationFields[];
+    if (fields.length === 0) {
+      setError("No selected citations have structured fields for CSL JSON.");
+      return;
+    }
+    downloadFile(
+      toCSLJSON(fields),
+      "json",
+      "application/vnd.citationstyles.csl+json",
+    );
+    posthog.capture("citation_exported", {
+      format: "csl_json",
+      citation_count: fields.length,
+      bulk: true,
+    });
   };
 
-  const downloadFile = (content: string, extension: string, mimeType: string) => {
+  const downloadFile = (
+    content: string,
+    extension: string,
+    mimeType: string,
+  ) => {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -537,27 +684,42 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const exportAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     downloadFile(allText, "txt", "text/plain");
-    posthog.capture("citation_exported", { format: "txt", citation_count: citations.length });
+    posthog.capture("citation_exported", {
+      format: "txt",
+      citation_count: citations.length,
+    });
   };
 
   const exportMarkdown = () => {
     downloadFile(toMarkdown(citations, list?.name), "md", "text/markdown");
-    posthog.capture("citation_exported", { format: "md", citation_count: citations.length });
+    posthog.capture("citation_exported", {
+      format: "md",
+      citation_count: citations.length,
+    });
   };
 
   const exportHTML = () => {
     downloadFile(toHTML(citations, list?.name), "html", "text/html");
-    posthog.capture("citation_exported", { format: "html", citation_count: citations.length });
+    posthog.capture("citation_exported", {
+      format: "html",
+      citation_count: citations.length,
+    });
   };
 
   const exportRTF = () => {
     downloadFile(toRTF(citations, list?.name), "rtf", "application/rtf");
-    posthog.capture("citation_exported", { format: "rtf", citation_count: citations.length });
+    posthog.capture("citation_exported", {
+      format: "rtf",
+      citation_count: citations.length,
+    });
   };
 
   const citationsWithFields = useMemo(
-    (): FullCitationFields[] => citations.map((c) => c.fields).filter(Boolean) as unknown as FullCitationFields[],
-    [citations]
+    (): FullCitationFields[] =>
+      citations
+        .map((c) => c.fields)
+        .filter(Boolean) as unknown as FullCitationFields[],
+    [citations],
   );
 
   const exportBibTeX = () => {
@@ -565,8 +727,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       setError("No citations with structured fields to export as BibTeX.");
       return;
     }
-    downloadFile(toBibTeXMultiple(citationsWithFields), "bib", "application/x-bibtex");
-    posthog.capture("citation_exported", { format: "bibtex", citation_count: citationsWithFields.length });
+    downloadFile(
+      toBibTeXMultiple(citationsWithFields),
+      "bib",
+      "application/x-bibtex",
+    );
+    posthog.capture("citation_exported", {
+      format: "bibtex",
+      citation_count: citationsWithFields.length,
+    });
   };
 
   const copyBibTeX = () => {
@@ -575,7 +744,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     navigator.clipboard.writeText(toBibTeXMultiple(citationsWithFields));
-    posthog.capture("citation_exported", { format: "bibtex_copy", citation_count: citationsWithFields.length });
+    posthog.capture("citation_exported", {
+      format: "bibtex_copy",
+      citation_count: citationsWithFields.length,
+    });
   };
 
   const exportRIS = () => {
@@ -583,8 +755,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       setError("No citations with structured fields to export as RIS.");
       return;
     }
-    downloadFile(toRISMultiple(citationsWithFields), "ris", "application/x-research-info-systems");
-    posthog.capture("citation_exported", { format: "ris", citation_count: citationsWithFields.length });
+    downloadFile(
+      toRISMultiple(citationsWithFields),
+      "ris",
+      "application/x-research-info-systems",
+    );
+    posthog.capture("citation_exported", {
+      format: "ris",
+      citation_count: citationsWithFields.length,
+    });
   };
 
   const exportZotero = () => {
@@ -601,7 +780,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       return;
     }
     const ris = toRISMultiple(items);
-    const blob = new Blob([ris], { type: "application/x-research-info-systems" });
+    const blob = new Blob([ris], {
+      type: "application/x-research-info-systems",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -610,7 +791,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    posthog.capture("citation_exported", { format: "ris_zotero", citation_count: items.length });
+    posthog.capture("citation_exported", {
+      format: "ris_zotero",
+      citation_count: items.length,
+    });
   };
 
   const exportCSLJSON = () => {
@@ -618,8 +802,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
       setError("No citations with structured fields to export as CSL JSON.");
       return;
     }
-    downloadFile(toCSLJSON(citationsWithFields), "json", "application/vnd.citationstyles.csl+json");
-    posthog.capture("citation_exported", { format: "csl_json", citation_count: citationsWithFields.length });
+    downloadFile(
+      toCSLJSON(citationsWithFields),
+      "json",
+      "application/vnd.citationstyles.csl+json",
+    );
+    posthog.capture("citation_exported", {
+      format: "csl_json",
+      citation_count: citationsWithFields.length,
+    });
   };
 
   // Drag and drop sensors
@@ -631,17 +822,19 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleReformatAll = async () => {
     const target = reformatTarget;
     const needsUpdate = citations.filter((c) => c.style !== target && c.fields);
-    const missingFields = citations.filter((c) => c.style !== target && !c.fields);
+    const missingFields = citations.filter(
+      (c) => c.style !== target && !c.fields,
+    );
     if (needsUpdate.length === 0) {
       if (missingFields.length > 0) {
         setError(
-          `Cannot reformat ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} without structured fields.`
+          `Cannot reformat ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} without structured fields.`,
         );
       }
       return;
@@ -653,17 +846,20 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         needsUpdate.map(async (c) => {
           const formatted = formatCitation(
             c.fields as Parameters<typeof formatCitation>[0],
-            target
+            target,
           );
-          const response = await fetch(`/api/lists/${listId}/citations/${c.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              style: target,
-              formattedText: formatted.text,
-              formattedHtml: formatted.html,
-            }),
-          });
+          const response = await fetch(
+            `/api/lists/${listId}/citations/${c.id}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                style: target,
+                formattedText: formatted.text,
+                formattedHtml: formatted.html,
+              }),
+            },
+          );
           const result = await response.json();
           if (!result.success) throw new Error(result.error || "Failed");
           return {
@@ -672,19 +868,22 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
             formattedText: formatted.text,
             formattedHtml: formatted.html,
           };
-        })
+        }),
       );
       const updateMap = new Map(updates.map((u) => [u.id, u]));
       setCitations((prev) =>
         prev.map((c) => {
           const u = updateMap.get(c.id);
           return u ? { ...c, ...u } : c;
-        })
+        }),
       );
-      posthog.capture("citations_reformatted", { target_style: target, count: updates.length });
+      posthog.capture("citations_reformatted", {
+        target_style: target,
+        count: updates.length,
+      });
       if (missingFields.length > 0) {
         setError(
-          `Reformatted ${updates.length}. ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} could not be converted (no structured fields).`
+          `Reformatted ${updates.length}. ${missingFields.length} citation${missingFields.length === 1 ? "" : "s"} could not be converted (no structured fields).`,
         );
       }
     } catch (err) {
@@ -704,7 +903,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleAlphabetize = async () => {
-    const sorted = [...citations].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+    const sorted = [...citations].sort((a, b) =>
+      sortKey(a).localeCompare(sortKey(b)),
+    );
     const previous = citations;
     setCitations(sorted);
     try {
@@ -752,7 +953,15 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const handleEditCitation = async (
     citationId: string,
-    editFields: { title: string; authorFirst: string; authorMiddle: string; authorLast: string; authorIsOrganization: boolean; year: string; url: string }
+    editFields: {
+      title: string;
+      authorFirst: string;
+      authorMiddle: string;
+      authorLast: string;
+      authorIsOrganization: boolean;
+      year: string;
+      url: string;
+    },
   ) => {
     const citation = citations.find((c) => c.id === citationId);
     if (!citation) return;
@@ -788,18 +997,24 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
     // Regenerate formatted citation
     const style = citation.style as CitationStyle;
     // Use type assertion for citation fields since we're working with partial data
-    const formatted = formatCitation(updatedFields as Parameters<typeof formatCitation>[0], style);
+    const formatted = formatCitation(
+      updatedFields as Parameters<typeof formatCitation>[0],
+      style,
+    );
 
     try {
-      const response = await fetch(`/api/lists/${listId}/citations/${citationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fields: updatedFields,
-          formattedText: formatted.text,
-          formattedHtml: formatted.html,
-        }),
-      });
+      const response = await fetch(
+        `/api/lists/${listId}/citations/${citationId}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fields: updatedFields,
+            formattedText: formatted.text,
+            formattedHtml: formatted.html,
+          }),
+        },
+      );
 
       const result = await response.json();
 
@@ -813,8 +1028,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   formattedText: formatted.text,
                   formattedHtml: formatted.html,
                 }
-              : c
-          )
+              : c,
+          ),
         );
         posthog.capture("citation_edited", { citation_style: style });
       } else {
@@ -936,7 +1151,10 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <WikiButton onClick={() => setIsShareDialogOpen(true)}>
                 Share
               </WikiButton>
-              <WikiButton variant="primary" onClick={() => setShowCiteModal(true)}>
+              <WikiButton
+                variant="primary"
+                onClick={() => setShowCiteModal(true)}
+              >
                 Add Citation
               </WikiButton>
             </div>
@@ -1021,7 +1239,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                         >
                           <span
                             className={`w-2.5 h-2.5 rounded-full border ${
-                              isActive ? "bg-white border-white" : `${color.bg} ${color.border}`
+                              isActive
+                                ? "bg-white border-white"
+                                : `${color.bg} ${color.border}`
                             }`}
                             aria-hidden
                           />
@@ -1051,24 +1271,30 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               )}
               {(searchQuery || filterTag) && (
                 <p className="text-sm text-wiki-text-muted">
-                  Showing {filteredCitations.length} of {citations.length} citations
-                  {filterTag && <span className="ml-1">(filtered by tag: {filterTag})</span>}
+                  Showing {filteredCitations.length} of {citations.length}{" "}
+                  citations
+                  {filterTag && (
+                    <span className="ml-1">(filtered by tag: {filterTag})</span>
+                  )}
                 </p>
               )}
               {/* Mixed styles warning */}
               {hasMixedStyles && (
                 <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200 text-sm">
-                  <div className="font-bold mb-1">Warning: mixed citation styles</div>
+                  <div className="font-bold mb-1">
+                    Warning: mixed citation styles
+                  </div>
                   <div className="mb-2">
                     This list has citations in different styles:{" "}
                     {uniqueStyles.map((s, i) => (
                       <span key={s}>
-                        <b>{CITATION_STYLE_LABELS[s as CitationStyle] ?? s}</b> (
-                        {styleCounts[s]})
+                        <b>{CITATION_STYLE_LABELS[s as CitationStyle] ?? s}</b>{" "}
+                        ({styleCounts[s]})
                         {i < uniqueStyles.length - 1 ? ", " : ""}
                       </span>
                     ))}
-                    . Exports (BibTeX, RIS, CSL JSON, etc.) assume a consistent style.
+                    . Exports (BibTeX, RIS, CSL JSON, etc.) assume a consistent
+                    style.
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <label htmlFor="reformat-target" className="text-xs">
@@ -1077,7 +1303,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                     <select
                       id="reformat-target"
                       value={reformatTarget}
-                      onChange={(e) => setReformatTarget(e.target.value as CitationStyle)}
+                      onChange={(e) =>
+                        setReformatTarget(e.target.value as CitationStyle)
+                      }
                       className="text-xs"
                       disabled={isReformatting}
                     >
@@ -1100,9 +1328,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               {/* Actions */}
               {!isSelectMode ? (
                 <div className="flex flex-wrap gap-3">
-                  <WikiButton onClick={copyAllCitations}>
-                    Copy All
-                  </WikiButton>
+                  <WikiButton onClick={copyAllCitations}>Copy All</WikiButton>
                   <WikiButton
                     onClick={handleAlphabetize}
                     disabled={citations.length < 2}
@@ -1110,36 +1336,76 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   >
                     Sort A–Z
                   </WikiButton>
-                  <WikiButton onClick={exportAllCitations}>
-                    Print
-                  </WikiButton>
+                  <WikiButton onClick={exportAllCitations}>Print</WikiButton>
                   <WikiDropdown
                     label="Export"
                     items={[
-                      { label: "Plain text", hint: ".txt", onClick: exportAllCitations },
-                      { label: "Word (hanging indent)", hint: ".rtf", onClick: exportRTF },
-                      { label: "Markdown", hint: ".md", onClick: exportMarkdown },
+                      {
+                        label: "Plain text",
+                        hint: ".txt",
+                        onClick: exportAllCitations,
+                      },
+                      {
+                        label: "Word (hanging indent)",
+                        hint: ".rtf",
+                        onClick: exportRTF,
+                      },
+                      {
+                        label: "Markdown",
+                        hint: ".md",
+                        onClick: exportMarkdown,
+                      },
                       { label: "HTML", hint: ".html", onClick: exportHTML },
-                      { label: "Zotero (File > Import)", hint: ".ris", onClick: exportZotero },
-                      { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportBibTeX },
-                      { label: "Copy BibTeX", hint: "to clipboard", onClick: copyBibTeX },
-                      { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportRIS },
-                      { label: "CSL JSON", hint: ".json", onClick: exportCSLJSON },
+                      {
+                        label: "Zotero (File > Import)",
+                        hint: ".ris",
+                        onClick: exportZotero,
+                      },
+                      {
+                        label: "BibTeX (LaTeX)",
+                        hint: ".bib",
+                        onClick: exportBibTeX,
+                      },
+                      {
+                        label: "Copy BibTeX",
+                        hint: "to clipboard",
+                        onClick: copyBibTeX,
+                      },
+                      {
+                        label: "RIS (EndNote, Mendeley)",
+                        hint: ".ris",
+                        onClick: exportRIS,
+                      },
+                      {
+                        label: "CSL JSON",
+                        hint: ".json",
+                        onClick: exportCSLJSON,
+                      },
                     ]}
                   />
-                  <WikiButton onClick={toggleSelectMode} title="Select citations for bulk actions">
+                  <WikiButton
+                    onClick={toggleSelectMode}
+                    title="Select citations for bulk actions"
+                  >
                     Select
                   </WikiButton>
                 </div>
               ) : (
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="text-sm text-wiki-text-muted">
-                    {selectedCitationIds.size} of {filteredCitations.length} selected
+                    {selectedCitationIds.size} of {filteredCitations.length}{" "}
+                    selected
                   </span>
                   <WikiButton
-                    onClick={selectedCitationIds.size === filteredCitations.length ? deselectAll : selectAll}
+                    onClick={
+                      selectedCitationIds.size === filteredCitations.length
+                        ? deselectAll
+                        : selectAll
+                    }
                   >
-                    {selectedCitationIds.size === filteredCitations.length ? "Deselect All" : "Select All"}
+                    {selectedCitationIds.size === filteredCitations.length
+                      ? "Deselect All"
+                      : "Select All"}
                   </WikiButton>
                   <WikiButton
                     onClick={copySelected}
@@ -1159,13 +1425,41 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                     label="Export"
                     disabled={selectedCitationIds.size === 0}
                     items={[
-                      { label: "Plain text", hint: ".txt", onClick: exportSelectedText },
-                      { label: "Word (hanging indent)", hint: ".rtf", onClick: exportSelectedRTF },
-                      { label: "Markdown", hint: ".md", onClick: exportSelectedMarkdown },
-                      { label: "HTML", hint: ".html", onClick: exportSelectedHTML },
-                      { label: "BibTeX (LaTeX)", hint: ".bib", onClick: exportSelectedBibTeX },
-                      { label: "RIS (EndNote, Mendeley)", hint: ".ris", onClick: exportSelectedRIS },
-                      { label: "CSL JSON", hint: ".json", onClick: exportSelectedCSLJSON },
+                      {
+                        label: "Plain text",
+                        hint: ".txt",
+                        onClick: exportSelectedText,
+                      },
+                      {
+                        label: "Word (hanging indent)",
+                        hint: ".rtf",
+                        onClick: exportSelectedRTF,
+                      },
+                      {
+                        label: "Markdown",
+                        hint: ".md",
+                        onClick: exportSelectedMarkdown,
+                      },
+                      {
+                        label: "HTML",
+                        hint: ".html",
+                        onClick: exportSelectedHTML,
+                      },
+                      {
+                        label: "BibTeX (LaTeX)",
+                        hint: ".bib",
+                        onClick: exportSelectedBibTeX,
+                      },
+                      {
+                        label: "RIS (EndNote, Mendeley)",
+                        hint: ".ris",
+                        onClick: exportSelectedRIS,
+                      },
+                      {
+                        label: "CSL JSON",
+                        hint: ".json",
+                        onClick: exportSelectedCSLJSON,
+                      },
                     ]}
                   />
                   <WikiButton
@@ -1175,9 +1469,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   >
                     Delete
                   </WikiButton>
-                  <WikiButton onClick={toggleSelectMode}>
-                    Done
-                  </WikiButton>
+                  <WikiButton onClick={toggleSelectMode}>Done</WikiButton>
                 </div>
               )}
             </div>
@@ -1189,12 +1481,17 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-wiki-text-muted mb-4">
                 This list is empty. Add your first citation!
               </p>
-              <WikiButton variant="primary" onClick={() => setShowCiteModal(true)}>
+              <WikiButton
+                variant="primary"
+                onClick={() => setShowCiteModal(true)}
+              >
                 Create Citation
               </WikiButton>
               {factoid && (
                 <div className="mt-8 mx-auto max-w-lg border border-wiki-border-light bg-wiki-offwhite p-4 text-left text-sm">
-                  <div className="font-bold mb-1 text-wiki-text">Did you know...</div>
+                  <div className="font-bold mb-1 text-wiki-text">
+                    Did you know...
+                  </div>
                   <p className="text-wiki-text-muted italic">{factoid}</p>
                   <button
                     type="button"
