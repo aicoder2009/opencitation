@@ -231,6 +231,12 @@ export function ShareDialog({
                   <WikiButton onClick={handleCopy}>
                     {copySuccess ? "Copied" : "Copy"}
                   </WikiButton>
+                  <a
+                    href={`mailto:?subject=${encodeURIComponent(`${targetName || (type === "list" ? "Citation list" : "Citation project")} — OpenCitation`)}&body=${encodeURIComponent(`I wanted to share this ${type === "list" ? "citation list" : "citation project"} with you:\n\n${activeShare.url}`)}`}
+                    className="inline-flex items-center px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg"
+                  >
+                    Email
+                  </a>
                 </div>
                 {activeShare.expiresAt && (
                   <p className="text-wiki-text-muted text-xs mt-1">
