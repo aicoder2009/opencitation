@@ -1,0 +1,3 @@
+## 2024-05-18 - Improve WikiCollapsible Accessibility
+**Learning:** Found that custom toggle buttons without explicit context (e.g., using generic text like "[hide]"/"[show]") fail to provide meaningful feedback to screen reader users about what content is being toggled. Adding contextual `aria-label` along with `aria-expanded` and `aria-controls` mappings via `useId` provides the necessary relationship context.
+**Action:** Always generate unique IDs using `useId` for toggleable content containers, map them to the control button via `aria-controls`, reflect the state with `aria-expanded`, and ensure the button`s text or `aria-label` provides adequate context about the target content.

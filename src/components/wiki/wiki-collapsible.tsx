@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useId } from "react";
 
 interface WikiCollapsibleProps {
   title: string;
@@ -14,6 +14,7 @@ export function WikiCollapsible({
   defaultOpen = true,
 }: WikiCollapsibleProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const contentId = useId();
 
   return (
     <div className="border border-wiki-border-light bg-wiki-offwhite">
@@ -21,12 +22,15 @@ export function WikiCollapsible({
         <span className="font-medium text-sm">{title}</span>
         <button
           onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          aria-label={`${isOpen ? "Hide" : "Show"} ${title}`}
           className="text-wiki-link text-sm hover:underline"
         >
           [{isOpen ? "hide" : "show"}]
         </button>
       </div>
-      {isOpen && <div className="px-4 py-3">{children}</div>}
+      {isOpen && <div id={contentId} className="px-4 py-3">{children}</div>}
     </div>
   );
 }
