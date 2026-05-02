@@ -62,6 +62,8 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
           <nav className="hidden sm:flex items-center gap-4 text-sm">
             <SignedOut>
               <Link href="/cite" className="text-wiki-link hover:underline">Cite</Link>
+              <Link href="/docs" className="text-wiki-link hover:underline">Docs</Link>
+              <Link href="/help" className="text-wiki-link hover:underline">Help</Link>
               <Link href="/sign-in" className="text-wiki-link hover:underline">Sign In</Link>
               <Link href="/sign-up" className="text-wiki-link hover:underline">Create Account</Link>
               <a
@@ -97,6 +99,8 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <Link href="/cite" className="text-wiki-link hover:underline">Cite</Link>
               <Link href="/lists" className="text-wiki-link hover:underline">Lists</Link>
               <Link href="/projects" className="text-wiki-link hover:underline">Projects</Link>
+              <Link href="/docs" className="text-wiki-link hover:underline">Docs</Link>
+              <Link href="/help" className="text-wiki-link hover:underline">Help</Link>
               <a
                 href="https://github.com/aicoder2009/opencitation"
                 target="_blank"
@@ -159,6 +163,20 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Cite
+              </Link>
+              <Link
+                href="/docs"
+                className="text-wiki-link hover:underline py-1"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Docs
+              </Link>
+              <Link
+                href="/help"
+                className="text-wiki-link hover:underline py-1"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Help
               </Link>
               <SignedOut>
                 <Link
