@@ -67,7 +67,7 @@ describe('Badge API', () => {
     const withCount = await (await GET()).text();
     mockGetStats.mockResolvedValue({ citationsGenerated: 0 });
     const withoutCount = await (await GET()).text();
-    const extractWidth = (svg: string) => svg.match(/width="(d+)"/)?.[1];
+    const extractWidth = (svg: string) => svg.match(/width="(\d+)"/)?.[1];
     const withWidth = extractWidth(withCount);
     const withoutWidth = extractWidth(withoutCount);
     expect(withWidth && withoutWidth && parseInt(withWidth)).toBeGreaterThan(parseInt(withoutWidth));

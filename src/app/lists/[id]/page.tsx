@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use, useRef, useMemo } from "react";
+import { useState, useEffect, use, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -247,18 +247,7 @@ export default function ListDetailPage({
     }
   }, [filteredCitations.length, selectedIndex]);
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push(`/sign-in?redirect_url=/lists/${listId}`);
-      return;
-    }
-
-    if (isSignedIn && listId) {
-      fetchListAndCitations();
-    }
-  }, [isLoaded, isSignedIn, listId, router, fetchListAndCitations]);
-
-  const fetchListAndCitations = async () => {
+  const fetchListAndCitations = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -290,7 +279,18 @@ export default function ListDetailPage({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [listId]);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push(`/sign-in?redirect_url=/lists/${listId}`);
+      return;
+    }
+
+    if (isSignedIn && listId) {
+      fetchListAndCitations();
+    }
+  }, [isLoaded, isSignedIn, listId, router, fetchListAndCitations]);
 
   const handleUpdateName = async () => {
     const trimmedName = editName.trim();
