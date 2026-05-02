@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { SourceType } from '@/types';
+import { safeFetchText, SafeFetchError } from '@/lib/security/safe-fetch';
 
 interface MetadataResult {
   title?: string;
@@ -59,20 +60,48 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
     const body = await request.json();
     const { url } = body;
 
-    if (!url) {
+    if (!url || typeof url !== 'string') {
       return NextResponse.json(
         { success: false, error: 'URL is required' },
         { status: 400 }
       );
     }
 
-    // Validate URL
+    // Validate URL syntax up-front so detection logic has a parsed instance.
     let parsedUrl: URL;
     try {
       parsedUrl = new URL(url);
     } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid URL format' },
+        { status: 400 }
+      );
+    }
+
+    // Restrict outbound fetches to known, intended public hosts.
+    // This removes attacker control over destination hostnames (primary SSRF vector).
+    const ALLOWED_HOSTS = [
+      'arxiv.org',
+      'www.arxiv.org',
+      'doi.org',
+      'dx.doi.org',
+      'openreview.net',
+      'github.com',
+      'www.github.com',
+      'x.com',
+      'twitter.com',
+      'www.twitter.com',
+      'youtube.com',
+      'www.youtube.com',
+      'youtu.be',
+    ];
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isAllowedHost = ALLOWED_HOSTS.some(
+      (h) => hostname === h || hostname.endsWith(`.${h}`)
+    );
+    if (!isAllowedHost) {
+      return NextResponse.json(
+        { success: false, error: 'URL host is not allowed' },
         { status: 400 }
       );
     }
@@ -97,26 +126,38 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       }
     }
 
-    // Fetch the page with browser-like headers
-    const response = await fetch(parsedUrl.toString(), {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Cache-Control': 'no-cache',
-      },
-      // 10 second timeout
-      signal: AbortSignal.timeout(10000),
-    });
+    // Fetch the page through the SSRF-aware fetcher: protocol allowlist,
+    // private/loopback/link-local IP rejection, and a 5MB response cap.
+    let fetched: { status: number; ok: boolean; text: string };
+    try {
+      fetched = await safeFetchText(parsedUrl.toString(), {
+        timeoutMs: 10_000,
+        maxBytes: 5 * 1024 * 1024,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.5',
+          'Cache-Control': 'no-cache',
+        },
+      });
+    } catch (err) {
+      if (err instanceof SafeFetchError) {
+        const status = err.code === 'too_large' ? 413 : 400;
+        return NextResponse.json(
+          { success: false, error: 'This URL cannot be fetched.' },
+          { status }
+        );
+      }
+      throw err;
+    }
 
-    if (!response.ok) {
-      // Provide more helpful error messages
-      let errorMessage = `Failed to fetch URL: ${response.status}`;
-      if (response.status === 401 || response.status === 403) {
+    if (!fetched.ok) {
+      let errorMessage = `Failed to fetch URL: ${fetched.status}`;
+      if (fetched.status === 401 || fetched.status === 403) {
         errorMessage = 'This website requires authentication or blocks automated access. Please use Manual Entry instead.';
-      } else if (response.status === 404) {
+      } else if (fetched.status === 404) {
         errorMessage = 'Page not found. Please check the URL.';
-      } else if (response.status >= 500) {
+      } else if (fetched.status >= 500) {
         errorMessage = 'The website is currently unavailable. Please try again later.';
       }
       return NextResponse.json(
@@ -125,8 +166,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       );
     }
 
-    const html = await response.text();
-    const metadata = parseMetadata(html, parsedUrl.toString());
+    const metadata = parseMetadata(fetched.text, parsedUrl.toString());
 
     // Merge in hostname-based type detection and hints
     if (detection.sourceType) metadata.suggestedSourceType = detection.sourceType;
@@ -598,22 +638,3 @@ async function fetchArxivMetadata(arxivId: string): Promise<MetadataResult | nul
   }
 }
 
-// Also support GET for simple testing
-export async function GET(request: NextRequest): Promise<NextResponse<APIResponse>> {
-  const url = request.nextUrl.searchParams.get('url');
-
-  if (!url) {
-    return NextResponse.json(
-      { success: false, error: 'URL parameter is required' },
-      { status: 400 }
-    );
-  }
-
-  // Create a mock request and delegate to POST
-  const mockRequest = new NextRequest(request.url, {
-    method: 'POST',
-    body: JSON.stringify({ url }),
-  });
-
-  return POST(mockRequest);
-}
