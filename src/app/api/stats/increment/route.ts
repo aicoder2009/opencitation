@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import * as db from "@/lib/db";
 import { getClientKey, isSameOrigin, rateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(request: NextRequest) {
   try {
-    // Reject cross-origin POSTs so a third-party page can't pump the counter.
+    // Require an authenticated session — anonymous traffic cannot move the counter.
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Reject cross-origin POSTs so a third-party page can't pump the counter
+    // with a CSRF-style request riding the user's session.
     if (!isSameOrigin(request)) {
       return NextResponse.json({ success: false }, { status: 403 });
     }

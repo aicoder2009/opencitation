@@ -862,6 +862,7 @@ export async function findListById(listId: string): Promise<List | null> {
     id: item.id,
     userId: item.userId,
     name: item.name,
+    description: item.description,
     projectId: item.projectId,
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,

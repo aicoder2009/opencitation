@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -43,18 +43,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [isCreating, setIsCreating] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (isLoaded && !isSignedIn) {
-      router.push(`/sign-in?redirect_url=/projects/${projectId}`);
-      return;
-    }
-
-    if (isSignedIn && projectId) {
-      fetchProjectAndLists();
-    }
-  }, [isLoaded, isSignedIn, projectId, router]);
-
-  const fetchProjectAndLists = async () => {
+  const fetchProjectAndLists = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -92,7 +81,18 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push(`/sign-in?redirect_url=/projects/${projectId}`);
+      return;
+    }
+
+    if (isSignedIn && projectId) {
+      fetchProjectAndLists();
+    }
+  }, [isLoaded, isSignedIn, projectId, router, fetchProjectAndLists]);
 
   const handleUpdateProject = async () => {
     if (!editName.trim()) {
@@ -210,9 +210,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
     });
   };
 
-  // Lists that can be added to this project (not already in it)
-  const availableLists = allLists.filter(
-    (list) => !list.projectId || list.projectId !== projectId
+  const availableLists = useMemo(
+    () => allLists.filter((list) => !list.projectId || list.projectId !== projectId),
+    [allLists, projectId],
   );
 
   if (!isLoaded || (isLoaded && !isSignedIn)) {

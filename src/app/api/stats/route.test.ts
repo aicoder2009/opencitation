@@ -9,9 +9,15 @@ vi.mock('@/lib/db', () => ({
   incrementCitationCount: vi.fn(),
 }));
 
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: vi.fn(),
+}));
+
 import { getStats, incrementCitationCount } from '@/lib/db';
+import { auth } from '@clerk/nextjs/server';
 const mockGetStats = getStats as unknown as ReturnType<typeof vi.fn>;
 const mockIncrement = incrementCitationCount as unknown as ReturnType<typeof vi.fn>;
+const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 
 function makeIncrementRequest() {
   return new NextRequest('http://localhost/api/stats/increment', {
@@ -48,7 +54,14 @@ describe('Stats API - POST /api/stats/increment', () => {
     _resetRateLimitForTests();
   });
 
+  it('returns 401 when not authenticated', async () => {
+    mockAuth.mockResolvedValue({ userId: null });
+    const response = await POST(makeIncrementRequest());
+    expect(response.status).toBe(401);
+  });
+
   it('returns success: true when increment succeeds', async () => {
+    mockAuth.mockResolvedValue({ userId: 'user_123' });
     mockIncrement.mockResolvedValue(undefined);
     const response = await POST(makeIncrementRequest());
     const data = await response.json();
@@ -57,6 +70,7 @@ describe('Stats API - POST /api/stats/increment', () => {
   });
 
   it('returns success: false with 500 when increment fails', async () => {
+    mockAuth.mockResolvedValue({ userId: 'user_123' });
     mockIncrement.mockRejectedValue(new Error('write error'));
     const response = await POST(makeIncrementRequest());
     const data = await response.json();
@@ -65,6 +79,7 @@ describe('Stats API - POST /api/stats/increment', () => {
   });
 
   it('rejects cross-origin POSTs with 403', async () => {
+    mockAuth.mockResolvedValue({ userId: 'user_123' });
     const request = new NextRequest('http://localhost/api/stats/increment', {
       method: 'POST',
       headers: { Origin: 'https://evil.example.com' },
