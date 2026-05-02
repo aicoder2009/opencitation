@@ -1,8 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from './route';
 import { NextRequest } from 'next/server';
 
-// Mock fetch globally
+vi.mock('@/lib/security/safe-fetch', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/security/safe-fetch')>(
+    '@/lib/security/safe-fetch'
+  );
+  return {
+    ...actual,
+    safeFetchText: vi.fn(),
+  };
+});
+
+import { POST } from './route';
+import { safeFetchText } from '@/lib/security/safe-fetch';
+
+const mockSafeFetch = safeFetchText as unknown as ReturnType<typeof vi.fn>;
+
+// Mock fetch globally for routes that still call it directly (e.g. arXiv side-quest)
 global.fetch = vi.fn();
 
 describe('URL Lookup API', () => {
@@ -51,9 +65,11 @@ describe('URL Lookup API', () => {
       </html>
     `;
 
-    (global.fetch as any).mockResolvedValueOnce({
+    mockSafeFetch.mockResolvedValueOnce({
       ok: true,
-      text: async () => mockHtml,
+      status: 200,
+      text: mockHtml,
+      finalUrl: 'https://example.com',
     });
 
     const request = new NextRequest('http://localhost/api/lookup/url', {
@@ -71,7 +87,7 @@ describe('URL Lookup API', () => {
   });
 
   it('should handle fetch errors', async () => {
-    (global.fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    mockSafeFetch.mockRejectedValueOnce(new Error('Network error'));
 
     const request = new NextRequest('http://localhost/api/lookup/url', {
       method: 'POST',
@@ -88,7 +104,7 @@ describe('URL Lookup API', () => {
   it('should handle timeout errors', async () => {
     const abortError = new Error('Timeout');
     abortError.name = 'AbortError';
-    (global.fetch as any).mockRejectedValueOnce(abortError);
+    mockSafeFetch.mockRejectedValueOnce(abortError);
 
     const request = new NextRequest('http://localhost/api/lookup/url', {
       method: 'POST',
@@ -104,9 +120,11 @@ describe('URL Lookup API', () => {
   });
 
   it('should handle non-200 responses', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    mockSafeFetch.mockResolvedValueOnce({
       ok: false,
       status: 404,
+      text: '',
+      finalUrl: 'https://example.com',
     });
 
     const request = new NextRequest('http://localhost/api/lookup/url', {
@@ -118,6 +136,23 @@ describe('URL Lookup API', () => {
     const data = await response.json();
 
     expect(response.status).toBe(502);
+    expect(data.success).toBe(false);
+  });
+
+  it('should reject SSRF blocks with 400', async () => {
+    const { SafeFetchError } = await import('@/lib/security/safe-fetch');
+    mockSafeFetch.mockRejectedValueOnce(
+      new SafeFetchError('blocked', 'blocked_address')
+    );
+
+    const request = new NextRequest('http://localhost/api/lookup/url', {
+      method: 'POST',
+      body: JSON.stringify({ url: 'http://169.254.169.254/' }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(400);
+    const data = await response.json();
     expect(data.success).toBe(false);
   });
 });

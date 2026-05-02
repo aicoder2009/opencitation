@@ -1,21 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { getClientKey, rateLimit } from "@/lib/security/rate-limit";
 
 const GITHUB_REPO = "aicoder2009/opencitation";
+const MAX_TITLE_LEN = 200;
+const MAX_DESCRIPTION_LEN = 5000;
+const MAX_EMAIL_LEN = 254;
+const ALLOWED_ISSUE_TYPES = new Set(["bug", "feature", "feedback", "general"]);
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limit anonymous abuse: 5 reports per IP per hour.
+    const limit = rateLimit(getClientKey(request, "report-issue"), {
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    });
+    if (!limit.ok) {
+      return NextResponse.json(
+        { success: false, error: "Too many reports. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const { userId } = await auth();
     const { title, description, issueType, email } = await request.json();
 
-    // Validate required fields
-    if (!title || !description) {
+    // Validate required fields and enforce length caps.
+    if (!title || typeof title !== "string" || !description || typeof description !== "string") {
       return NextResponse.json(
         { success: false, error: "Title and description are required" },
         { status: 400 }
       );
     }
+    if (title.length > MAX_TITLE_LEN) {
+      return NextResponse.json(
+        { success: false, error: `Title must be ${MAX_TITLE_LEN} characters or fewer` },
+        { status: 400 }
+      );
+    }
+    if (description.length > MAX_DESCRIPTION_LEN) {
+      return NextResponse.json(
+        { success: false, error: `Description must be ${MAX_DESCRIPTION_LEN} characters or fewer` },
+        { status: 400 }
+      );
+    }
+    if (email !== undefined && (typeof email !== "string" || email.length > MAX_EMAIL_LEN)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid email" },
+        { status: 400 }
+      );
+    }
+    const issueTypeLower = typeof issueType === "string" ? issueType.toLowerCase() : "";
+    const issueTypeAllowed = ALLOWED_ISSUE_TYPES.has(issueTypeLower);
+    const safeIssueLabel = issueTypeAllowed ? issueTypeLower : "general";
+    const displayIssueType = issueTypeAllowed && typeof issueType === "string"
+      ? issueType.trim()
+      : "General";
 
     // Check for GitHub token
     const githubToken = process.env.GITHUB_TOKEN;
@@ -31,7 +72,7 @@ export async function POST(request: NextRequest) {
 ${description}
 
 ---
-**Issue Type:** ${issueType || "General"}
+**Issue Type:** ${displayIssueType}
 **Submitted via:** OpenCitation Report Form
 ${email ? `**Contact:** ${email}` : ""}
 `;
@@ -50,8 +91,9 @@ ${email ? `**Contact:** ${email}` : ""}
         body: JSON.stringify({
           title: `[User Report] ${title}`,
           body: issueBody,
-          labels: ["user-reported", issueType?.toLowerCase() || "general"],
+          labels: ["user-reported", safeIssueLabel],
         }),
+        signal: AbortSignal.timeout(10_000),
       }
     );
 
@@ -71,7 +113,7 @@ ${email ? `**Contact:** ${email}` : ""}
       distinctId: userId ?? "anonymous",
       event: "issue_reported",
       properties: {
-        issue_type: issueType || "general",
+        issue_type: safeIssueLabel,
         has_email: !!email,
         issue_number: issue.number,
       },

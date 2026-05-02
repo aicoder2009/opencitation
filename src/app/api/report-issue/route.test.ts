@@ -13,6 +13,7 @@ vi.mock('@/lib/posthog-server', () => ({
 global.fetch = vi.fn();
 
 import { auth } from '@clerk/nextjs/server';
+import { _resetRateLimitForTests } from '@/lib/security/rate-limit';
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 
 function makeRequest(body: object) {
@@ -37,6 +38,7 @@ const GITHUB_ISSUE_RESPONSE = {
 describe('Report Issue API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetRateLimitForTests();
     mockAuth.mockResolvedValue({ userId: 'user-123' });
     process.env.GITHUB_TOKEN = 'test-token';
   });
