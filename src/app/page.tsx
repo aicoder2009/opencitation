@@ -631,7 +631,7 @@ export default function LandingPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold mb-1">Title <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold mb-1">Title <span className="text-wiki-text-muted">*</span></label>
                     <input
                       type="text"
                       value={issueTitle}
@@ -643,7 +643,7 @@ export default function LandingPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold mb-1">Description <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-bold mb-1">Description <span className="text-wiki-text-muted">*</span></label>
                     <textarea
                       value={issueDescription}
                       onChange={(e) => setIssueDescription(e.target.value)}
@@ -679,8 +679,12 @@ export default function LandingPage() {
 
               {/* Success/Error Result */}
               {submitResult && (
-                <div className={`p-4 border ${submitResult.success ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
-                  <p className={`font-bold ${submitResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                <div
+                  className={`p-4 bg-wiki-offwhite border border-wiki-border-light text-wiki-text ${
+                    submitResult.success ? "border-l-2 border-l-wiki-border-light" : "border-l-4 border-l-wiki-border"
+                  }`}
+                >
+                  <p className="font-bold text-wiki-text">
                     {submitResult.success ? 'Success!' : 'Error'}
                   </p>
                   <p className="mt-1">{submitResult.message}</p>

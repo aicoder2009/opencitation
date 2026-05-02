@@ -245,7 +245,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             { label: "Error" },
           ]}
         />
-        <div className="mt-6 p-6 border border-red-200 bg-red-50 text-red-700">
+        <div className="mt-6 p-6 border-l-4 border-l-wiki-border border border-wiki-border-light bg-wiki-offwhite text-wiki-text">
           <h2 className="font-bold mb-2">Error</h2>
           <p>{error}</p>
           <WikiButton onClick={() => router.push("/projects")} className="mt-4">
@@ -330,11 +330,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-sm">
               {error}
               <button
                 onClick={() => setError(null)}
-                className="ml-2 text-red-500 hover:text-red-700"
+                className="ml-2 text-wiki-link hover:underline"
                 aria-label="Dismiss error"
               >
                 [dismiss]
@@ -440,7 +440,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       </button>
                       <button
                         onClick={() => handleRemoveFromProject(list.id)}
-                        className="text-red-600 hover:underline"
+                        className="text-wiki-link hover:underline"
                       >
                         Remove
                       </button>

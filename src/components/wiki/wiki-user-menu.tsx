@@ -43,7 +43,7 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
   if (!isLoaded || !user) {
     return (
       <div
-        className="rounded-full bg-wiki-border-light animate-pulse"
+        className="bg-wiki-border-light animate-pulse"
         style={{ width: avatarSize, height: avatarSize }}
       />
     );
@@ -57,7 +57,7 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
       {/* Avatar Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-full focus:outline-none"
+        className="border border-wiki-border-light focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
         style={{ width: avatarSize, height: avatarSize }}
         aria-label="User menu"
         aria-expanded={isOpen}
@@ -68,12 +68,12 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
             alt={displayName}
             width={avatarSize}
             height={avatarSize}
-            className="rounded-full"
+            className=""
             style={{ width: avatarSize, height: avatarSize }}
           />
         ) : (
           <div
-            className="rounded-full bg-wiki-tab-bg flex items-center justify-center text-wiki-text text-xs font-bold"
+            className="bg-wiki-tab-bg flex items-center justify-center text-wiki-text text-xs font-bold"
             style={{ width: avatarSize, height: avatarSize }}
           >
             {displayName.charAt(0).toUpperCase()}

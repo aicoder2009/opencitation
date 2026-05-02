@@ -9,6 +9,8 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { SourceTypePicker } from "@/components/wiki/source-type-picker";
 import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
@@ -66,6 +68,67 @@ const CITATION_STYLES: { value: CitationStyle; label: string }[] = [
 
 const NORMALIZE_REGEX = /\s+/g;
 const normalizeText = (text: string) => text.toLowerCase().replace(NORMALIZE_REGEX, " ").trim();
+
+/** Quick-pick row in Manual Entry — covers the everyday majority. */
+const SOURCE_TYPE_PINNED: SourceType[] = [
+  "book",
+  "journal",
+  "website",
+  "blog",
+  "newspaper",
+  "video",
+];
+
+/** Categorized "More" menu so 22 long-tail source types stay scannable. */
+const SOURCE_TYPE_GROUPS: ReadonlyArray<{
+  heading: string;
+  values: ReadonlyArray<SourceType>;
+}> = [
+  { heading: "Books & articles", values: ["book-chapter", "thesis", "conference-paper", "encyclopedia"] },
+  { heading: "Academic", values: ["preprint", "dataset", "software"] },
+  { heading: "Audio & visual", values: ["image", "film", "tv-series", "tv-episode", "song", "album", "podcast-episode", "video-game", "artwork"] },
+  { heading: "Online", values: ["social-media", "ai-generated"] },
+  { heading: "Legal & government", values: ["government-report", "legal-case", "interview"] },
+];
+
+type ResearchType = "pmid" | "arxiv" | "wikipedia";
+
+const RESEARCH_TYPES: { value: ResearchType; label: string }[] = [
+  { value: "pmid", label: "PubMed (PMID)" },
+  { value: "arxiv", label: "arXiv" },
+  { value: "wikipedia", label: "Wikipedia" },
+];
+
+const ARXIV_NEW = /^(?:arxiv:)?\d{4}\.\d{4,5}(?:v\d+)?$/i;
+const ARXIV_OLD = /^(?:arxiv:)?[a-z-]+\/\d{7}(?:v\d+)?$/i;
+const PMID_BARE = /^(?:pmid[:\s]*)?\d{5,9}$/i;
+
+/** Best-effort guess of which research API to hit, based on the input. */
+function detectResearchType(raw: string): ResearchType | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  if (/wikipedia\.org\//i.test(trimmed)) return "wikipedia";
+  if (/pubmed\.ncbi\.nlm\.nih\.gov\//i.test(trimmed)) return "pmid";
+  if (/arxiv\.org\//i.test(trimmed)) return "arxiv";
+  if (ARXIV_NEW.test(trimmed) || ARXIV_OLD.test(trimmed)) return "arxiv";
+  if (PMID_BARE.test(trimmed)) return "pmid";
+  return null;
+}
+
+function researchTypeLabel(rt: ResearchType): string {
+  return RESEARCH_TYPES.find((r) => r.value === rt)?.label ?? rt;
+}
+
+function researchTypeHelp(rt: ResearchType): string {
+  switch (rt) {
+    case "pmid":
+      return "Fetches journal article metadata from PubMed.";
+    case "arxiv":
+      return "Fetches preprint metadata from arXiv.";
+    case "wikipedia":
+      return "Fetches article metadata from Wikipedia.";
+  }
+}
 
 const ACCESS_TYPES: { value: AccessType; label: string }[] = [
   { value: "web", label: "Web" },
@@ -1962,6 +2025,14 @@ function CitePageContent() {
         />
 
         <div className="border border-wiki-border-light border-t-0 bg-wiki-white p-6 md:p-8">
+          <div
+            className={
+              generatedCitation
+                ? "lg:grid lg:grid-cols-[2fr_1fr] lg:gap-6 lg:items-start"
+                : ""
+            }
+          >
+            <div className="min-w-0">
           {activeTab === "quick-add" && (
             <div>
               <h2 className="text-lg font-bold mb-4">Quick Add</h2>
@@ -2008,9 +2079,7 @@ function CitePageContent() {
                 </div>
 
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
-                    {error}
-                  </div>
+                  <WikiNotice variant="warn">{error}</WikiNotice>
                 )}
 
                 <WikiButton
@@ -2026,85 +2095,58 @@ function CitePageContent() {
 
           {activeTab === "research-lookup" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Research Lookup</h2>
+              <h2 className="text-lg font-bold mb-4">Academic Research</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
-                Look up citations from academic databases using PubMed ID, arXiv ID, or Wikipedia article.
+                Paste a PubMed ID, arXiv ID, or Wikipedia article — we detect which database to query. Use the buttons below to override detection.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Source Type
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    <WikiButton
-                      variant={researchType === "pmid" ? "primary" : "default"}
-                      onClick={() => {
-                        setResearchType("pmid");
-                        setResearchInput("");
-                        setResearchError(null);
-                      }}
-                      className={researchType === "pmid" ? "border-wiki-link" : ""}
-                    >
-                      PubMed (PMID)
-                    </WikiButton>
-                    <WikiButton
-                      variant={researchType === "arxiv" ? "primary" : "default"}
-                      onClick={() => {
-                        setResearchType("arxiv");
-                        setResearchInput("");
-                        setResearchError(null);
-                      }}
-                      className={researchType === "arxiv" ? "border-wiki-link" : ""}
-                    >
-                      arXiv
-                    </WikiButton>
-                    <WikiButton
-                      variant={researchType === "wikipedia" ? "primary" : "default"}
-                      onClick={() => {
-                        setResearchType("wikipedia");
-                        setResearchInput("");
-                        setResearchError(null);
-                      }}
-                      className={researchType === "wikipedia" ? "border-wiki-link" : ""}
-                    >
-                      Wikipedia
-                    </WikiButton>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    {researchType === "pmid" && "PubMed ID (PMID)"}
-                    {researchType === "arxiv" && "arXiv ID"}
-                    {researchType === "wikipedia" && "Wikipedia URL or Article Title"}
+                  <label className="block text-sm font-medium mb-2" htmlFor="research-input">
+                    Identifier or URL
                   </label>
                   <input
+                    id="research-input"
                     type="text"
                     value={researchInput}
-                    onChange={(e) => setResearchInput(e.target.value)}
-                    placeholder={
-                      researchType === "pmid"
-                        ? "12345678 or PMID:12345678 or pubmed.ncbi.nlm.nih.gov/12345678"
-                        : researchType === "arxiv"
-                        ? "2301.00001 or arXiv:2301.00001 or hep-th/9901001"
-                        : "https://en.wikipedia.org/wiki/... or Article_Name"
-                    }
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setResearchInput(next);
+                      const detected = detectResearchType(next);
+                      if (detected) setResearchType(detected);
+                    }}
+                    placeholder="e.g. 12345678, 2301.00001, hep-th/9901001, or wikipedia.org/wiki/Citation"
                     className="w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleResearchLookup()}
+                    autoComplete="off"
                   />
                   <p className="mt-1 text-xs text-wiki-text-muted">
-                    {researchType === "pmid" && "Enter a PubMed ID to fetch journal article citation data."}
-                    {researchType === "arxiv" && "Enter an arXiv ID to fetch preprint citation data."}
-                    {researchType === "wikipedia" && "Enter a Wikipedia URL or article title to generate a website citation."}
+                    Detected: <span className="font-medium text-wiki-text">{researchTypeLabel(researchType)}</span>
+                    {" — "}
+                    {researchTypeHelp(researchType)}
                   </p>
                 </div>
 
-                {researchError && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
-                    {researchError}
-                  </div>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs uppercase tracking-wide text-wiki-text-muted mr-1">
+                    Override:
+                  </span>
+                  {RESEARCH_TYPES.map((rt) => (
+                    <WikiButton
+                      key={rt.value}
+                      variant={researchType === rt.value ? "primary" : "default"}
+                      onClick={() => {
+                        setResearchType(rt.value);
+                        setResearchError(null);
+                      }}
+                      className={researchType === rt.value ? "border-wiki-link" : ""}
+                    >
+                      {rt.label}
+                    </WikiButton>
+                  ))}
+                </div>
+
+                {researchError && <WikiNotice variant="warn">{researchError}</WikiNotice>}
 
                 <WikiButton
                   variant="primary"
@@ -2138,11 +2180,7 @@ function CitePageContent() {
                   />
                 </div>
 
-                {bibtexError && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
-                    {bibtexError}
-                  </div>
-                )}
+                {bibtexError && <WikiNotice variant="warn">{bibtexError}</WikiNotice>}
 
                 <div className="flex gap-3">
                   <WikiButton
@@ -2179,45 +2217,16 @@ function CitePageContent() {
                   <label className="block text-sm font-medium mb-2">
                     Source Type
                   </label>
-                  <div className="flex flex-wrap gap-2">
-                    {SOURCE_TYPES.slice(0, 6).map((type) => (
-                      <WikiButton
-                        key={type.value}
-                        variant={selectedSourceType === type.value ? "primary" : "default"}
-                        onClick={() => {
-                          setSelectedSourceType(type.value);
-                          setFormData(initialFormData);
-                        }}
-                        className={selectedSourceType === type.value ? "border-wiki-link" : ""}
-                      >
-                        {type.label}
-                      </WikiButton>
-                    ))}
-                    <details className="relative inline-block">
-                      <summary className="cursor-pointer">
-                        <WikiButton
-                          variant={SOURCE_TYPES.slice(6).some(t => t.value === selectedSourceType) ? "primary" : "default"}
-                        >
-                          More...
-                        </WikiButton>
-                      </summary>
-                      <div className="absolute z-10 mt-1 bg-wiki-white border border-wiki-border-light shadow-lg p-2 flex flex-col gap-1">
-                        {SOURCE_TYPES.slice(6).map((type) => (
-                          <WikiButton
-                            key={type.value}
-                            variant={selectedSourceType === type.value ? "primary" : "default"}
-                            onClick={() => {
-                              setSelectedSourceType(type.value);
-                              setFormData(initialFormData);
-                            }}
-                            className="w-full text-left"
-                          >
-                            {type.label}
-                          </WikiButton>
-                        ))}
-                      </div>
-                    </details>
-                  </div>
+                  <SourceTypePicker
+                    options={SOURCE_TYPES}
+                    pinned={SOURCE_TYPE_PINNED}
+                    groups={SOURCE_TYPE_GROUPS}
+                    value={selectedSourceType}
+                    onChange={(next) => {
+                      setSelectedSourceType(next);
+                      setFormData(initialFormData);
+                    }}
+                  />
                 </div>
 
                 <div>
@@ -2261,9 +2270,7 @@ function CitePageContent() {
                 </WikiCollapsible>
 
                 {error && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
-                    {error}
-                  </div>
+                  <WikiNotice variant="warn">{error}</WikiNotice>
                 )}
 
                 <WikiButton variant="primary" onClick={handleManualGenerate}>
@@ -2273,64 +2280,158 @@ function CitePageContent() {
             </div>
           )}
 
-          {/* Generated Citation Preview */}
-          {generatedCitation && (
-            <div className="mt-8 pt-6 border-t border-wiki-border-light">
-              <h3 className="text-lg font-bold mb-4">Generated Citation ({getStyleLabel(selectedStyle)})</h3>
-              <div className="p-4 bg-wiki-offwhite border border-wiki-border-light">
-                <p
-                  className="citation-text"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedCitation.html) }}
-                />
-              </div>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <WikiButton
-                  variant="primary"
-                  onClick={copyToClipboard}
-                >
-                  Copy to Clipboard
-                </WikiButton>
-                <WikiButton onClick={copyInTextCitation}>
-                  Copy In-text Citation
-                </WikiButton>
-                {isSignedIn ? (
-                  <WikiButton onClick={openAddToListModal}>
-                    Add to List
-                  </WikiButton>
-                ) : (
-                  <WikiButton onClick={() => window.location.href = "/sign-in?redirect_url=/cite"}>
-                    Sign in to Save
-                  </WikiButton>
-                )}
-                <WikiButton onClick={exportCitation}>
-                  Export .txt
-                </WikiButton>
-                <WikiButton onClick={exportRTF} title="Word-compatible with hanging indent">
-                  Export .rtf
-                </WikiButton>
-                <WikiButton onClick={exportBibTeX}>
-                  Export .bib
-                </WikiButton>
-                <WikiButton onClick={copyBibTeX} title="Copy BibTeX to clipboard">
-                  Copy .bib
-                </WikiButton>
-                <WikiButton onClick={exportRIS}>
-                  Export .ris
-                </WikiButton>
-                <WikiButton
-                  onClick={exportZotero}
-                  title="Downloads .ris — then in Zotero: File > Import"
-                >
-                  Export to Zotero
-                </WikiButton>
-              </div>
-              {addToListSuccess && (
-                <div className="mt-3 p-2 bg-green-50 border border-green-200 text-green-700 text-sm">
-                  {addToListSuccess}
+          {activeTab === "bulk-import" && (
+            <div>
+              <h2 className="text-lg font-bold mb-4">Bulk Import</h2>
+              <p className="mb-4 text-sm text-wiki-text-muted">
+                Paste multiple URLs, DOIs, or ISBNs (one per line) to import them all at once.
+                Maximum 20 items per batch.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    URLs, DOIs, or ISBNs (one per line)
+                  </label>
+                  <textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="https://example.com/article1
+10.1000/xyz123
+978-3-16-148410-0
+https://another-site.com/paper"
+                    rows={8}
+                    className="w-full font-mono text-sm"
+                  />
                 </div>
-              )}
+
+                <div className="flex gap-3">
+                  <WikiButton
+                    variant="primary"
+                    onClick={handleBulkImport}
+                    disabled={isBulkLoading || !bulkInput.trim()}
+                  >
+                    {isBulkLoading ? "Processing..." : "Import All"}
+                  </WikiButton>
+                  {bulkInput && (
+                    <WikiButton
+                      onClick={() => {
+                        setBulkInput("");
+                        setBulkResults([]);
+                        setBulkError(null);
+                      }}
+                    >
+                      Clear
+                    </WikiButton>
+                  )}
+                </div>
+
+                {bulkError && <WikiNotice variant="warn">{bulkError}</WikiNotice>}
+
+                {bulkResults.length > 0 && (
+                  <div className="border border-wiki-border-light">
+                    <div className="p-3 bg-wiki-tab-bg border-b border-wiki-border-light">
+                      <span className="font-medium">
+                        Results: {bulkResults.filter(r => r.success).length} successful,{" "}
+                        {bulkResults.filter(r => !r.success).length} failed
+                      </span>
+                    </div>
+                    <div className="divide-y divide-wiki-border-light max-h-64 overflow-y-auto">
+                      {bulkResults.map((result, index) => (
+                        <div
+                          key={index}
+                          className={`p-3 text-sm ${
+                            result.success
+                              ? "hover:bg-wiki-tab-bg cursor-pointer"
+                              : "bg-wiki-offwhite border-l-4 border-l-wiki-border"
+                          }`}
+                          onClick={() => handleBulkResultClick(result)}
+                        >
+                          <div className="flex items-start gap-2">
+                            <span
+                              className="text-wiki-text-muted font-mono"
+                              aria-label={result.success ? "success" : "failed"}
+                            >
+                              {result.success ? "✓" : "✗"}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate font-mono text-xs text-wiki-text-muted">
+                                {result.input}
+                              </div>
+                              {result.success && result.data ? (
+                                <div className="mt-1 truncate">
+                                  {(result.data.title as string) || "Untitled"}
+                                </div>
+                              ) : (
+                                <div className="mt-1 text-wiki-text-muted">
+                                  {result.error}
+                                </div>
+                              )}
+                            </div>
+                            {result.success && (
+                              <span className="text-xs text-wiki-link">Click to view</span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           )}
+            </div>
+
+            {/* Generated Citation Preview — sticky on lg+, stacks under the form on smaller screens. */}
+            {generatedCitation && (
+              <aside className="mt-8 lg:mt-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+                <div className="pt-6 border-t border-wiki-border-light lg:pt-0 lg:border-t-0">
+                  <h3 className="text-lg font-bold mb-4">Generated Citation ({getStyleLabel(selectedStyle)})</h3>
+                  <div className="p-4 bg-wiki-offwhite border border-wiki-border-light">
+                    <p
+                      className="citation-text"
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedCitation.html) }}
+                    />
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <WikiButton variant="primary" onClick={copyToClipboard}>
+                      Copy
+                    </WikiButton>
+                    <WikiButton onClick={copyInTextCitation}>
+                      Copy In-text
+                    </WikiButton>
+                    {isSignedIn ? (
+                      <WikiButton onClick={openAddToListModal}>Add to List</WikiButton>
+                    ) : (
+                      <WikiButton onClick={() => window.location.href = "/sign-in?redirect_url=/cite"}>
+                        Sign in to Save
+                      </WikiButton>
+                    )}
+                  </div>
+                  <details className="mt-4">
+                    <summary className="cursor-pointer text-sm text-wiki-link hover:underline">
+                      Export options
+                    </summary>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <WikiButton onClick={exportCitation}>.txt</WikiButton>
+                      <WikiButton onClick={exportRTF} title="Word-compatible with hanging indent">.rtf</WikiButton>
+                      <WikiButton onClick={exportBibTeX}>.bib</WikiButton>
+                      <WikiButton onClick={copyBibTeX} title="Copy BibTeX to clipboard">copy .bib</WikiButton>
+                      <WikiButton onClick={exportRIS}>.ris</WikiButton>
+                      <WikiButton onClick={exportZotero} title="Downloads .ris — then in Zotero: File > Import">
+                        Zotero
+                      </WikiButton>
+                    </div>
+                  </details>
+                  {addToListSuccess && (
+                    <div className="mt-3">
+                      <WikiNotice>{addToListSuccess}</WikiNotice>
+                    </div>
+                  )}
+                </div>
+              </aside>
+            )}
+          </div>
 
           {/* Add to List Modal */}
           {showListModal && (
@@ -2366,11 +2467,7 @@ function CitePageContent() {
                             autoFocus
                           />
                         </div>
-                        {error && (
-                          <div className="p-2 bg-red-50 border border-red-200 text-red-700 text-sm">
-                            {error}
-                          </div>
-                        )}
+                        {error && <WikiNotice variant="warn">{error}</WikiNotice>}
                         <WikiButton
                           variant="primary"
                           onClick={createListAndAddCitation}
@@ -2423,114 +2520,12 @@ function CitePageContent() {
             </div>
           )}
 
-          {activeTab === "bulk-import" && (
-            <div>
-              <h2 className="text-lg font-bold mb-4">Bulk Import</h2>
-              <p className="mb-4 text-sm text-wiki-text-muted">
-                Paste multiple URLs, DOIs, or ISBNs (one per line) to import them all at once.
-                Maximum 20 items per batch.
-              </p>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    URLs, DOIs, or ISBNs (one per line)
-                  </label>
-                  <textarea
-                    value={bulkInput}
-                    onChange={(e) => setBulkInput(e.target.value)}
-                    placeholder="https://example.com/article1
-10.1000/xyz123
-978-3-16-148410-0
-https://another-site.com/paper"
-                    rows={8}
-                    className="w-full font-mono text-sm"
-                  />
-                </div>
-
-                <div className="flex gap-3">
-                  <WikiButton
-                    variant="primary"
-                    onClick={handleBulkImport}
-                    disabled={isBulkLoading || !bulkInput.trim()}
-                  >
-                    {isBulkLoading ? "Processing..." : "Import All"}
-                  </WikiButton>
-                  {bulkInput && (
-                    <WikiButton
-                      onClick={() => {
-                        setBulkInput("");
-                        setBulkResults([]);
-                        setBulkError(null);
-                      }}
-                    >
-                      Clear
-                    </WikiButton>
-                  )}
-                </div>
-
-                {bulkError && (
-                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
-                    {bulkError}
-                  </div>
-                )}
-
-                {bulkResults.length > 0 && (
-                  <div className="border border-wiki-border-light">
-                    <div className="p-3 bg-wiki-tab-bg border-b border-wiki-border-light">
-                      <span className="font-medium">
-                        Results: {bulkResults.filter(r => r.success).length} successful,{" "}
-                        {bulkResults.filter(r => !r.success).length} failed
-                      </span>
-                    </div>
-                    <div className="divide-y divide-wiki-border-light max-h-64 overflow-y-auto">
-                      {bulkResults.map((result, index) => (
-                        <div
-                          key={index}
-                          className={`p-3 text-sm ${
-                            result.success
-                              ? "hover:bg-wiki-tab-bg cursor-pointer"
-                              : "bg-red-50"
-                          }`}
-                          onClick={() => handleBulkResultClick(result)}
-                        >
-                          <div className="flex items-start gap-2">
-                            <span className={result.success ? "text-green-600" : "text-red-600"}>
-                              {result.success ? "\u2713" : "\u2717"}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <div className="truncate font-mono text-xs text-wiki-text-muted">
-                                {result.input}
-                              </div>
-                              {result.success && result.data ? (
-                                <div className="mt-1 truncate">
-                                  {(result.data.title as string) || "Untitled"}
-                                </div>
-                              ) : (
-                                <div className="mt-1 text-red-600">
-                                  {result.error}
-                                </div>
-                              )}
-                            </div>
-                            {result.success && (
-                              <span className="text-xs text-wiki-link">Click to view</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Duplicate Warning Modal */}
           {showDuplicateWarning && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-wiki-white border border-wiki-border-light max-w-sm w-full mx-4 shadow-lg">
                 <div className="p-4 border-b border-wiki-border-light">
-                  <h3 className="font-bold text-amber-700">Possible Duplicate</h3>
+                  <h3 className="font-bold text-wiki-text">Possible Duplicate</h3>
                 </div>
                 <div className="p-4">
                   <p className="text-sm mb-4">{duplicateInfo}</p>

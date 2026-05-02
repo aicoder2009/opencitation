@@ -150,7 +150,7 @@ export function TemplatePicker({
                   <button
                     type="button"
                     onClick={() => handleDeleteTemplate(template.id)}
-                    className="text-red-600 text-xs hover:underline ml-2"
+                    className="text-wiki-link text-xs hover:underline ml-2"
                     title="Delete template"
                   >
                     [delete]

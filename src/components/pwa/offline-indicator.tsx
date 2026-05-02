@@ -78,12 +78,7 @@ export function OfflineIndicator({
         <div
           className={`fixed ${positionClasses} left-0 right-0 z-50 transition-all duration-300`}
         >
-          <div
-            className={`
-              ${!syncState.isOnline ? 'bg-amber-500' : 'bg-blue-500'}
-              text-white px-4 py-2 shadow-lg
-            `}
-          >
+          <div className="bg-wiki-offwhite border-y border-wiki-border-light text-wiki-text px-4 py-2 shadow-md">
             <div className="max-w-4xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {/* Status Icon */}
@@ -161,7 +156,7 @@ export function OfflineIndicator({
                 {syncState.isOnline && syncState.pendingCount > 0 && !syncState.isSyncing && (
                   <button
                     onClick={handleSync}
-                    className="px-3 py-1 text-sm bg-white/20 hover:bg-white/30 rounded transition-colors"
+                    className="px-3 py-1 text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     Sync now
                   </button>
@@ -169,7 +164,7 @@ export function OfflineIndicator({
 
                 <button
                   onClick={() => setIsExpanded(!isExpanded)}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  className="p-1 text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                 >
                   <svg
@@ -191,7 +186,7 @@ export function OfflineIndicator({
 
             {/* Expanded Details */}
             {isExpanded && (
-              <div className="max-w-4xl mx-auto mt-3 pt-3 border-t border-white/20">
+              <div className="max-w-4xl mx-auto mt-3 pt-3 border-t border-wiki-border-light">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
                     <div className="text-xs opacity-70">Status</div>
@@ -214,7 +209,7 @@ export function OfflineIndicator({
                   {syncState.lastError && (
                     <div>
                       <div className="text-xs opacity-70">Last Error</div>
-                      <div className="font-medium text-red-200 truncate">
+                      <div className="font-medium text-wiki-text-muted truncate">
                         {syncState.lastError}
                       </div>
                     </div>
@@ -228,7 +223,7 @@ export function OfflineIndicator({
 
       {/* Update Available Banner */}
       {showUpdateBanner && pwaState.isUpdateAvailable && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-green-600 text-white px-4 py-2 shadow-lg">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-wiki-offwhite border-b border-wiki-border-light text-wiki-text px-4 py-2 shadow-md">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg
@@ -251,13 +246,13 @@ export function OfflineIndicator({
             <div className="flex items-center gap-2">
               <button
                 onClick={handleUpdate}
-                className="px-3 py-1 text-sm bg-white text-green-600 font-medium rounded hover:bg-green-50 transition-colors"
+                className="px-3 py-1 text-sm bg-wiki-white border border-wiki-border-light text-wiki-link font-medium hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 Update now
               </button>
               <button
                 onClick={() => setShowUpdateBanner(false)}
-                className="p-1 hover:bg-white/20 rounded transition-colors"
+                className="p-1 text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 aria-label="Dismiss"
               >
                 <svg
@@ -284,7 +279,7 @@ export function OfflineIndicator({
         <div className="fixed bottom-4 right-4 z-40">
           <button
             onClick={handleInstall}
-            className="flex items-center gap-2 px-4 py-3 bg-[#3366cc] text-white rounded-lg shadow-lg hover:bg-[#2a4b8d] transition-colors"
+            className="flex items-center gap-2 px-4 py-3 bg-wiki-white border border-wiki-border-light text-wiki-link font-medium shadow-md hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             <svg
               className="w-5 h-5"

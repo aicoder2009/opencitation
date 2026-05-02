@@ -363,7 +363,7 @@ export function SortableCitation({
               </button>
               <button
                 onClick={() => onDelete(citation.id)}
-                className="text-red-600 text-sm hover:underline"
+                className="text-wiki-link text-sm hover:underline"
               >
                 [delete]
               </button>
@@ -420,7 +420,7 @@ export function SortableCitation({
                   </button>
                   <button
                     onClick={() => onSaveNotes(citation.id, "")}
-                    className="text-red-600 text-xs hover:underline"
+                    className="text-wiki-link text-xs hover:underline"
                   >
                     [clear]
                   </button>
@@ -477,7 +477,7 @@ export function SortableCitation({
                       onClick={() =>
                         setQuotesDraft(quotesDraft.filter((_, idx) => idx !== i))
                       }
-                      className="text-red-600 text-xs hover:underline pt-1"
+                      className="text-wiki-link text-xs hover:underline pt-1"
                     >
                       remove
                     </button>
@@ -573,7 +573,7 @@ export function SortableCitation({
                   <span>{tag}</span>
                   <button
                     onClick={() => onRemoveTag(citation.id, tag)}
-                    className="hover:text-red-600"
+                    className="hover:text-wiki-link"
                     title="Remove tag"
                   >
                     &times;

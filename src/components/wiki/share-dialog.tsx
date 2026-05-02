@@ -204,7 +204,7 @@ export function ShareDialog({
           </div>
 
           {error && (
-            <div className="p-2 bg-red-50 border border-red-200 text-red-700 text-xs">
+            <div className="p-2 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-xs">
               {error}
             </div>
           )}
@@ -241,17 +241,13 @@ export function ShareDialog({
               </div>
 
               {confirmRevoke ? (
-                <div className="p-3 border border-red-200 bg-red-50 text-xs text-red-700">
+                <div className="p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-xs text-wiki-text">
                   <p className="mb-2">
                     Revoke this link? Anyone with the URL will lose access
                     immediately.
                   </p>
                   <div className="flex gap-2">
-                    <WikiButton
-                      onClick={handleRevoke}
-                      disabled={isRevoking}
-                      className="text-red-700"
-                    >
+                    <WikiButton onClick={handleRevoke} disabled={isRevoking}>
                       {isRevoking ? "Revoking…" : "Yes, revoke"}
                     </WikiButton>
                     <WikiButton
@@ -265,7 +261,7 @@ export function ShareDialog({
               ) : (
                 <button
                   onClick={() => setConfirmRevoke(true)}
-                  className="text-red-600 hover:underline text-xs"
+                  className="text-wiki-link hover:underline text-xs"
                 >
                   Revoke link
                 </button>
