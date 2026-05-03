@@ -15,7 +15,7 @@ import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
-import type { CitationTemplate } from "@/lib/templates";
+import { saveTemplate, suggestTemplateName, type CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
 import { parseBibTeX } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
@@ -361,6 +361,11 @@ function CitePageContent() {
   const [bibtexInput, setBibtexInput] = useState("");
   const [bibtexError, setBibtexError] = useState<string | null>(null);
   const [isBibtexLoading, setIsBibtexLoading] = useState(false);
+
+  // Template save state (Manual Entry)
+  const [showTemplateSave, setShowTemplateSave] = useState(false);
+  const [templateSaveName, setTemplateSaveName] = useState("");
+  const [templateRefreshKey, setTemplateRefreshKey] = useState(0);
 
   // Research lookup state
   const [researchInput, setResearchInput] = useState("");
@@ -1241,6 +1246,25 @@ function CitePageContent() {
       channelName: template.fields.channelName || "",
       platform: template.fields.platform || "",
     });
+  };
+
+  const handleManualSaveTemplate = () => {
+    if (!templateSaveName.trim()) return;
+    saveTemplate({
+      name: templateSaveName.trim(),
+      sourceType: selectedSourceType,
+      accessType: selectedAccessType,
+      fields: {
+        siteName: formData.siteName || undefined,
+        journalTitle: formData.journalTitle || undefined,
+        publisher: formData.publisher || undefined,
+        channelName: formData.channelName || undefined,
+        platform: formData.platform || undefined,
+      },
+    });
+    setTemplateRefreshKey((k) => k + 1);
+    setShowTemplateSave(false);
+    setTemplateSaveName("");
   };
 
   // Render fields based on source type
@@ -2248,16 +2272,8 @@ function CitePageContent() {
                 </div>
 
                 <TemplatePicker
-                  sourceType={selectedSourceType}
-                  accessType={selectedAccessType}
-                  currentFields={{
-                    siteName: formData.siteName || undefined,
-                    journalTitle: formData.journalTitle || undefined,
-                    publisher: formData.publisher || undefined,
-                    channelName: formData.channelName || undefined,
-                    platform: formData.platform || undefined,
-                  }}
                   onSelectTemplate={handleSelectTemplate}
+                  refreshKey={templateRefreshKey}
                 />
 
                 <WikiCollapsible
@@ -2273,9 +2289,59 @@ function CitePageContent() {
                   <WikiNotice variant="warn">{error}</WikiNotice>
                 )}
 
-                <WikiButton variant="primary" onClick={handleManualGenerate}>
-                  Generate Citation
-                </WikiButton>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <WikiButton variant="primary" onClick={handleManualGenerate}>
+                    Generate Citation
+                  </WikiButton>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (showTemplateSave) {
+                        setShowTemplateSave(false);
+                        setTemplateSaveName("");
+                      } else {
+                        setTemplateSaveName(suggestTemplateName(selectedSourceType, {
+                          siteName: formData.siteName || undefined,
+                          journalTitle: formData.journalTitle || undefined,
+                          publisher: formData.publisher || undefined,
+                          channelName: formData.channelName || undefined,
+                          platform: formData.platform || undefined,
+                        }));
+                        setShowTemplateSave(true);
+                      }
+                    }}
+                    className="text-sm text-wiki-link hover:underline"
+                  >
+                    {showTemplateSave ? "Cancel" : "Save as Template"}
+                  </button>
+                </div>
+
+                {showTemplateSave && (
+                  <div className="p-3 border border-wiki-border-light bg-wiki-offwhite">
+                    <label className="block text-sm font-medium mb-1">Template Name</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={templateSaveName}
+                        onChange={(e) => setTemplateSaveName(e.target.value)}
+                        placeholder="e.g., Nature Journal, My Blog"
+                        className="flex-1 px-2 py-1 text-sm border border-wiki-border-light"
+                        onKeyDown={(e) => e.key === "Enter" && handleManualSaveTemplate()}
+                        autoFocus
+                      />
+                      <WikiButton
+                        variant="primary"
+                        onClick={handleManualSaveTemplate}
+                        disabled={!templateSaveName.trim()}
+                      >
+                        Save
+                      </WikiButton>
+                    </div>
+                    <p className="mt-1 text-xs text-wiki-text-muted">
+                      Saves current source type, access type, and common fields.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
