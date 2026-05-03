@@ -12,6 +12,7 @@ import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
 import { SourceTypePicker } from "@/components/wiki/source-type-picker";
 import { WikiDatePicker, type DateValue } from "@/components/wiki/wiki-date-picker";
+import { WikiSelect } from "@/components/wiki/wiki-select";
 import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
@@ -1412,25 +1413,25 @@ function CitePageContent() {
             </div>
             <div>
               <label className="block text-xs text-wiki-text-muted mb-1">Month</label>
-              <select
+              <WikiSelect
                 value={formData.month}
-                onChange={(e) => updateFormData("month", e.target.value)}
-                className="w-full"
-              >
-                <option value="">— Month —</option>
-                <option value="1">01 — January</option>
-                <option value="2">02 — February</option>
-                <option value="3">03 — March</option>
-                <option value="4">04 — April</option>
-                <option value="5">05 — May</option>
-                <option value="6">06 — June</option>
-                <option value="7">07 — July</option>
-                <option value="8">08 — August</option>
-                <option value="9">09 — September</option>
-                <option value="10">10 — October</option>
-                <option value="11">11 — November</option>
-                <option value="12">12 — December</option>
-              </select>
+                onChange={(v) => updateFormData("month", v)}
+                placeholder="— Month —"
+                options={[
+                  { value: "1",  label: "01 — January" },
+                  { value: "2",  label: "02 — February" },
+                  { value: "3",  label: "03 — March" },
+                  { value: "4",  label: "04 — April" },
+                  { value: "5",  label: "05 — May" },
+                  { value: "6",  label: "06 — June" },
+                  { value: "7",  label: "07 — July" },
+                  { value: "8",  label: "08 — August" },
+                  { value: "9",  label: "09 — September" },
+                  { value: "10", label: "10 — October" },
+                  { value: "11", label: "11 — November" },
+                  { value: "12", label: "12 — December" },
+                ]}
+              />
             </div>
             <div>
               <label className="block text-xs text-wiki-text-muted mb-1">Day</label>
@@ -1726,12 +1727,15 @@ function CitePageContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Degree</label>
-                <select value={formData.degree} onChange={(e) => updateFormData("degree", e.target.value)} className="w-full">
-                  <option value="">Select…</option>
-                  <option value="doctoral">Doctoral</option>
-                  <option value="masters">Master&apos;s</option>
-                  <option value="bachelors">Bachelor&apos;s</option>
-                </select>
+                <WikiSelect
+                  value={formData.degree}
+                  onChange={(v) => updateFormData("degree", v)}
+                  options={[
+                    { value: "doctoral",  label: "Doctoral" },
+                    { value: "masters",   label: "Master's" },
+                    { value: "bachelors", label: "Bachelor's" },
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Department</label>
@@ -1882,14 +1886,17 @@ function CitePageContent() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Post Type</label>
-              <select value={formData.postType} onChange={(e) => updateFormData("postType", e.target.value)} className="w-full">
-                <option value="">Select…</option>
-                <option value="post">Post</option>
-                <option value="tweet">Tweet</option>
-                <option value="reel">Reel</option>
-                <option value="story">Story</option>
-                <option value="comment">Comment</option>
-              </select>
+              <WikiSelect
+                value={formData.postType}
+                onChange={(v) => updateFormData("postType", v)}
+                options={[
+                  { value: "post",    label: "Post" },
+                  { value: "tweet",   label: "Tweet" },
+                  { value: "reel",    label: "Reel" },
+                  { value: "story",   label: "Story" },
+                  { value: "comment", label: "Comment" },
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">URL</label>
@@ -1929,12 +1936,15 @@ function CitePageContent() {
             {commonFields}
             <div>
               <label className="block text-sm font-medium mb-1">Interview Type</label>
-              <select value={formData.interviewType} onChange={(e) => updateFormData("interviewType", e.target.value)} className="w-full">
-                <option value="">Select…</option>
-                <option value="personal">Personal</option>
-                <option value="published">Published</option>
-                <option value="broadcast">Broadcast</option>
-              </select>
+              <WikiSelect
+                value={formData.interviewType}
+                onChange={(v) => updateFormData("interviewType", v)}
+                options={[
+                  { value: "personal",  label: "Personal" },
+                  { value: "published", label: "Published" },
+                  { value: "broadcast", label: "Broadcast" },
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Source</label>
