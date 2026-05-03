@@ -21,13 +21,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Maximum 20 items allowed per request" }, { status: 400 });
     }
 
-    const results: LookupResult[] = [];
+    // Refactored to process lookups concurrently for performance improvement
+    const baseUrl = request.nextUrl.origin;
 
-    for (const item of items) {
+    const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
-        results.push({ input: item, success: false, error: "Empty input" });
-        continue;
+        return { input: item, success: false, error: "Empty input" };
       }
 
       try {
@@ -45,17 +45,12 @@ export async function POST(request: NextRequest) {
           apiEndpoint = "/api/lookup/isbn";
           body = { isbn: trimmedItem };
         } else {
-          // Try DOI format without 10. prefix
-          results.push({
+          return {
             input: trimmedItem,
             success: false,
             error: "Unrecognized format. Please enter a URL, DOI (10.xxxx/...), or ISBN."
-          });
-          continue;
+          };
         }
-
-        // Get the base URL from the request
-        const baseUrl = request.nextUrl.origin;
 
         // Make the API call
         const response = await fetch(`${baseUrl}${apiEndpoint}`, {
@@ -67,22 +62,24 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
 
         if (response.ok && data.data) {
-          results.push({ input: trimmedItem, success: true, data: data.data });
+          return { input: trimmedItem, success: true, data: data.data };
         } else {
-          results.push({
+          return {
             input: trimmedItem,
             success: false,
             error: data.error || "Failed to fetch metadata"
-          });
+          };
         }
       } catch (err) {
-        results.push({
+        return {
           input: trimmedItem,
           success: false,
           error: err instanceof Error ? err.message : "Unknown error"
-        });
+        };
       }
-    }
+    });
+
+    const results: LookupResult[] = await Promise.all(lookupPromises);
 
     return NextResponse.json({
       results,

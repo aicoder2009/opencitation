@@ -1,0 +1,3 @@
+## 2026-05-03 - [Concurrent Processing for Bulk Lookups]
+**Learning:** Sequential processing using `for...of` loops and `await` inside the loop for multiple independent network requests causes O(n) latency scaling based on the number of requests. The bulk lookup API (`src/app/api/lookup/bulk/route.ts`) was experiencing this bottleneck since it fetched lookup API endpoints one by one.
+**Action:** When handling a batch of independent data retrieval requests (e.g., bulk API requests), always map the array of input items to an array of Promise objects and await them concurrently utilizing `Promise.all` instead of sequentially. This reduces network time down to approximately the maximum length of a single request (from O(n) to approximately O(1) latency).
