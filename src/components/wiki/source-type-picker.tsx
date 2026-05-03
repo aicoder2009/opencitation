@@ -116,7 +116,7 @@ export function SourceTypePicker({
   };
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef}>
       <div className="flex flex-wrap gap-2">
         {pinnedOptions.map((type) => (
           <WikiButton
@@ -128,73 +128,77 @@ export function SourceTypePicker({
             {type.label}
           </WikiButton>
         ))}
-        <WikiButton
-          variant={moreActive ? "primary" : "default"}
-          onClick={() => (open ? close() : setOpen(true))}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          className={moreActive ? "border-wiki-link" : ""}
-        >
-          {moreLabel} <span aria-hidden>▾</span>
-        </WikiButton>
-      </div>
 
-      {open && (
-        <div
-          role="menu"
-          className="absolute z-20 mt-1 bg-wiki-white border border-wiki-border-light shadow-md"
-          style={{ minWidth: 260 }}
-        >
-          {/* Search — not inside the scroll area so it stays visible */}
-          <div className="p-2 border-b border-wiki-border-light bg-wiki-offwhite">
-            <input
-              ref={inputRef}
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search source types…"
-              className="w-full px-2 py-1.5 text-sm bg-wiki-white border border-wiki-border-light placeholder:text-wiki-text-muted focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-              aria-label="Filter source types"
-            />
-          </div>
+        {/* Wrap the More button + dropdown together so the dropdown aligns to the button */}
+        <div className="relative">
+          <WikiButton
+            variant={moreActive ? "primary" : "default"}
+            onClick={() => (open ? close() : setOpen(true))}
+            aria-haspopup="menu"
+            aria-expanded={open}
+            className={moreActive ? "border-wiki-link" : ""}
+          >
+            {moreLabel} <span aria-hidden>▾</span>
+          </WikiButton>
 
-          {/* Items — independently scrollable */}
-          <div className="max-h-72 overflow-y-auto">
-            {filteredGroups.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-wiki-text-muted italic">No matches.</div>
-            ) : (
-              filteredGroups.map((group, gi) => (
-                <div key={group.heading}>
-                  {gi > 0 && <div className="border-t border-wiki-border-light" />}
-                  <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-wiki-text-muted bg-wiki-offwhite border-b border-wiki-border-light">
-                    {group.heading}
-                  </div>
-                  {group.items.map((item) => {
-                    const active = value === item.value;
-                    return (
-                      <button
-                        key={item.value}
-                        type="button"
-                        role="menuitem"
-                        onClick={() => select(item.value)}
-                        className={`flex items-center justify-between w-full text-left px-3 py-1.5 text-sm transition-colors
-                          focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
-                          ${active
-                            ? "bg-wiki-tab-bg text-wiki-link font-medium"
-                            : "text-wiki-text hover:bg-wiki-tab-bg"
-                          }`}
-                      >
-                        <span>{item.label}</span>
-                        {active && <span aria-hidden className="text-wiki-link ml-2">✓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))
-            )}
-          </div>
+          {open && (
+            <div
+              role="menu"
+              className="absolute z-20 top-full left-0 mt-1 bg-wiki-white border border-wiki-border-light shadow-md"
+              style={{ minWidth: 260 }}
+            >
+              {/* Search — not inside the scroll area so it stays visible */}
+              <div className="p-2 border-b border-wiki-border-light bg-wiki-offwhite">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search source types…"
+                  className="w-full px-2 py-1.5 text-sm bg-wiki-white border border-wiki-border-light placeholder:text-wiki-text-muted focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  aria-label="Filter source types"
+                />
+              </div>
+
+              {/* Items — independently scrollable */}
+              <div className="max-h-72 overflow-y-auto">
+                {filteredGroups.length === 0 ? (
+                  <div className="px-3 py-3 text-sm text-wiki-text-muted italic">No matches.</div>
+                ) : (
+                  filteredGroups.map((group, gi) => (
+                    <div key={group.heading}>
+                      {gi > 0 && <div className="border-t border-wiki-border-light" />}
+                      <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-wiki-text-muted bg-wiki-offwhite border-b border-wiki-border-light">
+                        {group.heading}
+                      </div>
+                      {group.items.map((item) => {
+                        const active = value === item.value;
+                        return (
+                          <button
+                            key={item.value}
+                            type="button"
+                            role="menuitem"
+                            onClick={() => select(item.value)}
+                            className={`flex items-center justify-between w-full text-left px-3 py-1.5 text-sm transition-colors
+                              focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
+                              ${active
+                                ? "bg-wiki-tab-bg text-wiki-link font-medium"
+                                : "text-wiki-text hover:bg-wiki-tab-bg"
+                              }`}
+                          >
+                            <span>{item.label}</span>
+                            {active && <span aria-hidden className="text-wiki-link ml-2">✓</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
