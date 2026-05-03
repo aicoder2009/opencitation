@@ -37,21 +37,25 @@ export function SourceTypePicker({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const byValue = useMemo(() => new Map(options.map((o) => [o.value, o])), [options]);
+  const pinnedSet = useMemo(() => new Set(pinned), [pinned]);
   const pinnedOptions = useMemo(
     () => pinned.map((v) => byValue.get(v)).filter((o): o is SourceTypeOption => !!o),
     [pinned, byValue]
   );
-  const isPinned = (v: SourceType) => pinned.includes(v);
+  const moreActive = !pinnedSet.has(value);
+  const moreLabel = moreActive
+    ? `More: ${byValue.get(value)?.label ?? "…"}`
+    : "More";
 
   const groupedRest = useMemo<SourceTypeGroup[]>(() => {
-    const restValues = options.filter((o) => !isPinned(o.value));
+    const restValues = options.filter((o) => !pinnedSet.has(o.value));
     if (!groups) return [{ heading: "All", items: restValues }];
 
     const taken = new Set<SourceType>();
     const built: SourceTypeGroup[] = [];
     for (const g of groups) {
       const items = g.values
-        .filter((v) => !isPinned(v))
+        .filter((v) => !pinnedSet.has(v))
         .map((v) => {
           taken.add(v);
           return byValue.get(v);
@@ -62,8 +66,7 @@ export function SourceTypePicker({
     const leftovers = restValues.filter((o) => !taken.has(o.value));
     if (leftovers.length > 0) built.push({ heading: "Other", items: leftovers });
     return built;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options, groups, pinned]);
+  }, [options, groups, pinnedSet, byValue]);
 
   const filteredGroups = useMemo<SourceTypeGroup[]>(() => {
     const q = query.trim().toLowerCase();
@@ -76,16 +79,16 @@ export function SourceTypePicker({
       .filter((g) => g.items.length > 0);
   }, [groupedRest, query]);
 
-  // Outside click + Escape close the menu.
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setQuery("");
       }
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") { setOpen(false); setQuery(""); }
     };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
@@ -95,23 +98,21 @@ export function SourceTypePicker({
     };
   }, [open]);
 
-  // When opening, focus the search input so keyboard users can type immediately.
+  // Focus the search input on open; do not call setState inside this effect.
   useEffect(() => {
-    if (open) {
-      const t = window.setTimeout(() => inputRef.current?.focus(), 0);
-      return () => window.clearTimeout(t);
-    }
-    setQuery("");
+    if (!open) return;
+    const t = window.setTimeout(() => inputRef.current?.focus(), 0);
+    return () => window.clearTimeout(t);
   }, [open]);
 
-  const moreActive = !pinned.includes(value);
-  const moreLabel = moreActive
-    ? `More: ${byValue.get(value)?.label ?? "…"}`
-    : "More…";
+  const close = () => {
+    setOpen(false);
+    setQuery("");
+  };
 
   const select = (next: SourceType) => {
     onChange(next);
-    setOpen(false);
+    close();
   };
 
   return (
@@ -129,7 +130,7 @@ export function SourceTypePicker({
         ))}
         <WikiButton
           variant={moreActive ? "primary" : "default"}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => (open ? close() : setOpen(true))}
           aria-haspopup="menu"
           aria-expanded={open}
           className={moreActive ? "border-wiki-link" : ""}
@@ -141,46 +142,57 @@ export function SourceTypePicker({
       {open && (
         <div
           role="menu"
-          className="absolute z-20 mt-1 w-full max-w-sm bg-wiki-white border border-wiki-border-light shadow-md max-h-80 overflow-y-auto"
+          className="absolute z-20 mt-1 bg-wiki-white border border-wiki-border-light shadow-md"
+          style={{ minWidth: 260 }}
         >
+          {/* Search — not inside the scroll area so it stays visible */}
           <div className="p-2 border-b border-wiki-border-light bg-wiki-offwhite">
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter source types…"
-              className="w-full"
+              placeholder="Search source types…"
+              className="w-full px-2 py-1.5 text-sm bg-wiki-white border border-wiki-border-light placeholder:text-wiki-text-muted focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               aria-label="Filter source types"
             />
           </div>
-          {filteredGroups.length === 0 ? (
-            <div className="px-3 py-3 text-sm text-wiki-text-muted">No matches.</div>
-          ) : (
-            filteredGroups.map((group) => (
-              <div key={group.heading}>
-                <div className="px-3 pt-2 pb-1 text-xs uppercase tracking-wide text-wiki-text-muted">
-                  {group.heading}
+
+          {/* Items — independently scrollable */}
+          <div className="max-h-72 overflow-y-auto">
+            {filteredGroups.length === 0 ? (
+              <div className="px-3 py-3 text-sm text-wiki-text-muted italic">No matches.</div>
+            ) : (
+              filteredGroups.map((group, gi) => (
+                <div key={group.heading}>
+                  {gi > 0 && <div className="border-t border-wiki-border-light" />}
+                  <div className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-wiki-text-muted bg-wiki-offwhite border-b border-wiki-border-light">
+                    {group.heading}
+                  </div>
+                  {group.items.map((item) => {
+                    const active = value === item.value;
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        role="menuitem"
+                        onClick={() => select(item.value)}
+                        className={`flex items-center justify-between w-full text-left px-3 py-1.5 text-sm transition-colors
+                          focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
+                          ${active
+                            ? "bg-wiki-tab-bg text-wiki-link font-medium"
+                            : "text-wiki-text hover:bg-wiki-tab-bg"
+                          }`}
+                      >
+                        <span>{item.label}</span>
+                        {active && <span aria-hidden className="text-wiki-link ml-2">✓</span>}
+                      </button>
+                    );
+                  })}
                 </div>
-                {group.items.map((item) => {
-                  const active = value === item.value;
-                  return (
-                    <button
-                      key={item.value}
-                      type="button"
-                      role="menuitem"
-                      onClick={() => select(item.value)}
-                      className={`block w-full text-left px-3 py-1.5 text-sm hover:bg-wiki-tab-bg focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text ${
-                        active ? "text-wiki-link font-medium" : "text-wiki-text"
-                      }`}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>
