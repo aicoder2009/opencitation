@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
@@ -68,12 +69,22 @@ function formatShareFooter(share: ShareMeta | undefined): string | null {
   return parts.length ? parts.join(" · ") : null;
 }
 
+interface SaveResult {
+  type: "list" | "project";
+  id: string;
+  name: string;
+}
+
 export default function SharePage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = use(params);
+  const { isLoaded: isAuthLoaded, isSignedIn } = useUser();
   const [data, setData] = useState<SharedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,6 +178,28 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
   const exportCitationsRTF = (citations: SharedCitation[], name: string) => {
     downloadBlob(toRTF(citations, name), name, "rtf", "application/rtf");
     posthog.capture("share_exported", { format: "rtf", citation_count: citations.length, share_code: code });
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+    try {
+      const response = await fetch(`/api/share/${code}/clone`, { method: "POST" });
+      const result = await response.json();
+      if (result.success) {
+        setSaveResult(result.data);
+        posthog.capture("share_saved_to_account", {
+          share_type: result.data.type,
+          share_code: code,
+        });
+      } else {
+        setSaveError(result.error || "Failed to save");
+      }
+    } catch {
+      setSaveError("Failed to save to your account");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (isLoading) {
@@ -296,13 +329,46 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
             )}
 
             {/* Footer */}
-            <div className="mt-8 pt-6 border-t border-wiki-border-light text-center">
-              <p className="text-wiki-text-muted text-sm mb-4">
+            <div className="mt-8 pt-6 border-t border-wiki-border-light text-center space-y-3">
+              <p className="text-wiki-text-muted text-sm">
                 This list was shared via OpenCitation
               </p>
-              <WikiButton variant="primary" onClick={() => (window.location.href = "/cite")}>
-                Create Your Own Citations
-              </WikiButton>
+              {isAuthLoaded && (
+                isSignedIn ? (
+                  saveResult ? (
+                    <p className="text-sm">
+                      Saved!{" "}
+                      <a
+                        href={`/lists/${saveResult.id}`}
+                        className="text-wiki-link hover:underline"
+                      >
+                        Open &ldquo;{saveResult.name}&rdquo;
+                      </a>
+                    </p>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <WikiButton onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? "Saving…" : "Save to my account"}
+                      </WikiButton>
+                      {saveError && (
+                        <p className="text-wiki-text-muted text-xs">{saveError}</p>
+                      )}
+                    </div>
+                  )
+                ) : (
+                  <a
+                    href={`/sign-up?redirect_url=/share/${code}`}
+                    className="text-wiki-link hover:underline text-sm"
+                  >
+                    Create a free account to save a copy
+                  </a>
+                )
+              )}
+              <div>
+                <WikiButton variant="primary" onClick={() => (window.location.href = "/cite")}>
+                  Create Your Own Citations
+                </WikiButton>
+              </div>
             </div>
           </div>
         </div>
@@ -418,13 +484,46 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
           )}
 
           {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-wiki-border-light text-center">
-            <p className="text-wiki-text-muted text-sm mb-4">
+          <div className="mt-8 pt-6 border-t border-wiki-border-light text-center space-y-3">
+            <p className="text-wiki-text-muted text-sm">
               This project was shared via OpenCitation
             </p>
-            <WikiButton variant="primary" onClick={() => (window.location.href = "/cite")}>
-              Create Your Own Citations
-            </WikiButton>
+            {isAuthLoaded && (
+              isSignedIn ? (
+                saveResult ? (
+                  <p className="text-sm">
+                    Saved!{" "}
+                    <a
+                      href={`/projects/${saveResult.id}`}
+                      className="text-wiki-link hover:underline"
+                    >
+                      Open &ldquo;{saveResult.name}&rdquo;
+                    </a>
+                  </p>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <WikiButton onClick={handleSave} disabled={isSaving}>
+                      {isSaving ? "Saving…" : "Save to my account"}
+                    </WikiButton>
+                    {saveError && (
+                      <p className="text-wiki-text-muted text-xs">{saveError}</p>
+                    )}
+                  </div>
+                )
+              ) : (
+                <a
+                  href={`/sign-up?redirect_url=/share/${code}`}
+                  className="text-wiki-link hover:underline text-sm"
+                >
+                  Create a free account to save a copy
+                </a>
+              )
+            )}
+            <div>
+              <WikiButton variant="primary" onClick={() => (window.location.href = "/cite")}>
+                Create Your Own Citations
+              </WikiButton>
+            </div>
           </div>
         </div>
       </div>

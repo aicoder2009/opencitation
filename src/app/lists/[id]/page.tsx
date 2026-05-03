@@ -1071,7 +1071,7 @@ export default function ListDetailPage({
             { label: "Error" },
           ]}
         />
-        <div className="mt-6 p-6 border border-red-200 bg-red-50 text-red-700">
+        <div className="mt-6 p-6 border-l-4 border-l-wiki-border border border-wiki-border-light bg-wiki-offwhite text-wiki-text">
           <h2 className="font-bold mb-2">Error</h2>
           <p>{error}</p>
           <WikiButton onClick={() => router.push("/lists")} className="mt-4">
@@ -1162,11 +1162,11 @@ export default function ListDetailPage({
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-sm">
               {error}
               <button
                 onClick={() => setError(null)}
-                className="ml-2 text-red-500 hover:text-red-700"
+                className="ml-2 text-wiki-link hover:underline"
                 aria-label="Dismiss error"
               >
                 [dismiss]
@@ -1238,9 +1238,9 @@ export default function ListDetailPage({
                           aria-label={`Change color for ${tag}`}
                         >
                           <span
-                            className={`w-2.5 h-2.5 rounded-full border ${
+                            className={`w-2.5 h-2.5 border ${
                               isActive
-                                ? "bg-white border-white"
+                                ? "bg-wiki-white border-wiki-white"
                                 : `${color.bg} ${color.border}`
                             }`}
                             aria-hidden
@@ -1280,7 +1280,7 @@ export default function ListDetailPage({
               )}
               {/* Mixed styles warning */}
               {hasMixedStyles && (
-                <div className="p-3 bg-amber-50 border border-amber-300 text-amber-900 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200 text-sm">
+                <div className="p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-sm">
                   <div className="font-bold mb-1">
                     Warning: mixed citation styles
                   </div>

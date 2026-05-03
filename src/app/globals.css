@@ -192,3 +192,108 @@ select:focus {
     -webkit-backdrop-filter: saturate(180%) blur(20px);
   }
 }
+
+/* Markdown-rendered docs content (.docs-content) */
+.docs-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+.docs-content h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-wiki-border-light);
+  padding-bottom: 0.25rem;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+.docs-content h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+}
+.docs-content p {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+.docs-content ul,
+.docs-content ol {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.25rem;
+  line-height: 1.6;
+}
+.docs-content ul {
+  list-style-type: disc;
+}
+.docs-content ol {
+  list-style-type: decimal;
+}
+.docs-content li {
+  margin-bottom: 0.25rem;
+}
+.docs-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+.docs-content th {
+  border: 1px solid var(--color-wiki-border);
+  padding: 0.25rem 0.75rem;
+  text-align: left;
+  font-weight: 500;
+  background: var(--color-wiki-tab-bg);
+}
+.docs-content td {
+  border: 1px solid var(--color-wiki-border);
+  padding: 0.25rem 0.75rem;
+}
+.docs-content tbody tr:nth-child(even) {
+  background: var(--color-wiki-offwhite);
+}
+.docs-content code {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.75rem;
+  background: var(--color-wiki-offwhite);
+  border: 1px solid var(--color-wiki-border-light);
+  padding: 0 0.25rem;
+}
+.docs-content pre {
+  border: 1px solid var(--color-wiki-border-light);
+  background: var(--color-wiki-offwhite);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  overflow-x: auto;
+}
+.docs-content pre code {
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-wiki-text-muted);
+}
+.docs-content blockquote {
+  border-left: none;
+  border: 1px solid var(--color-wiki-border-light);
+  background: var(--color-wiki-offwhite);
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+.docs-content a {
+  color: var(--color-wiki-link);
+  text-decoration: none;
+}
+.docs-content a:hover {
+  text-decoration: underline;
+}
+.docs-content strong {
+  font-weight: 700;
+}
+.docs-content em {
+  font-style: italic;
+}

@@ -230,11 +230,11 @@ export default function ListsPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="mb-4 p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-sm">
               {error}
               <button
                 onClick={() => setError(null)}
-                className="ml-2 text-red-500 hover:text-red-700"
+                className="ml-2 text-wiki-link hover:underline"
                 aria-label="Dismiss error"
               >
                 [dismiss]
@@ -325,7 +325,7 @@ export default function ListsPage() {
                       </button>
                       <button
                         onClick={() => handleDeleteList(list.id, list.name)}
-                        className="text-red-600 hover:underline"
+                        className="text-wiki-link hover:underline"
                       >
                         Delete
                       </button>

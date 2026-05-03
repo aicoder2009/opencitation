@@ -206,7 +206,7 @@ export function CitationAddModal({
             <p className="text-xs text-wiki-text-muted mt-0.5">
               to &ldquo;{listName}&rdquo;
               {addMore && addedCount > 0 && (
-                <span className="ml-2 text-green-700 font-medium">
+                <span className="ml-2 text-wiki-link font-medium">
                   {addedCount} added
                 </span>
               )}
@@ -256,7 +256,7 @@ export function CitationAddModal({
           </div>
 
           {lookupError && (
-            <p className="text-red-600 text-sm">{lookupError}</p>
+            <p className="text-wiki-text-muted text-sm">{lookupError}</p>
           )}
 
           {/* Citation preview */}
@@ -273,11 +273,11 @@ export function CitationAddModal({
           )}
 
           {saveError && (
-            <p className="text-red-600 text-sm">{saveError}</p>
+            <p className="text-wiki-text-muted text-sm">{saveError}</p>
           )}
 
           {showSuccess && (
-            <p className="text-green-700 text-sm font-medium">
+            <p className="text-wiki-link text-sm font-medium">
               ✓ Added to &ldquo;{listName}&rdquo;
             </p>
           )}
