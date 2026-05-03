@@ -114,8 +114,8 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <Link href="/docs" className="text-wiki-link hover:underline">
                 Docs
               </Link>
-              <Link href="/help" className="text-wiki-link hover:underline">
-                Help
+              <Link href="/docs/changelog" className="text-wiki-link hover:underline">
+                Changelog
               </Link>
               <Link href="/sign-in" className="text-wiki-link hover:underline">
                 Sign In
@@ -142,8 +142,8 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <Link href="/docs" className="text-wiki-link hover:underline">
                 Docs
               </Link>
-              <Link href="/help" className="text-wiki-link hover:underline">
-                Help
+              <Link href="/docs/changelog" className="text-wiki-link hover:underline">
+                Changelog
               </Link>
               {desktopGithubLink}
               {desktopThemeToggle}
@@ -206,11 +206,11 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 Docs
               </Link>
               <Link
-                href="/help"
+                href="/docs/changelog"
                 className="text-wiki-link hover:underline py-1"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Help
+                Changelog
               </Link>
               <SignedOut>
                 <Link

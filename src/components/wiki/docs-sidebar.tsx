@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export const DOCS_NAV = [
-  { label: "Overview", href: "/docs" },
+  { label: "Overview & Help", href: "/docs" },
   { label: "Getting Started", href: "/docs/getting-started" },
   { label: "Generating Citations", href: "/docs/citations" },
   { label: "Citation Styles", href: "/docs/styles" },
@@ -43,17 +43,38 @@ export function WikiDocsSidebar() {
           })}
         </nav>
       </div>
-      <div className="mt-3 border border-wiki-border-light px-3 py-2 text-xs text-wiki-text-muted">
-        <Link href="/help" className="text-wiki-link hover:underline">Help page</Link>
-        {" · "}
-        <a
-          href="https://github.com/aicoder2009/opencitation/issues"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-wiki-link hover:underline"
-        >
-          Report issue
-        </a>
+      <div className="border border-wiki-border-light mt-0 border-t-0">
+        <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
+          <span className="text-sm font-bold text-wiki-text">Reference</span>
+        </div>
+        <nav className="py-1">
+          <Link
+            href="/docs/changelog"
+            className={`block px-3 py-1 text-sm ${
+              pathname === "/docs/changelog"
+                ? "font-medium text-wiki-text bg-wiki-tab-bg"
+                : "text-wiki-link hover:underline"
+            }`}
+          >
+            Changelog
+          </Link>
+          <a
+            href="https://github.com/aicoder2009/opencitation/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-1 text-sm text-wiki-link hover:underline"
+          >
+            Report issue ↗
+          </a>
+          <a
+            href="https://github.com/aicoder2009/opencitation"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-1 text-sm text-wiki-link hover:underline"
+          >
+            GitHub ↗
+          </a>
+        </nav>
       </div>
     </aside>
   );
