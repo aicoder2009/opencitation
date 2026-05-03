@@ -11,6 +11,7 @@ import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
 import { SourceTypePicker } from "@/components/wiki/source-type-picker";
+import { WikiDatePicker, type DateValue } from "@/components/wiki/wiki-date-picker";
 import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
 import { formatCitation, generateInTextCitation } from "@/lib/citation";
@@ -361,6 +362,12 @@ function CitePageContent() {
   const [bibtexInput, setBibtexInput] = useState("");
   const [bibtexError, setBibtexError] = useState<string | null>(null);
   const [isBibtexLoading, setIsBibtexLoading] = useState(false);
+
+  // Access date state — defaults to today for Manual Entry
+  const [accessDate, setAccessDate] = useState<DateValue | null>(() => {
+    const t = new Date();
+    return { year: t.getFullYear(), month: t.getMonth() + 1, day: t.getDate() };
+  });
 
   // Template save state (Manual Entry)
   const [showTemplateSave, setShowTemplateSave] = useState(false);
@@ -773,6 +780,7 @@ function CitePageContent() {
             day: formData.day ? parseInt(formData.day) : undefined,
           }
         : undefined,
+      accessDate: accessDate ?? undefined,
     };
 
     // Add source-type specific fields
@@ -1389,37 +1397,60 @@ function CitePageContent() {
             className="w-full"
           />
         </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Year</label>
-            <input
-              type="text"
-              value={formData.year}
-              onChange={(e) => updateFormData("year", e.target.value)}
-              placeholder="2024"
-              className="w-full"
-            />
+        <div>
+          <label className="block text-sm font-medium mb-1">Publication Date</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-wiki-text-muted mb-1">Year</label>
+              <input
+                type="text"
+                value={formData.year}
+                onChange={(e) => updateFormData("year", e.target.value)}
+                placeholder="2024"
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-wiki-text-muted mb-1">Month</label>
+              <select
+                value={formData.month}
+                onChange={(e) => updateFormData("month", e.target.value)}
+                className="w-full"
+              >
+                <option value="">— Month —</option>
+                <option value="1">01 — January</option>
+                <option value="2">02 — February</option>
+                <option value="3">03 — March</option>
+                <option value="4">04 — April</option>
+                <option value="5">05 — May</option>
+                <option value="6">06 — June</option>
+                <option value="7">07 — July</option>
+                <option value="8">08 — August</option>
+                <option value="9">09 — September</option>
+                <option value="10">10 — October</option>
+                <option value="11">11 — November</option>
+                <option value="12">12 — December</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-wiki-text-muted mb-1">Day</label>
+              <input
+                type="text"
+                value={formData.day}
+                onChange={(e) => updateFormData("day", e.target.value)}
+                placeholder="1–31"
+                className="w-full"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Month</label>
-            <input
-              type="text"
-              value={formData.month}
-              onChange={(e) => updateFormData("month", e.target.value)}
-              placeholder="1-12"
-              className="w-full"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Day</label>
-            <input
-              type="text"
-              value={formData.day}
-              onChange={(e) => updateFormData("day", e.target.value)}
-              placeholder="1-31"
-              className="w-full"
-            />
-          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Date Accessed</label>
+          <WikiDatePicker
+            value={accessDate}
+            onChange={setAccessDate}
+            placeholder="Select access date"
+          />
         </div>
       </>
     );
