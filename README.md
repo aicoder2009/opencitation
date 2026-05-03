@@ -1,7 +1,5 @@
 # OpenCitation
 
-**Live:** https://opencitation.vercel.app
-
 An open source citation manager, generator, and sharing tool. Ad-free, easy to use, with a clean Wikipedia 2005-inspired design.
 
 ## Features
