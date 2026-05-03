@@ -22,11 +22,15 @@ export async function GET() {
       );
     }
 
-    const shares = await listUserShares(userId);
+    // Fetch all user shares, lists, and projects concurrently to minimize database latency
+    // Bolt optimization: Grouped independent database queries with Promise.all
+    const [shares, lists, projects] = await Promise.all([
+      listUserShares(userId),
+      getUserLists(userId),
+      getUserProjects(userId)
+    ]);
 
     // Enrich with target name so the UI can render without extra round-trips.
-    const lists = await getUserLists(userId);
-    const projects = await getUserProjects(userId);
     const listById = new Map(lists.map((l) => [l.id, l]));
     const projectById = new Map(projects.map((p) => [p.id, p]));
 
