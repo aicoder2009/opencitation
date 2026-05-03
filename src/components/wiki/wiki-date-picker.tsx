@@ -125,8 +125,13 @@ export function WikiDatePicker({
             <button
               type="button"
               onClick={nextMonth}
-              className="text-wiki-link hover:underline text-sm w-6 text-center
-                focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+              disabled={viewYear === todayY && viewMonth === todayM}
+              className={`text-sm w-6 text-center
+                focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
+                ${viewYear === todayY && viewMonth === todayM
+                  ? "text-wiki-text-muted opacity-30 cursor-not-allowed"
+                  : "text-wiki-link hover:underline"
+                }`}
               aria-label="Next month"
             >
               →
@@ -156,14 +161,22 @@ export function WikiDatePicker({
               const isTodayCell =
                 viewYear === todayY && viewMonth === todayM && day === todayD;
 
+              const isFuture =
+                viewYear > todayY ||
+                (viewYear === todayY && viewMonth > todayM) ||
+                (viewYear === todayY && viewMonth === todayM && day > todayD);
+
               return (
                 <div key={i} className="flex items-center justify-center p-0.5">
                   <button
                     type="button"
-                    onClick={() => selectDay(day)}
+                    onClick={() => !isFuture && selectDay(day)}
+                    disabled={isFuture}
                     className={`w-8 h-8 text-sm flex items-center justify-center transition-colors
                       focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
-                      ${isSelected
+                      ${isFuture
+                        ? "text-wiki-text-muted opacity-30 cursor-not-allowed"
+                        : isSelected
                         ? "bg-wiki-tab-bg border border-wiki-link text-wiki-link font-semibold"
                         : isTodayCell
                         ? "font-bold text-wiki-link hover:bg-wiki-tab-bg"
