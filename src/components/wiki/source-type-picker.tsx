@@ -144,7 +144,7 @@ export function SourceTypePicker({
           {open && (
             <div
               role="menu"
-              className="absolute z-20 top-full left-0 mt-1 bg-wiki-white border border-wiki-border-light shadow-md"
+              className="absolute z-20 top-full right-0 mt-1 bg-wiki-white border border-wiki-border-light shadow-md"
               style={{ minWidth: 260 }}
             >
               {/* Search — not inside the scroll area so it stays visible */}
