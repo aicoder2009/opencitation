@@ -117,8 +117,12 @@ function detectResearchType(raw: string): ResearchType | null {
   return null;
 }
 
+const RESEARCH_TYPE_MAP = new Map(
+  RESEARCH_TYPES.map(r => [r.value, r.label])
+);
+
 function researchTypeLabel(rt: ResearchType): string {
-  return RESEARCH_TYPES.find((r) => r.value === rt)?.label ?? rt;
+  return RESEARCH_TYPE_MAP.get(rt) ?? rt;
 }
 
 function researchTypeHelp(rt: ResearchType): string {
@@ -140,15 +144,15 @@ const ACCESS_TYPES: { value: AccessType; label: string }[] = [
   { value: "archive", label: "Archive" },
 ];
 
-const STYLE_LABELS: Record<string, string> = Object.fromEntries(
+const STYLE_LABELS = new Map(
   CITATION_STYLES.map(s => [s.value, s.label])
 );
 
-const SOURCE_LABELS: Record<string, string> = Object.fromEntries(
+const SOURCE_LABELS = new Map(
   SOURCE_TYPES.map(s => [s.value, s.label])
 );
 
-const ACCESS_LABELS: Record<string, string> = Object.fromEntries(
+const ACCESS_LABELS = new Map(
   ACCESS_TYPES.map(s => [s.value, s.label])
 );
 
@@ -1233,13 +1237,13 @@ function CitePageContent() {
   };
 
   const getStyleLabel = (value: CitationStyle) =>
-    STYLE_LABELS[value] || value;
+    STYLE_LABELS.get(value) || value;
 
   const getSourceLabel = (value: SourceType) =>
-    SOURCE_LABELS[value] || value;
+    SOURCE_LABELS.get(value) || value;
 
   const _getAccessLabel = (value: AccessType) =>
-    ACCESS_LABELS[value] || value;
+    ACCESS_LABELS.get(value) || value;
 
   const handleSelectTemplate = (template: CitationTemplate) => {
     // Apply template settings
