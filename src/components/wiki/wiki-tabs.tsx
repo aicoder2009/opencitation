@@ -1,5 +1,7 @@
 "use client";
 
+import { useId } from "react";
+
 interface Tab {
   id: string;
   label: string;
@@ -13,15 +15,21 @@ interface WikiTabsProps {
 }
 
 export function WikiTabs({ tabs, onTabChange }: WikiTabsProps) {
+  const baseId = useId();
+
   return (
-    <div className="flex border-b border-wiki-border-light">
+    <div className="flex border-b border-wiki-border-light" role="tablist" aria-label="Tabs">
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          role="tab"
+          id={`tab-${baseId}-${tab.id}`}
+          aria-selected={!!tab.active}
           onClick={() => onTabChange?.(tab.id)}
           className={`
-            px-4 py-2 text-sm border border-b-0 -mb-px
+            px-4 py-2 text-sm border border-b-0 -mb-px relative z-10
             transition-colors
+            focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
             ${
               tab.active
                 ? "bg-wiki-white border-wiki-border-light text-wiki-text font-medium"
