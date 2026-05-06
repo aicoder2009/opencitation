@@ -22,11 +22,15 @@ export async function GET() {
       );
     }
 
-    const shares = await listUserShares(userId);
+    // Optimize GET /api/share: Fetch shares, lists, and projects concurrently
+    // using Promise.all to minimize database latency when enriching share data.
+    const [shares, lists, projects] = await Promise.all([
+      listUserShares(userId),
+      getUserLists(userId),
+      getUserProjects(userId),
+    ]);
 
     // Enrich with target name so the UI can render without extra round-trips.
-    const lists = await getUserLists(userId);
-    const projects = await getUserProjects(userId);
     const listById = new Map(lists.map((l) => [l.id, l]));
     const projectById = new Map(projects.map((p) => [p.id, p]));
 
