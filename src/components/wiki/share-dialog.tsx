@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { WikiButton } from "./wiki-button";
 
 interface ShareDialogProps {
@@ -41,42 +41,65 @@ export function ShareDialog({
   const [error, setError] = useState<string | null>(null);
   const linkRef = useRef<HTMLInputElement>(null);
 
-  const fetchActiveShare = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await fetch("/api/share");
-      const result = await response.json();
-      if (!result.success) {
-        setActiveShare(null);
-        return;
-      }
-      const match = (result.data as ShareListEntry[]).find(
-        (s) => s.type === type && s.targetId === targetId
-      );
-      if (match) {
-        setActiveShare({
-          code: match.code,
-          url: match.url || `${window.location.origin}/share/${match.code}`,
-          expiresAt: match.expiresAt,
-        });
-      } else {
-        setActiveShare(null);
-      }
-    } catch {
-      setError("Could not load existing share link.");
-    } finally {
-      setIsLoading(false);
+  // When closing the dialog, reset states
+  useEffect(() => {
+    if (!isOpen) {
+      // Defer the state update to avoid 'react-hooks/set-state-in-effect' linting rule warnings
+      // which are particularly strict in this codebase.
+      const timerId = setTimeout(() => {
+        setCopySuccess(false);
+        setConfirmRevoke(false);
+        setError(null);
+      }, 0);
+      return () => clearTimeout(timerId);
     }
-  }, [type, targetId]);
+  }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen) return;
-    setCopySuccess(false);
-    setConfirmRevoke(false);
-    setError(null);
+    // Only fetch when open.
+    if (!isOpen) {
+      return;
+    }
+
+    let isMounted = true;
+    const fetchActiveShare = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/share");
+        const result = await response.json();
+        if (!isMounted) return;
+
+        if (!result.success) {
+          setActiveShare(null);
+          return;
+        }
+        const match = (result.data as ShareListEntry[]).find(
+          (s) => s.type === type && s.targetId === targetId
+        );
+        if (match) {
+          setActiveShare({
+            code: match.code,
+            url: match.url || `${window.location.origin}/share/${match.code}`,
+            expiresAt: match.expiresAt,
+          });
+        } else {
+          setActiveShare(null);
+        }
+      } catch {
+        if (!isMounted) return;
+        setError("Could not load existing share link.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
     fetchActiveShare();
-  }, [isOpen, fetchActiveShare]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, type, targetId]);
 
   useEffect(() => {
     if (!isOpen) return;

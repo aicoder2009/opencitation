@@ -22,11 +22,13 @@ export async function GET() {
       );
     }
 
-    const shares = await listUserShares(userId);
-
-    // Enrich with target name so the UI can render without extra round-trips.
-    const lists = await getUserLists(userId);
-    const projects = await getUserProjects(userId);
+    // OPTIMIZATION: Fetch shares, lists, and projects concurrently
+    // Impact: Reduces TTFB by performing 3 DB operations in parallel instead of sequentially
+    const [shares, lists, projects] = await Promise.all([
+      listUserShares(userId),
+      getUserLists(userId),
+      getUserProjects(userId),
+    ]);
     const listById = new Map(lists.map((l) => [l.id, l]));
     const projectById = new Map(projects.map((p) => [p.id, p]));
 
