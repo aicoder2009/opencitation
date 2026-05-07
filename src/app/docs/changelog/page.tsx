@@ -1,6 +1,7 @@
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { getGitHubReleases, getGitHubCommits } from "@/lib/github";
 import { marked } from "marked";
+import DOMPurify from "isomorphic-dompurify";
 
 export const metadata = { title: "Changelog — OpenCitation" };
 
@@ -91,7 +92,8 @@ export default async function ChangelogPage() {
               {release.body ? (
                 <div
                   className="docs-content px-4 py-4"
-                  dangerouslySetInnerHTML={{ __html: marked(release.body) as string }}
+                  // Sanitize the HTML output from marked to prevent XSS vulnerabilities
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(release.body) as string) }}
                 />
               ) : (
                 <p className="px-4 py-4 text-sm text-wiki-text-muted italic">No release notes.</p>
