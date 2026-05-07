@@ -1,0 +1,3 @@
+## 2026-05-07 - Contextual Labels for Generic Text
+**Learning:** Adding contextual `aria-label` attributes (like 'Hide [Title]') to buttons with generic visual text (such as '[hide]' or '[show]') ensures screen reader users have proper context when navigating by controls. Mapping interactive widget states with `useId` for `aria-controls` and `aria-expanded` further improves accessibility by preventing ID collisions and providing clear feedback.
+**Action:** Always provide a contextual `aria-label` for buttons with generic text and use `useId` to manage interactive state attributes like `aria-controls` and `aria-expanded`.
