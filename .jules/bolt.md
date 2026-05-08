@@ -1,0 +1,3 @@
+## 2024-05-08 - [Concurrent Data Fetching on Project Detail Page]
+**Learning:** Secondary data fetching on detail pages (like fetching lists associated with a project and all user lists) can be a significant bottleneck if executed sequentially. In Next.js App Router client components using `useEffect` for data hydration, these network requests and their subsequent JSON parsing should be executed concurrently.
+**Action:** Always look for sequential `fetch` and `.json()` calls in React components and replace them with `Promise.all` arrays when the requests do not depend on each other. This reduces page load latency by overlapping network request and JSON parsing time.
