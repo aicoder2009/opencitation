@@ -1,0 +1,3 @@
+## 2024-05-08 - Accessible Collapsibles and Contextual Buttons
+**Learning:** Generic visual button text like "[hide]" or "[show]" lacks context for screen reader users when navigating by controls. Additionally, interactive collapsible widgets require ARIA mappings (`aria-expanded`, `aria-controls`) to correctly communicate state. Using React's `useId` provides collision-free IDs for mapping `aria-controls` to the content container.
+**Action:** Always provide a contextual `aria-label` (e.g., "Hide [Title]") for buttons with generic text. Use `useId` for mapping `aria-controls` to content IDs in reusable interactive components like tabs or collapsibles, and reflect state with `aria-expanded`.
