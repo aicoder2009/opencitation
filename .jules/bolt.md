@@ -1,0 +1,3 @@
+## 2024-05-09 - Concurrent Data Fetching for Related Collections
+**Learning:** In APIs that fetch related but independent top-level entities for a user (such as fetching user shares alongside their lists and projects to enrich the response), fetching them sequentially causes unnecessary waterfall latency, blocking subsequent queries on the resolution of earlier, unrelated ones.
+**Action:** Always utilize `Promise.all` to fetch independent data collections concurrently (e.g. `[shares, lists, projects] = await Promise.all([listUserShares(userId), getUserLists(userId), getUserProjects(userId)])`) to minimize overall TTFB (Time to First Byte) latency for database interactions.
