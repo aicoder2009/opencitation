@@ -33,7 +33,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     };
 
     if (shareLink.type === "list") {
-      const listData = await findListById(shareLink.targetId);
+      const [listData, citations] = await Promise.all([
+        findListById(shareLink.targetId),
+        getListCitations(shareLink.targetId)
+      ]);
 
       if (!listData) {
         return NextResponse.json(
@@ -44,8 +47,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           { status: 410 }
         );
       }
-
-      const citations = await getListCitations(shareLink.targetId);
 
       return NextResponse.json(
         {
@@ -68,7 +69,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     } 
       // Project sharing - get project with all its lists and citations
-      const projectData = await findProjectById(shareLink.targetId);
+      const [projectData, allLists] = await Promise.all([
+        findProjectById(shareLink.targetId),
+        getUserLists(shareLink.userId)
+      ]);
 
       if (!projectData) {
         return NextResponse.json(
@@ -81,7 +85,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       }
 
       // Get all lists in project
-      const allLists = await getUserLists(projectData.userId);
       const projectLists = allLists.filter((list) => list.projectId === shareLink.targetId);
 
       const listsWithCitations = await Promise.all(
