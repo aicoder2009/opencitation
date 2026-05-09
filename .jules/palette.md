@@ -1,0 +1,3 @@
+## 2025-05-09 - Accessible Collapsibles and Contextual Labels
+**Learning:** For accessible React interactive widgets (like tabs or collapsibles), it's crucial to use React's `useId` hook to generate unique IDs for `aria-controls` mappings to ensure correct screen reader context without ID collisions. Additionally, buttons that use generic visual text (like "[hide]" or "[show]") must provide a contextual `aria-label` (e.g., 'Hide Contents') so that screen reader users have proper context when navigating by controls.
+**Action:** Always verify that custom interactive components use `useId` for mapping `aria-controls` to content areas, and verify that generic visual buttons have sufficiently descriptive `aria-label` attributes.
