@@ -95,8 +95,8 @@ function formatBook(fields: BookFields): FormattedCitation {
     htmlParts.push(escapeHtml(authors));
   } else if (fields.editors && fields.editors.length > 0) {
     const editorStr = `${formatAuthorsAPA(fields.editors)} (${fields.editors.length === 1 ? 'Ed.' : 'Eds.'})`;
-    parts.push(editorStr);
-    htmlParts.push(escapeHtml(editorStr));
+    parts.push(`${editorStr}.`);
+    htmlParts.push(`${escapeHtml(editorStr)}.`);
   }
 
   // Date
@@ -241,10 +241,10 @@ function formatWebsite(fields: WebsiteFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Title (italicized)
-  let {title} = fields;
+  // Title (italicized, sentence case)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
   parts.push(`${title}.`);
   htmlParts.push(`${italic(escapeHtml(title))}.`);
@@ -290,10 +290,10 @@ function formatBlog(fields: BlogFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Title (plain text — APA 7 does not italicize blog post titles)
-  let {title} = fields;
+  // Title (plain text, sentence case — APA 7 does not italicize blog post titles)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
   parts.push(`${title}.`);
   htmlParts.push(`${escapeHtml(title)}.`);
@@ -335,10 +335,10 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Article title
-  let {title} = fields;
+  // Article title (sentence case)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
   parts.push(`${title}.`);
   htmlParts.push(`${escapeHtml(title)}.`);
@@ -439,10 +439,10 @@ function formatImage(fields: ImageFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Title [Medium]
-  let {title} = fields;
+  // Title [Medium] (sentence case)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
 
   const medium = fields.medium || fields.imageType || 'Image';
@@ -485,8 +485,8 @@ function formatFilm(fields: FilmFields): FormattedCitation {
   const directors = formatAuthorsAPA(fields.directors || []);
   if (directors) {
     const directorStr = `${directors} (Director${(fields.directors?.length || 0) > 1 ? 's' : ''})`;
-    parts.push(directorStr);
-    htmlParts.push(escapeHtml(directorStr));
+    parts.push(`${directorStr}.`);
+    htmlParts.push(`${escapeHtml(directorStr)}.`);
   }
 
   // Date
@@ -494,10 +494,10 @@ function formatFilm(fields: FilmFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Title [Film]
-  let {title} = fields;
+  // Title [Film] (sentence case)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
   title += ' [Film]';
   parts.push(`${title}.`);
@@ -529,8 +529,8 @@ function formatTVSeries(fields: TVSeriesFields): FormattedCitation {
     const role = fields.creators?.length ? 'Creator' : 'Executive Producer';
     const isPlural = (fields.creators?.length || fields.executiveProducers?.length || 0) > 1;
     const creatorStr = `${creators} (${role}${isPlural ? 's' : ''})`;
-    parts.push(creatorStr);
-    htmlParts.push(escapeHtml(creatorStr));
+    parts.push(`${creatorStr}.`);
+    htmlParts.push(`${escapeHtml(creatorStr)}.`);
   }
 
   // Years
@@ -549,10 +549,10 @@ function formatTVSeries(fields: TVSeriesFields): FormattedCitation {
   parts.push(years);
   htmlParts.push(years);
 
-  // Title [TV series]
-  let {title} = fields;
+  // Title [TV series] (sentence case)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
   title += ' [TV series]';
   parts.push(`${title}.`);
@@ -584,14 +584,14 @@ function formatTVEpisode(fields: TVEpisodeFields): FormattedCitation {
   const directors = formatAuthorsAPA(fields.directors || []);
 
   if (writers && directors) {
-    parts.push(`${writers} (Writer), & ${directors} (Director)`);
-    htmlParts.push(`${escapeHtml(writers)} (Writer), &amp; ${escapeHtml(directors)} (Director)`);
+    parts.push(`${writers} (Writer), & ${directors} (Director).`);
+    htmlParts.push(`${escapeHtml(writers)} (Writer), &amp; ${escapeHtml(directors)} (Director).`);
   } else if (writers) {
-    parts.push(`${writers} (Writer)`);
-    htmlParts.push(`${escapeHtml(writers)} (Writer)`);
+    parts.push(`${writers} (Writer).`);
+    htmlParts.push(`${escapeHtml(writers)} (Writer).`);
   } else if (directors) {
-    parts.push(`${directors} (Director)`);
-    htmlParts.push(`${escapeHtml(directors)} (Director)`);
+    parts.push(`${directors} (Director).`);
+    htmlParts.push(`${escapeHtml(directors)} (Director).`);
   }
 
   // Date
@@ -599,8 +599,8 @@ function formatTVEpisode(fields: TVEpisodeFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Episode title (Season X, Episode X) [TV series episode]
-  let episodeInfo = fields.episodeTitle || fields.title;
+  // Episode title (Season X, Episode X) [TV series episode] (sentence case)
+  let episodeInfo = toSentenceCase(fields.episodeTitle || fields.title);
   if (fields.season && fields.episodeNumber) {
     episodeInfo += ` (Season ${fields.season}, Episode ${fields.episodeNumber})`;
   } else if (fields.season) {
@@ -651,10 +651,10 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
   parts.push(`${date}.`);
   htmlParts.push(`${date}.`);
 
-  // Title [Medium/Format]
-  let {title} = fields;
+  // Title [Medium/Format] (sentence case)
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
 
   const descriptor = fields.medium || fields.format || fields.description;
@@ -665,7 +665,7 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
   parts.push(`${title}.`);
 
   // HTML version
-  let titleHtml = italic(escapeHtml(fields.title + (fields.subtitle ? `: ${fields.subtitle}` : '')));
+  let titleHtml = italic(escapeHtml(toSentenceCase(fields.title) + (fields.subtitle ? `: ${toSentenceCase(fields.subtitle)}` : '')));
   if (descriptor) {
     titleHtml += ` [${escapeHtml(descriptor)}]`;
   }

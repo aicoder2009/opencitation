@@ -96,8 +96,8 @@ function formatBook(fields: BookFields): FormattedCitation {
   } else if (fields.editors && fields.editors.length > 0) {
     const editorStr = formatAuthorsChicago(fields.editors);
     const editorEntry = `${editorStr}, ${fields.editors.length === 1 ? 'ed.' : 'eds.'}`;
-    parts.push(`${editorEntry}.`);
-    htmlParts.push(`${escapeHtml(editorEntry)}.`);
+    parts.push(editorEntry);
+    htmlParts.push(escapeHtml(editorEntry));
   }
 
   // Title (italicized)

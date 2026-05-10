@@ -1,6 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { formatAPA } from './apa';
-import type { BookFields, JournalFields, WebsiteFields, VideoFields } from '@/types/citation';
+import type {
+  BookFields,
+  JournalFields,
+  WebsiteFields,
+  VideoFields,
+  BlogFields,
+  NewspaperFields,
+  FilmFields,
+  TVSeriesFields,
+  TVEpisodeFields,
+  MiscellaneousFields,
+} from '@/types/citation';
 
 describe('APA Formatter', () => {
   describe('Book formatting', () => {
@@ -51,7 +62,8 @@ describe('APA Formatter', () => {
       };
       const result = formatAPA(fields);
       expect(result.text).toContain('Smith, J.');
-      expect(result.text).toContain('(Ed.)');
+      // APA 7: editor slot ends with a period: "(Ed.)."
+      expect(result.text).toContain('(Ed.).');
     });
 
     it('should use Eds. for multiple editors in author slot', () => {
@@ -67,7 +79,8 @@ describe('APA Formatter', () => {
         publicationDate: { year: 2020 },
       };
       const result = formatAPA(fields);
-      expect(result.text).toContain('(Eds.)');
+      // APA 7: editor slot ends with a period: "(Eds.)."
+      expect(result.text).toContain('(Eds.).');
     });
 
     it('should format book with subtitle', () => {
@@ -171,7 +184,8 @@ describe('APA Formatter', () => {
       };
 
       const result = formatAPA(fields);
-      expect(result.text).toContain('Test Page');
+      // APA 7: website titles use sentence case
+      expect(result.text).toContain('Test page');
       expect(result.text).toContain('Test Site');
       expect(result.text).toContain('example.com');
       expect(result.html).toContain('<a href');
@@ -301,6 +315,78 @@ describe('APA Formatter', () => {
       expect(result.text).toBeTruthy();
       expect(result.html).toBeTruthy();
       expect(result.html).toContain('<em>');
+    });
+  });
+
+  describe('Sentence case titles', () => {
+    it('should apply sentence case to blog post titles', () => {
+      const fields: BlogFields = {
+        sourceType: 'blog',
+        accessType: 'web',
+        title: 'How To Improve Your Writing Skills',
+        blogName: 'Write Better Blog',
+        url: 'https://example.com',
+        publicationDate: { year: 2021 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('How to improve your writing skills');
+    });
+
+    it('should apply sentence case to newspaper article titles', () => {
+      const fields: NewspaperFields = {
+        sourceType: 'newspaper',
+        accessType: 'web',
+        title: 'Scientists Discover New Planet In Solar System',
+        newspaperTitle: 'The Daily Times',
+        publicationDate: { year: 2021 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('Scientists discover new planet in solar system');
+    });
+
+    it('should apply sentence case to film titles', () => {
+      const fields: FilmFields = {
+        sourceType: 'film',
+        accessType: 'web',
+        title: 'The Dark Knight Rises',
+        publicationDate: { year: 2012 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('The dark knight rises');
+    });
+
+    it('should apply sentence case to TV series titles', () => {
+      const fields: TVSeriesFields = {
+        sourceType: 'tv-series',
+        accessType: 'web',
+        title: 'Breaking Bad: A Crime Drama',
+        publicationDate: { year: 2008 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('Breaking bad:');
+    });
+
+    it('should apply sentence case to TV episode titles', () => {
+      const fields: TVEpisodeFields = {
+        sourceType: 'tv-episode',
+        accessType: 'web',
+        title: 'Pilot Episode',
+        episodeTitle: 'Pilot Episode',
+        publicationDate: { year: 2008 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('Pilot episode');
+    });
+
+    it('should apply sentence case to miscellaneous titles', () => {
+      const fields: MiscellaneousFields = {
+        sourceType: 'miscellaneous',
+        accessType: 'web',
+        title: 'Annual Report On Climate Change',
+        publicationDate: { year: 2022 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('Annual report on climate change');
     });
   });
 });

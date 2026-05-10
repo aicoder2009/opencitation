@@ -33,6 +33,25 @@ describe('Chicago Formatter', () => {
       };
       const result = formatChicago(fields);
       expect(result.text).toContain('Smith, John, ed.');
+      // Must not produce double period ("ed..") after editor label
+      expect(result.text).not.toContain('ed..');
+    });
+
+    it('should use eds. (not eds..) for multiple editors in author slot', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatChicago(fields);
+      expect(result.text).toContain('eds.');
+      expect(result.text).not.toContain('eds..');
     });
 
     it('should use Oxford comma and "and" for two-author books', () => {
