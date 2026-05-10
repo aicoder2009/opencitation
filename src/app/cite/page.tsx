@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -19,7 +19,7 @@ import { formatCitation, generateInTextCitation } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import { saveTemplate, suggestTemplateName, type CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
-import { parseBibTeX } from "@/lib/citation/importers/bibtex";
+import { parseAllBibTeX, type BibTeXParseResult } from "@/lib/citation/importers/bibtex";
 import { recordCitationSave } from "@/lib/barnstar";
 import DOMPurify from "isomorphic-dompurify";
 import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
@@ -359,10 +359,12 @@ function CitePageContent() {
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
 
-  // Paste BibTeX state
+  // Paste / Upload BibTeX state
   const [bibtexInput, setBibtexInput] = useState("");
   const [bibtexError, setBibtexError] = useState<string | null>(null);
   const [isBibtexLoading, setIsBibtexLoading] = useState(false);
+  const [bibtexResults, setBibtexResults] = useState<BibTeXParseResult[]>([]);
+  const bibtexFileInputRef = useRef<HTMLInputElement>(null);
 
   // Access date state — defaults to today for Manual Entry
   const [accessDate, setAccessDate] = useState<DateValue | null>(() => {
@@ -546,38 +548,58 @@ function CitePageContent() {
     }
   };
 
+  const applyBibtexEntry = (entry: BibTeXParseResult) => {
+    const { fields } = entry;
+    setSelectedSourceType(fields.sourceType);
+    if (fields.accessType) setSelectedAccessType(fields.accessType);
+    const formatted = formatCitation(fields, selectedStyle);
+    setCitationFields(fields);
+    setGeneratedCitation(formatted);
+    setAddToListSuccess(null);
+    saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+    fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
+  };
+
   const handleBibtexImport = () => {
     setBibtexError(null);
+    setBibtexResults([]);
     if (!bibtexInput.trim()) {
-      setBibtexError("Paste a BibTeX entry first.");
+      setBibtexError("Paste or upload a BibTeX entry first.");
       return;
     }
 
     setIsBibtexLoading(true);
     try {
-      const result = parseBibTeX(bibtexInput);
-      if (!result) {
-        setBibtexError("Could not parse this BibTeX entry. Check the syntax.");
+      const entries = parseAllBibTeX(bibtexInput);
+      if (entries.length === 0) {
+        setBibtexError("Could not parse any BibTeX entries. Check the syntax.");
         return;
       }
-      const { fields } = result;
-      setSelectedSourceType(fields.sourceType);
-      if (fields.accessType) {
-        setSelectedAccessType(fields.accessType);
+      if (entries.length === 1) {
+        applyBibtexEntry(entries[0]);
+      } else {
+        setBibtexResults(entries);
       }
-      const formatted = formatCitation(fields, selectedStyle);
-      setCitationFields(fields);
-      setGeneratedCitation(formatted);
-      setAddToListSuccess(null);
-
-      saveToRecentCitations(fields.title, formatted.text, selectedStyle);
-      fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
     } catch (err) {
       console.error(err);
-      setBibtexError("Failed to parse BibTeX entry.");
+      setBibtexError("Failed to parse BibTeX.");
     } finally {
       setIsBibtexLoading(false);
     }
+  };
+
+  const handleBibtexFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      setBibtexInput(text);
+      setBibtexError(null);
+      setBibtexResults([]);
+    };
+    reader.readAsText(file);
+    e.target.value = "";
   };
 
   const handleManualGenerate = () => {
@@ -2082,7 +2104,7 @@ function CitePageContent() {
           tabs={[
             { id: "quick-add", label: "Quick Add", active: activeTab === "quick-add" },
             { id: "research-lookup", label: "Research Lookup", active: activeTab === "research-lookup" },
-            { id: "paste-bibtex", label: "Paste BibTeX", active: activeTab === "paste-bibtex" },
+            { id: "paste-bibtex", label: "Import BibTeX", active: activeTab === "paste-bibtex" },
             { id: "manual", label: "Manual Entry", active: activeTab === "manual" },
             { id: "bulk-import", label: "Bulk Import", active: activeTab === "bulk-import" },
           ]}
@@ -2226,19 +2248,37 @@ function CitePageContent() {
 
           {activeTab === "paste-bibtex" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Paste BibTeX</h2>
+              <h2 className="text-lg font-bold mb-4">Import BibTeX</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
-                Paste a BibTeX entry (e.g. from Google Scholar or the ACL Anthology). We detect the source type, parse authors, editors, pages, and more. Pick a style below and generate.
+                Paste a BibTeX entry or upload a <code>.bib</code> file (e.g. from Google Scholar, Zotero, or the ACL Anthology). We detect source types, parse authors, editors, pages, and more.
               </p>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    BibTeX entry
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium">
+                      BibTeX
+                    </label>
+                    <WikiButton
+                      onClick={() => bibtexFileInputRef.current?.click()}
+                      className="text-xs"
+                    >
+                      Upload .bib file
+                    </WikiButton>
+                  </div>
+                  <input
+                    ref={bibtexFileInputRef}
+                    type="file"
+                    accept=".bib,.bibtex,text/plain"
+                    className="hidden"
+                    onChange={handleBibtexFileUpload}
+                  />
                   <textarea
                     value={bibtexInput}
-                    onChange={(e) => setBibtexInput(e.target.value)}
+                    onChange={(e) => {
+                      setBibtexInput(e.target.value);
+                      setBibtexResults([]);
+                    }}
                     placeholder={`@inproceedings{smith2024,\n  title = {Example Title},\n  author = {Smith, Jane A. and Doe, John},\n  booktitle = {Proceedings of X},\n  year = {2024},\n  pages = {1--10}\n}`}
                     rows={12}
                     className="w-full font-mono text-sm"
@@ -2260,12 +2300,45 @@ function CitePageContent() {
                       onClick={() => {
                         setBibtexInput("");
                         setBibtexError(null);
+                        setBibtexResults([]);
+                        if (bibtexFileInputRef.current) bibtexFileInputRef.current.value = "";
                       }}
                     >
                       Clear
                     </WikiButton>
                   )}
                 </div>
+
+                {bibtexResults.length > 0 && (
+                  <div className="border border-wiki-border-light">
+                    <div className="p-3 bg-wiki-tab-bg border-b border-wiki-border-light">
+                      <span className="font-medium">
+                        {bibtexResults.length} entries found — click one to generate a citation
+                      </span>
+                    </div>
+                    <div className="divide-y divide-wiki-border-light max-h-64 overflow-y-auto">
+                      {bibtexResults.map((entry, index) => (
+                        <div
+                          key={index}
+                          className="p-3 text-sm hover:bg-wiki-tab-bg cursor-pointer"
+                          onClick={() => applyBibtexEntry(entry)}
+                        >
+                          <div className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="truncate font-medium">
+                                {entry.fields.title}
+                              </div>
+                              <div className="mt-0.5 truncate text-wiki-text-muted font-mono text-xs">
+                                {entry.entryKey} · {entry.entryType}
+                              </div>
+                            </div>
+                            <span className="text-xs text-wiki-link shrink-0">Select</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

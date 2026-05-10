@@ -289,6 +289,8 @@ export interface BibTeXParseResult {
   entryKey: string;
 }
 
+const SKIP_ENTRY_TYPES = new Set(["string", "preamble", "comment"]);
+
 /**
  * Parse a BibTeX entry string into CitationFields.
  * Returns null if the input is not a valid BibTeX entry.
@@ -474,4 +476,26 @@ export function parseBibTeX(input: string): BibTeXParseResult | null {
   }
 
   return { fields, entryType, entryKey };
+}
+
+/**
+ * Parse all BibTeX entries from a string (e.g. the contents of a .bib file).
+ * Skips @string, @preamble, @comment, and malformed entries.
+ * Deduplicates by entry key.
+ */
+export function parseAllBibTeX(input: string): BibTeXParseResult[] {
+  const results: BibTeXParseResult[] = [];
+  const seen = new Set<string>();
+  const entryPattern = /@(\w+)\s*\{/g;
+  let match;
+
+  while ((match = entryPattern.exec(input)) !== null) {
+    if (SKIP_ENTRY_TYPES.has(match[1].toLowerCase())) continue;
+    const result = parseBibTeX(input.slice(match.index));
+    if (!result || seen.has(result.entryKey)) continue;
+    seen.add(result.entryKey);
+    results.push(result);
+  }
+
+  return results;
 }

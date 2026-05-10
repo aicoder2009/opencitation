@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseBibTeX } from "./bibtex";
+import { parseBibTeX, parseAllBibTeX } from "./bibtex";
 
 describe("parseBibTeX", () => {
   it("parses the user-supplied inproceedings entry", () => {
@@ -117,5 +117,77 @@ pages = "5260--5274"}`;
     const input = `@misc{k, title = {X}, year = {2024}, month = {6}}`;
     const result = parseBibTeX(input);
     expect(result!.fields.publicationDate?.month).toBe(6);
+  });
+});
+
+describe("parseAllBibTeX", () => {
+  it("parses two entries from a .bib file", () => {
+    const input = `
+@article{smith2024,
+  title = {First Article},
+  author = {Smith, Jane},
+  journal = {Test Journal},
+  year = {2024}
+}
+
+@book{jones2023,
+  title = {A Book},
+  author = {Jones, Bob},
+  publisher = {Test Press},
+  year = {2023}
+}
+`;
+    const results = parseAllBibTeX(input);
+    expect(results).toHaveLength(2);
+    expect(results[0].entryKey).toBe("smith2024");
+    expect(results[0].fields.sourceType).toBe("journal");
+    expect(results[1].entryKey).toBe("jones2023");
+    expect(results[1].fields.sourceType).toBe("book");
+  });
+
+  it("skips @string, @preamble, and @comment directives", () => {
+    const input = `
+@string{pub = "Test Press"}
+@preamble{"Some preamble text"}
+@comment{This is a comment}
+@article{real2024,
+  title = {Real Entry},
+  author = {Author, Real},
+  journal = {Journal},
+  year = {2024}
+}
+`;
+    const results = parseAllBibTeX(input);
+    expect(results).toHaveLength(1);
+    expect(results[0].entryKey).toBe("real2024");
+  });
+
+  it("deduplicates entries with the same key", () => {
+    const input = `
+@article{dup,
+  title = {First},
+  author = {A, B},
+  journal = {J},
+  year = {2024}
+}
+@article{dup,
+  title = {Second},
+  author = {C, D},
+  journal = {J},
+  year = {2024}
+}
+`;
+    const results = parseAllBibTeX(input);
+    expect(results).toHaveLength(1);
+    expect(results[0].fields.title).toBe("First");
+  });
+
+  it("returns empty array for empty input", () => {
+    expect(parseAllBibTeX("")).toHaveLength(0);
+    expect(parseAllBibTeX("   \n  ")).toHaveLength(0);
+  });
+
+  it("returns empty array for invalid BibTeX", () => {
+    expect(parseAllBibTeX("not bibtex at all")).toHaveLength(0);
   });
 });
