@@ -9,6 +9,7 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
 import { ShareDialog } from "@/components/wiki/share-dialog";
+import { pickFactoid } from "@/lib/did-you-know";
 import posthog from "posthog-js";
 
 interface Project {
@@ -44,6 +45,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [isCreating, setIsCreating] = useState(false);
   const [newListNameError, setNewListNameError] = useState<string | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [factoid, setFactoid] = useState<string>("");
+
+  useEffect(() => {
+    setFactoid(pickFactoid());
+  }, []);
 
   const fetchProjectAndLists = useCallback(async () => {
     try {
@@ -409,6 +415,19 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
               <WikiButton variant="primary" onClick={() => setShowAddList(true)}>
                 Add Your First List
               </WikiButton>
+              {factoid && (
+                <div className="mt-8 mx-auto max-w-lg border border-wiki-border-light bg-wiki-offwhite p-4 text-left text-sm">
+                  <div className="font-bold mb-1 text-wiki-text">Did you know...</div>
+                  <p className="text-wiki-text-muted italic">{factoid}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFactoid(pickFactoid())}
+                    className="mt-2 text-xs text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  >
+                    [another fact]
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <table className="w-full text-sm">

@@ -104,7 +104,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
             <p className="text-sm text-wiki-text">{error}</p>
           ) : (
             <>
-              <div className="relative bg-black aspect-video overflow-hidden">
+              <div className="relative bg-wiki-text aspect-video overflow-hidden">
                 <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
@@ -112,7 +112,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
                   muted
                 />
                 {isStarting && (
-                  <div className="absolute inset-0 flex items-center justify-center text-white text-sm">
+                  <div className="absolute inset-0 flex items-center justify-center text-wiki-white text-sm">
                     Starting camera...
                   </div>
                 )}

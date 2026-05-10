@@ -99,7 +99,7 @@ export default function Dashboard() {
           <div className="border border-wiki-border-light bg-wiki-offwhite p-4 mb-6">
             <SignedOut>
               <div className="text-center mb-3">
-                <span className="text-lg font-bold">Welcome to OpenCitation</span>
+                <span className="text-lg font-semibold">Welcome to OpenCitation</span>
               </div>
               <div className="text-center text-sm mb-4">
                 The free, ad-free citation generator for students and researchers.
@@ -113,7 +113,7 @@ export default function Dashboard() {
 
             <SignedIn>
               <div className="text-center mb-3">
-                <span className="text-lg font-bold">Welcome back!</span>
+                <span className="text-lg font-semibold">Welcome back!</span>
               </div>
               <div className="text-center text-sm mb-4">
                 Ready to create more citations?
@@ -158,7 +158,7 @@ export default function Dashboard() {
           </WikiCollapsible>
 
           <section id="quick-add" className="mt-8">
-            <h2 className="text-xl font-bold border-b border-wiki-border-light pb-2 mb-4">
+            <h2 className="text-lg font-semibold border-b border-wiki-border-light pb-2 mb-4">
               Quick Add
             </h2>
             <p className="mb-4">
@@ -180,7 +180,7 @@ export default function Dashboard() {
           </section>
 
           <section id="manual-entry" className="mt-8">
-            <h2 className="text-xl font-bold border-b border-wiki-border-light pb-2 mb-4">
+            <h2 className="text-lg font-semibold border-b border-wiki-border-light pb-2 mb-4">
               Manual Entry
             </h2>
             <p className="mb-4">
@@ -198,7 +198,7 @@ export default function Dashboard() {
           </section>
 
           <section id="my-citations" className="mt-8">
-            <h2 className="text-xl font-bold border-b border-wiki-border-light pb-2 mb-4">
+            <h2 className="text-lg font-semibold border-b border-wiki-border-light pb-2 mb-4">
               My Citations
             </h2>
 

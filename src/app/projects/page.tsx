@@ -7,6 +7,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { pickFactoid } from "@/lib/did-you-know";
 import posthog from "posthog-js";
 
 interface Project {
@@ -32,6 +33,11 @@ export default function ProjectsPage() {
   const [editDescription, setEditDescription] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [factoid, setFactoid] = useState<string>("");
+
+  useEffect(() => {
+    setFactoid(pickFactoid());
+  }, []);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -278,6 +284,19 @@ export default function ProjectsPage() {
               <WikiButton variant="primary" onClick={() => setShowCreateForm(true)}>
                 Create Your First Project
               </WikiButton>
+              {factoid && (
+                <div className="mt-8 mx-auto max-w-lg border border-wiki-border-light bg-wiki-offwhite p-4 text-left text-sm">
+                  <div className="font-bold mb-1 text-wiki-text">Did you know...</div>
+                  <p className="text-wiki-text-muted italic">{factoid}</p>
+                  <button
+                    type="button"
+                    onClick={() => setFactoid(pickFactoid())}
+                    className="mt-2 text-xs text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  >
+                    [another fact]
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -320,7 +339,7 @@ export default function ProjectsPage() {
                         </div>
                       ) : (
                         <>
-                          <h2 className="text-lg font-bold mb-1 leading-tight">
+                          <h2 className="text-lg font-semibold mb-1 leading-tight">
                             <a
                               href={`/projects/${project.id}`}
                               className="text-wiki-link hover:underline"

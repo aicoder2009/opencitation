@@ -2129,7 +2129,7 @@ function CitePageContent() {
             <div className="min-w-0">
           {activeTab === "quick-add" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Quick Add</h2>
+              <h2 className="text-lg font-semibold mb-4">Quick Add</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Enter a URL, DOI, or ISBN to automatically extract citation information.
               </p>
@@ -2184,7 +2184,7 @@ function CitePageContent() {
 
           {activeTab === "research-lookup" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Academic Research</h2>
+              <h2 className="text-lg font-semibold mb-4">Academic Research</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste a PubMed ID, arXiv ID, or Wikipedia article — we detect which database to query. Use the buttons below to override detection.
               </p>
@@ -2250,7 +2250,7 @@ function CitePageContent() {
 
           {activeTab === "paste-bibtex" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Import BibTeX</h2>
+              <h2 className="text-lg font-semibold mb-4">Import BibTeX</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste a BibTeX entry or upload a <code>.bib</code> file (e.g. from Google Scholar, Zotero, or the ACL Anthology). We detect source types, parse authors, editors, pages, and more.
               </p>
@@ -2323,7 +2323,7 @@ function CitePageContent() {
                         <button
                           key={index}
                           type="button"
-                          className="w-full text-left p-3 text-sm hover:bg-wiki-tab-bg"
+                          className="w-full text-left p-3 text-sm hover:bg-wiki-tab-bg focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           onClick={() => applyBibtexEntry(entry)}
                         >
                           <div className="flex items-start gap-2">
@@ -2348,7 +2348,7 @@ function CitePageContent() {
 
           {activeTab === "manual" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Manual Entry</h2>
+              <h2 className="text-lg font-semibold mb-4">Manual Entry</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Select a source type and enter the citation details manually.
               </p>
@@ -2465,7 +2465,7 @@ function CitePageContent() {
 
           {activeTab === "bulk-import" && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Bulk Import</h2>
+              <h2 className="text-lg font-semibold mb-4">Bulk Import</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste multiple URLs, DOIs, or ISBNs (one per line) to import them all at once.
                 Maximum 20 items per batch.
@@ -2525,7 +2525,7 @@ https://another-site.com/paper"
                           <button
                             key={index}
                             type="button"
-                            className="w-full text-left p-3 text-sm hover:bg-wiki-tab-bg"
+                            className="w-full text-left p-3 text-sm hover:bg-wiki-tab-bg focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                             onClick={() => handleBulkResultClick(result)}
                           >
                             <div className="flex items-start gap-2">
@@ -2584,7 +2584,7 @@ https://another-site.com/paper"
             {generatedCitation && (
               <aside className="mt-8 lg:mt-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
                 <div className="pt-6 border-t border-wiki-border-light lg:pt-0 lg:border-t-0">
-                  <h3 className="text-lg font-bold mb-4">Generated Citation ({getStyleLabel(selectedStyle)})</h3>
+                  <h3 className="text-lg font-semibold mb-4">Generated Citation ({getStyleLabel(selectedStyle)})</h3>
                   <div className="p-4 bg-wiki-offwhite border border-wiki-border-light">
                     <p
                       className="citation-text"
@@ -2688,7 +2688,7 @@ https://another-site.com/paper"
                             key={list.id}
                             onClick={() => addCitationToList(list.id)}
                             disabled={isAddingToList}
-                            className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           >
                             {list.name}
                           </button>

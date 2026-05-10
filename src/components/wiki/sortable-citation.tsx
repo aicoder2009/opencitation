@@ -477,7 +477,7 @@ export function SortableCitation({
                       }
                       className="text-wiki-link text-xs hover:underline pt-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     >
-                      remove
+                      [remove]
                     </button>
                   </div>
                 ))}

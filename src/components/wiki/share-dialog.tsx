@@ -170,7 +170,7 @@ export function ShareDialog({
       aria-label={heading}
     >
       <div
-        className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-lg w-full mx-4 shadow-lg"
+        className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-wiki-border-light flex justify-between items-start">
