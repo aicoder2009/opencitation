@@ -326,10 +326,12 @@ export function SortableCitation({
           </div>
         ) : (
           <>
-            <p
-              className="citation-text mb-4"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(citation.formattedHtml) }}
-            />
+            <div className="bg-wiki-offwhite border border-wiki-border-light p-3 mb-4">
+              <p
+                className="citation-text"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(citation.formattedHtml) }}
+              />
+            </div>
             <div className="flex flex-wrap gap-2 mb-3">
               <button
                 onClick={() => onCopy(citation.formattedText)}

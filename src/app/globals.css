@@ -132,7 +132,18 @@ select:focus {
 .citation-text {
   font-family: var(--font-mono);
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.citation-text a {
+  color: var(--color-wiki-link);
+  text-decoration: none;
+}
+
+.citation-text a:hover {
+  text-decoration: underline;
 }
 
 /* Clerk modal styles - match Wikipedia aesthetic */

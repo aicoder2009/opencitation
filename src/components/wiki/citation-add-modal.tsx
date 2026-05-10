@@ -266,7 +266,7 @@ export function CitationAddModal({
                 Preview
               </p>
               <p
-                className="text-wiki-text leading-relaxed"
+                className="citation-text"
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(generatedCitation.html) }}
               />
             </div>
