@@ -12,6 +12,8 @@ import type {
   GovernmentReportFields,
   InterviewFields,
   LegalCaseFields,
+  BookChapterFields,
+  EncyclopediaFields,
 } from '@/types/citation';
 
 describe('descriptorFor', () => {
@@ -316,5 +318,71 @@ describe('formatGeneric', () => {
     };
     const result = formatGeneric(fields, 'apa');
     expect(result.text).toContain('Report No. DOE-2024-001');
+  });
+
+  describe('book-chapter editor label', () => {
+    it('uses Ed. for a single editor', () => {
+      const fields: BookChapterFields = {
+        sourceType: 'book-chapter',
+        accessType: 'print',
+        title: 'My Chapter',
+        bookTitle: 'The Big Book',
+        bookEditors: [{ firstName: 'John', lastName: 'Smith' }],
+        publicationDate: { year: 2020 },
+      };
+      const result = formatGeneric(fields, 'apa');
+      expect(result.text).toContain('Smith (Ed.)');
+      expect(result.text).not.toContain('(Eds.)');
+    });
+
+    it('uses Eds. for multiple editors', () => {
+      const fields: BookChapterFields = {
+        sourceType: 'book-chapter',
+        accessType: 'print',
+        title: 'My Chapter',
+        bookTitle: 'The Big Book',
+        bookEditors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+        publicationDate: { year: 2020 },
+      };
+      const result = formatGeneric(fields, 'apa');
+      expect(result.text).toContain('(Eds.)');
+      expect(result.text).not.toContain('(Ed.),');
+    });
+  });
+
+  describe('encyclopedia editor label', () => {
+    it('uses Ed. for a single editor', () => {
+      const fields: EncyclopediaFields = {
+        sourceType: 'encyclopedia',
+        accessType: 'print',
+        title: 'My Entry',
+        encyclopediaTitle: 'Encyclopedia of Science',
+        editors: [{ firstName: 'Alice', lastName: 'Brown' }],
+        publicationDate: { year: 2018 },
+      };
+      const result = formatGeneric(fields, 'apa');
+      expect(result.text).toContain('Brown (Ed.)');
+      expect(result.text).not.toContain('(Eds.)');
+    });
+
+    it('uses Eds. for multiple editors', () => {
+      const fields: EncyclopediaFields = {
+        sourceType: 'encyclopedia',
+        accessType: 'print',
+        title: 'My Entry',
+        encyclopediaTitle: 'Encyclopedia of Science',
+        editors: [
+          { firstName: 'Alice', lastName: 'Brown' },
+          { firstName: 'Bob', lastName: 'Jones' },
+        ],
+        publicationDate: { year: 2018 },
+      };
+      const result = formatGeneric(fields, 'apa');
+      expect(result.text).toContain('(Eds.)');
+      expect(result.text).not.toContain('(Ed.),');
+    });
   });
 });

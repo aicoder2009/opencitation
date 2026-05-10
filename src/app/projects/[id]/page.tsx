@@ -377,7 +377,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </WikiButton>
                 </div>
                 {newListNameError && (
-                  <p className="mt-1 text-xs text-wiki-text-muted">{newListNameError}</p>
+                  <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
                 )}
               </div>
 

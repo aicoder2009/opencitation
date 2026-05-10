@@ -220,7 +220,7 @@ function extrasFor(fields: CitationFields): { text: string; html: string } {
     case 'book-chapter': {
       const bc = fields as BookChapterFields;
       const editorBit = bc.bookEditors && bc.bookEditors.length > 0
-        ? `${bc.bookEditors.map((e) => e.lastName).join(', ')} (Ed.), `
+        ? `${bc.bookEditors.map((e) => e.lastName).join(', ')} (${bc.bookEditors.length === 1 ? 'Ed.' : 'Eds.'}), `
         : '';
       const pageBit = bc.pageRange ? ` (pp. ${bc.pageRange})` : '';
       if (bc.bookTitle) {
@@ -241,7 +241,7 @@ function extrasFor(fields: CitationFields): { text: string; html: string } {
     case 'encyclopedia': {
       const e = fields as EncyclopediaFields;
       const editorBit = e.editors && e.editors.length > 0
-        ? `${e.editors.map((ed) => ed.lastName).join(', ')} (Ed.), `
+        ? `${e.editors.map((ed) => ed.lastName).join(', ')} (${e.editors.length === 1 ? 'Ed.' : 'Eds.'}), `
         : '';
       const pageBit = e.pageRange ? ` (pp. ${e.pageRange})` : '';
       if (e.encyclopediaTitle) {

@@ -98,7 +98,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
         </div>
         <div className="p-4">
           {error ? (
-            <p className="text-sm text-wiki-text-muted">{error}</p>
+            <p className="text-sm text-wiki-text">{error}</p>
           ) : (
             <>
               <div className="relative bg-black aspect-video overflow-hidden">
