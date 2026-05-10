@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
 import { WikiButton } from "./wiki-button";
 import { WikiNotice } from "./wiki-notice";
+import { WikiSelect } from "./wiki-select";
 import { formatCitation } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import type { CitationStyle, SourceType, CitationFields } from "@/types";
@@ -247,16 +248,12 @@ export function CitationAddModal({
                 disabled={isLooking || isSaving}
               />
             </div>
-            <select
+            <WikiSelect
               value={selectedStyle}
-              onChange={(e) => setSelectedStyle(e.target.value as CitationStyle)}
-              className="text-sm border border-wiki-border-light px-2 py-1.5 bg-wiki-white"
-              aria-label="Citation style"
-            >
-              {CITATION_STYLES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
+              onChange={(v) => setSelectedStyle(v as CitationStyle)}
+              options={CITATION_STYLES}
+              className="w-32"
+            />
           </div>
 
           {lookupError && (
