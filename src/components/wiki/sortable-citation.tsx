@@ -626,7 +626,7 @@ export function SortableCitation({
                             key={tag}
                             type="button"
                             onClick={() => onAddTag(citation.id, tag)}
-                            className={`inline-flex items-center px-2 py-0.5 text-xs border hover:opacity-80 ${color.bg} ${color.text} ${color.border}`}
+                            className={`inline-flex items-center px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
                             title={`Add "${tag}"`}
                           >
                             + {tag}

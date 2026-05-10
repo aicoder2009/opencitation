@@ -1219,7 +1219,7 @@ export default function ListDetailPage({
                     onClick={() => setFilterTag(null)}
                     className={`px-2 py-0.5 text-xs border ${
                       filterTag === null
-                        ? "bg-wiki-link text-white border-wiki-link"
+                        ? "bg-wiki-white text-wiki-link border-wiki-link font-medium"
                         : "bg-wiki-white text-wiki-text border-wiki-border-light hover:border-wiki-link"
                     }`}
                   >
@@ -1244,7 +1244,7 @@ export default function ListDetailPage({
                             e.stopPropagation();
                             setTagColorPickerOpen(isPickerOpen ? null : tag);
                           }}
-                          className={`flex items-center justify-center px-1.5 border-r hover:opacity-80 ${
+                          className={`flex items-center justify-center px-1.5 border-r ${
                             isActive ? "border-white/40" : color.border
                           }`}
                           title="Change color"
@@ -1264,7 +1264,7 @@ export default function ListDetailPage({
                         <button
                           type="button"
                           onClick={() => setFilterTag(isActive ? null : tag)}
-                          className="px-2 py-0.5 hover:opacity-80"
+                          className="px-2 py-0.5"
                           aria-pressed={isActive}
                           title={isActive ? "Clear filter" : `Filter by ${tag}`}
                         >
