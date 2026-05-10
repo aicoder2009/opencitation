@@ -177,7 +177,7 @@ export function SortableCitation({
         isDragging ? "shadow-lg z-10" : ""
       } ${
         isSelected
-          ? "border-wiki-link ring-2 ring-wiki-link/20"
+          ? "border-2 border-wiki-link"
           : "border-wiki-border-light"
       }`}
     >
