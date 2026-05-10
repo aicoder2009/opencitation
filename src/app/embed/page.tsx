@@ -49,7 +49,7 @@ export default function EmbedPage() {
         {/* Badge Preview */}
         <div className="border border-wiki-border-light bg-wiki-white p-6 mb-6">
           <h2 className="font-bold mb-4">Preview</h2>
-          <div className="flex items-center gap-4 p-4 bg-[#f9f9f9] border border-wiki-border-light">
+          <div className="flex items-center gap-4 p-4 bg-wiki-offwhite border border-wiki-border-light">
             <a href={citeUrl} target="_blank" rel="noopener noreferrer">
               <img src={badgeUrl} alt="Cite with OpenCitation" width={150} height={26} />
             </a>
@@ -84,7 +84,7 @@ export default function EmbedPage() {
               {copied === "html" ? "Copied!" : "Copy"}
             </WikiButton>
           </div>
-          <pre className="bg-[#f5f5f5] border border-wiki-border-light p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+          <pre className="bg-wiki-offwhite border border-wiki-border-light p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
             {htmlCode}
           </pre>
         </div>
@@ -101,13 +101,13 @@ export default function EmbedPage() {
               {copied === "markdown" ? "Copied!" : "Copy"}
             </WikiButton>
           </div>
-          <pre className="bg-[#f5f5f5] border border-wiki-border-light p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+          <pre className="bg-wiki-offwhite border border-wiki-border-light p-4 overflow-x-auto text-sm font-mono whitespace-pre-wrap">
             {markdownCode}
           </pre>
         </div>
 
         {/* Usage Tips */}
-        <div className="border border-[#e2b979] bg-[#fdf8e8] p-6">
+        <div className="border border-wiki-border-light bg-wiki-offwhite p-6">
           <h2 className="font-bold mb-3">Usage Tips</h2>
           <ul className="list-disc list-inside space-y-2 text-sm">
             <li>Add the badge to your blog posts, research papers, or documentation</li>

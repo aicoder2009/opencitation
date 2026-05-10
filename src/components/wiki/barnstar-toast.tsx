@@ -16,7 +16,7 @@ export function BarnstarToast() {
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 max-w-sm w-[calc(100vw-2rem)] sm:w-80 border border-wiki-border bg-wiki-white shadow-lg p-4 text-sm"
+      className="fixed bottom-4 right-4 z-50 max-w-sm w-[calc(100vw-2rem)] sm:w-80 border border-wiki-border bg-wiki-white p-4 text-sm"
       role="status"
       aria-live="polite"
     >

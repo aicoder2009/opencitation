@@ -78,7 +78,7 @@ export function OfflineIndicator({
         <div
           className={`fixed ${positionClasses} left-0 right-0 z-50 transition-all duration-300`}
         >
-          <div className="bg-wiki-offwhite border-y border-wiki-border-light text-wiki-text px-4 py-2 shadow-md">
+          <div className="bg-wiki-offwhite border-y border-wiki-border-light text-wiki-text px-4 py-2">
             <div className="max-w-4xl mx-auto flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {/* Status Icon */}
@@ -223,7 +223,7 @@ export function OfflineIndicator({
 
       {/* Update Available Banner */}
       {showUpdateBanner && pwaState.isUpdateAvailable && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-wiki-offwhite border-b border-wiki-border-light text-wiki-text px-4 py-2 shadow-md">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-wiki-offwhite border-b border-wiki-border-light text-wiki-text px-4 py-2">
           <div className="max-w-4xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <svg
@@ -279,7 +279,7 @@ export function OfflineIndicator({
         <div className="fixed bottom-4 right-4 z-40">
           <button
             onClick={handleInstall}
-            className="flex items-center gap-2 px-4 py-3 bg-wiki-white border border-wiki-border-light text-wiki-link font-medium shadow-md hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+            className="flex items-center gap-2 px-4 py-3 bg-wiki-white border border-wiki-border-light text-wiki-link font-medium hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             <svg
               className="w-5 h-5"

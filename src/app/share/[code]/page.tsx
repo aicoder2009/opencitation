@@ -258,7 +258,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
         />
 
         {copyFeedback && (
-          <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm shadow-sm">
+          <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm">
             {copyFeedback}
           </div>
         )}
@@ -390,7 +390,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
       />
 
       {copyFeedback && (
-        <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm shadow-sm">
+        <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm">
           {copyFeedback}
         </div>
       )}

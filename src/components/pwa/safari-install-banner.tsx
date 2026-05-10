@@ -55,20 +55,20 @@ export function SafariInstallBanner() {
   if (!showBanner) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999] safe-area-top bg-[#f2f2f2] border-b border-[#c8c8c8]">
+    <div className="fixed top-0 left-0 right-0 z-[9999] safe-area-top bg-wiki-tab-bg border-b border-wiki-border-light">
       {/* Main banner row */}
       <div className="flex items-center px-3 py-2 gap-3">
         {/* Close button */}
         <button
           onClick={handleDismiss}
-          className="text-[#888] text-xl leading-none px-1"
+          className="text-wiki-text-muted text-xl leading-none px-1"
           aria-label="Close"
         >
           ×
         </button>
 
         {/* App icon */}
-        <div className="w-[57px] h-[57px] rounded-[12px] overflow-hidden flex-shrink-0 shadow-sm">
+        <div className="w-[57px] h-[57px] overflow-hidden flex-shrink-0">
           <Image
             src="/logo.png"
             alt="OpenCitation"
@@ -80,8 +80,8 @@ export function SafariInstallBanner() {
 
         {/* App info */}
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-black text-[13px]">OpenCitation</div>
-          <div className="text-[11px] text-[#888]">
+          <div className="font-semibold text-wiki-text text-[13px]">OpenCitation</div>
+          <div className="text-[11px] text-wiki-text-muted">
             {isIOS ? 'Add to Home Screen' : 'Add to Dock'}
           </div>
         </div>
@@ -90,14 +90,14 @@ export function SafariInstallBanner() {
         {!showInstructions ? (
           <button
             onClick={handleView}
-            className="bg-[#007AFF] text-white text-[12px] font-semibold px-3 py-1 rounded-full"
+            className="bg-wiki-link text-wiki-white text-[12px] font-semibold px-3 py-1"
           >
             INSTALL
           </button>
         ) : (
           <button
             onClick={() => setShowInstructions(false)}
-            className="text-[#007AFF] text-[12px] font-semibold px-2"
+            className="text-wiki-link text-[12px] font-semibold px-2"
           >
             Hide
           </button>
@@ -106,35 +106,35 @@ export function SafariInstallBanner() {
 
       {/* Expanded instructions */}
       {showInstructions && (
-        <div className="px-4 py-3 bg-white border-t border-[#e5e5e5]">
+        <div className="px-4 py-3 bg-wiki-white border-t border-wiki-border-light">
           {isIOS ? (
             <div className="space-y-2">
-              <p className="text-[13px] font-semibold text-black">To install OpenCitation:</p>
-              <ol className="text-[12px] text-[#333] space-y-1.5 list-none pl-0">
+              <p className="text-[13px] font-semibold text-wiki-text">To install OpenCitation:</p>
+              <ol className="text-[12px] text-wiki-text space-y-1.5 list-none pl-0">
                 <li className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#007AFF] text-white text-[11px] flex items-center justify-center flex-shrink-0">1</span>
-                  <span>Tap the <span className="text-[#007AFF]"><ShareIcon /></span> Share button in Safari</span>
+                  <span className="w-5 h-5 bg-wiki-link text-wiki-white text-[11px] flex items-center justify-center flex-shrink-0">1</span>
+                  <span>Tap the <span className="text-wiki-link"><ShareIcon /></span> Share button in Safari</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#007AFF] text-white text-[11px] flex items-center justify-center flex-shrink-0">2</span>
+                  <span className="w-5 h-5 bg-wiki-link text-wiki-white text-[11px] flex items-center justify-center flex-shrink-0">2</span>
                   <span>Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#007AFF] text-white text-[11px] flex items-center justify-center flex-shrink-0">3</span>
+                  <span className="w-5 h-5 bg-wiki-link text-wiki-white text-[11px] flex items-center justify-center flex-shrink-0">3</span>
                   <span>Tap <strong>&quot;Add&quot;</strong> in the top right</span>
                 </li>
               </ol>
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-[13px] font-semibold text-black">To install OpenCitation:</p>
-              <ol className="text-[12px] text-[#333] space-y-1.5 list-none pl-0">
+              <p className="text-[13px] font-semibold text-wiki-text">To install OpenCitation:</p>
+              <ol className="text-[12px] text-wiki-text space-y-1.5 list-none pl-0">
                 <li className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#007AFF] text-white text-[11px] flex items-center justify-center flex-shrink-0">1</span>
+                  <span className="w-5 h-5 bg-wiki-link text-wiki-white text-[11px] flex items-center justify-center flex-shrink-0">1</span>
                   <span>Click <strong>File</strong> in the menu bar</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full bg-[#007AFF] text-white text-[11px] flex items-center justify-center flex-shrink-0">2</span>
+                  <span className="w-5 h-5 bg-wiki-link text-wiki-white text-[11px] flex items-center justify-center flex-shrink-0">2</span>
                   <span>Click <strong>&quot;Add to Dock&quot;</strong></span>
                 </li>
               </ol>
@@ -142,7 +142,7 @@ export function SafariInstallBanner() {
           )}
           <button
             onClick={handleDismiss}
-            className="mt-3 text-[12px] text-[#888] underline"
+            className="mt-3 text-[12px] text-wiki-text-muted underline"
           >
             Don&apos;t show again
           </button>

@@ -135,7 +135,7 @@ export default function LandingPage() {
     <WikiLayout hideFooter>
       <div className="mt-6">
         {/* Hero Section */}
-        <div className="border border-[#a7d7f9] bg-[#f5faff] dark:border-wiki-border-light dark:bg-wiki-offwhite p-6 md:p-8 mb-6">
+        <div className="border border-wiki-border-light bg-wiki-offwhite p-6 md:p-8 mb-6">
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-2">OpenCitation</h1>
             <p className="text-wiki-text-muted text-lg mb-4">
@@ -442,7 +442,7 @@ export default function LandingPage() {
               </div>
               <button onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
             </div>
-            <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
+            <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: 'var(--color-wiki-border) var(--color-wiki-tab-bg)' }}>
               <p><b>Last updated:</b> January 2025</p>
 
               <section>
@@ -504,7 +504,7 @@ export default function LandingPage() {
               </div>
               <button onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
             </div>
-            <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
+            <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: 'var(--color-wiki-border) var(--color-wiki-tab-bg)' }}>
               <p><b>Last updated:</b> January 2025</p>
 
               <section>
@@ -571,7 +571,7 @@ export default function LandingPage() {
               </div>
               <button onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
             </div>
-            <div className="p-4 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
+            <div className="p-4 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: 'var(--color-wiki-border) var(--color-wiki-tab-bg)' }}>
               {/* Choice Screen */}
               {reportMode === "choice" && !submitResult && (
                 <div className="space-y-4">
