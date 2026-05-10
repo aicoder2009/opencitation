@@ -195,6 +195,7 @@ export function SortableCitation({
         <button
           {...attributes}
           {...listeners}
+          aria-label="Drag to reorder"
           className="cursor-grab active:cursor-grabbing p-1 hover:bg-wiki-border-light rounded text-wiki-text-muted"
           title="Drag to reorder"
         >
@@ -334,6 +335,7 @@ export function SortableCitation({
             />
             <div className="flex flex-wrap gap-2 mb-3">
               <button
+                aria-label="Copy citation"
                 onClick={() => onCopy(citation.formattedText)}
                 className="text-wiki-link text-sm hover:underline"
               >
@@ -341,6 +343,7 @@ export function SortableCitation({
               </button>
               {citation.fields && (
                 <button
+                  aria-label="Copy in-text citation"
                   onClick={() =>
                     onCopy(
                       generateInTextCitation(
@@ -356,12 +359,14 @@ export function SortableCitation({
                 </button>
               )}
               <button
+                aria-label="Edit citation"
                 onClick={startEditing}
                 className="text-wiki-link text-sm hover:underline"
               >
                 [edit]
               </button>
               <button
+                aria-label="Delete citation"
                 onClick={() => onDelete(citation.id)}
                 className="text-wiki-link text-sm hover:underline"
               >
@@ -410,6 +415,7 @@ export function SortableCitation({
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-medium text-wiki-text-muted">Notes</span>
                   <button
+                    aria-label="Edit notes"
                     onClick={() => {
                       setNotesDraft(citation.notes ?? "");
                       setEditingNotes(true);
@@ -419,6 +425,7 @@ export function SortableCitation({
                     [edit]
                   </button>
                   <button
+                    aria-label="Clear notes"
                     onClick={() => onSaveNotes(citation.id, "")}
                     className="text-wiki-link text-xs hover:underline"
                   >
@@ -524,6 +531,7 @@ export function SortableCitation({
                     Quotes ({citation.quotes.length})
                   </span>
                   <button
+                    aria-label="Edit quotes"
                     onClick={() => {
                       setQuotesDraft(citation.quotes ?? []);
                       setEditingQuotes(true);
@@ -575,6 +583,7 @@ export function SortableCitation({
                     onClick={() => onRemoveTag(citation.id, tag)}
                     className="hover:text-wiki-link"
                     title="Remove tag"
+                    aria-label="Remove tag"
                   >
                     &times;
                   </button>
@@ -645,6 +654,7 @@ export function SortableCitation({
               </div>
             ) : (
               <button
+                aria-label="Add tag"
                 onClick={() => setEditingTagsId(citation.id)}
                 className="text-wiki-link text-xs hover:underline"
               >

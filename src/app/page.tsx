@@ -326,6 +326,7 @@ export default function LandingPage() {
                         </p>
                       </div>
                       <button
+                        aria-label="Copy recent citation"
                         onClick={() => copyRecentCitation(citation.formattedText)}
                         className="text-wiki-link text-sm hover:underline shrink-0"
                       >
@@ -440,7 +441,7 @@ export default function LandingPage() {
                   <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
                 </p>
               </div>
-              <button onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+              <button aria-label="Close" onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
             </div>
             <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
               <p><b>Last updated:</b> January 2025</p>
@@ -502,7 +503,7 @@ export default function LandingPage() {
                   <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
                 </p>
               </div>
-              <button onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+              <button aria-label="Close" onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
             </div>
             <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
               <p><b>Last updated:</b> January 2025</p>
@@ -569,7 +570,7 @@ export default function LandingPage() {
                 <h2 className="text-xl font-bold">Report an Issue</h2>
                 <p className="text-xs text-wiki-text-muted">Help us improve OpenCitation</p>
               </div>
-              <button onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+              <button aria-label="Close" onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
             </div>
             <div className="p-4 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: '#aaa #f0f0f0' }}>
               {/* Choice Screen */}
