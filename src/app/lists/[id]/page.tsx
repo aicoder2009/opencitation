@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, use, useRef, useMemo } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -27,6 +26,7 @@ import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { ShareDialog } from "@/components/wiki/share-dialog";
 import { CitationAddModal } from "@/components/wiki/citation-add-modal";
 import { TagColorPicker } from "@/components/wiki/tag-color-picker";
+import { PrintAnimation } from "@/components/retro/print-animation";
 import { ShortcutHelp, useKeyboardShortcuts } from "@/components/wiki/shortcut-help";
 import { formatCitation } from "@/lib/citation";
 import {
@@ -39,7 +39,8 @@ import {
 } from "@/lib/citation/exporters";
 import { useTagColors } from "@/lib/tag-colors";
 import { pickFactoid } from "@/lib/did-you-know";
-import { CITATION_STYLES, CITATION_STYLE_LABELS, type SourceType, type AccessType, type CitationFields as FullCitationFields, type CitationStyle } from "@/types";
+import type { SourceType, AccessType, CitationFields as FullCitationFields, CitationStyle } from "@/types";
+import { CITATION_STYLES, CITATION_STYLE_LABELS } from "@/types";
 import posthog from "posthog-js";
 
 interface List {
@@ -97,6 +98,8 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   const [editDescription, setEditDescription] = useState("");
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [showCiteModal, setShowCiteModal] = useState(false);
+  const [showPrintAnimation, setShowPrintAnimation] = useState(false);
+  const [printSoundEnabled, setPrintSoundEnabled] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [editingTagsCitationId, setEditingTagsCitationId] = useState<string | null>(null);
@@ -296,7 +299,6 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleDeleteCitation = async (citationId: string) => {
-    // eslint-disable-next-line no-alert
     if (!confirm("Are you sure you want to delete this citation?")) {
       return;
     }
@@ -461,7 +463,6 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
   const deleteSelected = async () => {
     const count = selectedCitationIds.size;
-    // eslint-disable-next-line no-alert
     if (!confirm(`Delete ${count} citation${count === 1 ? "" : "s"}?`)) return;
     const ids = [...selectedCitationIds];
     setCitations((prev) => prev.filter((c) => !selectedCitationIds.has(c.id)));
@@ -1110,7 +1111,7 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
                   >
                     Sort A–Z
                   </WikiButton>
-                  <WikiButton onClick={exportAllCitations}>
+                  <WikiButton onClick={() => setShowPrintAnimation(true)}>
                     Print
                   </WikiButton>
                   <WikiDropdown
@@ -1256,9 +1257,9 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Back Link */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <Link href="/lists" className="text-wiki-link hover:underline">
+            <a href="/lists" className="text-wiki-link hover:underline">
               &larr; Back to My Lists
-            </Link>
+            </a>
           </div>
         </div>
       </div>
@@ -1277,6 +1278,20 @@ export default function ListDetailPage({ params }: { params: Promise<{ id: strin
         listId={listId}
         listName={list?.name ?? ""}
         onCitationAdded={fetchListAndCitations}
+      />
+
+      {/* Print Animation Modal */}
+      <PrintAnimation
+        isOpen={showPrintAnimation}
+        onClose={() => setShowPrintAnimation(false)}
+        onComplete={() => {
+          setShowPrintAnimation(false);
+          exportAllCitations();
+        }}
+        itemCount={citations.length || 1}
+        fileName={`${list?.name || "citations"}.txt`}
+        soundEnabled={printSoundEnabled}
+        onSoundToggle={setPrintSoundEnabled}
       />
 
       {/* Keyboard Shortcuts Help - press ? to show */}
