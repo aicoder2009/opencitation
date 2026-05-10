@@ -74,7 +74,7 @@ export function useBarnstarAward() {
 
   useEffect(() => {
     const handler = (e: Event) => {
-      const {detail} = (e as CustomEvent<Milestone>);
+      const detail = (e as CustomEvent<Milestone>).detail;
       if (detail) setAward(detail);
     };
     window.addEventListener(AWARD_EVENT, handler);
