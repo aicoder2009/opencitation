@@ -35,7 +35,6 @@ export function TemplatePicker({
   const [showTemplates, setShowTemplates] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTemplates(getTemplates());
   }, []);
 

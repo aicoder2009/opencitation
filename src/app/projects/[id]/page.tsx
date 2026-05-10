@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
@@ -453,9 +452,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Back Link */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <Link href="/projects" className="text-wiki-link hover:underline">
+            <a href="/projects" className="text-wiki-link hover:underline">
               &larr; Back to My Projects
-            </Link>
+            </a>
           </div>
         </div>
       </div>
