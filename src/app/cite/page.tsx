@@ -2168,7 +2168,7 @@ function CitePageContent() {
                 </div>
 
                 {error && (
-                  <WikiNotice variant="warn">{error}</WikiNotice>
+                  <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
                 )}
 
                 <WikiButton
@@ -2235,7 +2235,7 @@ function CitePageContent() {
                   ))}
                 </div>
 
-                {researchError && <WikiNotice variant="warn">{researchError}</WikiNotice>}
+                {researchError && <WikiNotice variant="warn" onDismiss={() => setResearchError(null)}>{researchError}</WikiNotice>}
 
                 <WikiButton
                   variant="primary"
@@ -2287,7 +2287,7 @@ function CitePageContent() {
                   />
                 </div>
 
-                {bibtexError && <WikiNotice variant="warn">{bibtexError}</WikiNotice>}
+                {bibtexError && <WikiNotice variant="warn" onDismiss={() => setBibtexError(null)}>{bibtexError}</WikiNotice>}
 
                 <div className="flex gap-3">
                   <WikiButton
@@ -2402,7 +2402,7 @@ function CitePageContent() {
                 </WikiCollapsible>
 
                 {error && (
-                  <WikiNotice variant="warn">{error}</WikiNotice>
+                  <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
                 )}
 
                 <div className="flex items-center gap-3 flex-wrap">
@@ -2508,7 +2508,7 @@ https://another-site.com/paper"
                   )}
                 </div>
 
-                {bulkError && <WikiNotice variant="warn">{bulkError}</WikiNotice>}
+                {bulkError && <WikiNotice variant="warn" onDismiss={() => setBulkError(null)}>{bulkError}</WikiNotice>}
 
                 {bulkResults.length > 0 && (
                   <div className="border border-wiki-border-light">
@@ -2630,7 +2630,9 @@ https://another-site.com/paper"
                 </div>
                 <div className="p-4">
                   {isLoadingLists ? (
-                    <p className="text-center text-wiki-text-muted py-4">Loading lists...</p>
+                    <div className="flex items-center justify-center py-4">
+                      <span className="text-sm text-wiki-text-muted">Loading…</span>
+                    </div>
                   ) : lists.length === 0 ? (
                     <div className="py-2">
                       <p className="text-wiki-text-muted mb-4">
@@ -2649,7 +2651,7 @@ https://another-site.com/paper"
                             autoFocus
                           />
                         </div>
-                        {error && <WikiNotice variant="warn">{error}</WikiNotice>}
+                        {error && <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>}
                         <WikiButton
                           variant="primary"
                           onClick={createListAndAddCitation}
@@ -2751,7 +2753,7 @@ export default function CitePage() {
     <Suspense fallback={
       <WikiLayout>
         <div className="flex items-center justify-center py-12">
-          <p className="text-wiki-text-muted">Loading...</p>
+          <span className="text-sm text-wiki-text-muted">Loading…</span>
         </div>
       </WikiLayout>
     }>

@@ -1520,9 +1520,14 @@ export default function ListDetailPage({
             </div>
           ) : filteredCitations.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-wiki-text-muted">
+              <p className="text-wiki-text-muted mb-4">
                 No citations match your search.
               </p>
+              <WikiButton
+                onClick={() => { setSearchQuery(""); setFilterTag(null); }}
+              >
+                Clear Search &amp; Filters
+              </WikiButton>
             </div>
           ) : (
             <DndContext

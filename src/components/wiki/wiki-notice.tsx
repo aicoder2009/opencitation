@@ -6,6 +6,7 @@ interface WikiNoticeProps {
   variant?: WikiNoticeVariant;
   children: ReactNode;
   className?: string;
+  onDismiss?: () => void;
 }
 
 /**
@@ -13,8 +14,9 @@ interface WikiNoticeProps {
  * border with muted offwhite fill, no saturated state colors. The variant
  * only changes the left-border weight so info messages read lighter than
  * warnings without breaking the design system's "no state colors" rule.
+ * Pass onDismiss to render a [dismiss] link that clears the message.
  */
-export function WikiNotice({ variant = "info", children, className = "" }: WikiNoticeProps) {
+export function WikiNotice({ variant = "info", children, className = "", onDismiss }: WikiNoticeProps) {
   const accent =
     variant === "warn"
       ? "border-l-4 border-l-wiki-border"
@@ -26,6 +28,16 @@ export function WikiNotice({ variant = "info", children, className = "" }: WikiN
       className={`px-3 py-2 text-sm bg-wiki-offwhite border border-wiki-border-light text-wiki-text ${accent} ${className}`}
     >
       {children}
+      {onDismiss && (
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="ml-2 text-wiki-link hover:underline"
+          aria-label="Dismiss"
+        >
+          [dismiss]
+        </button>
+      )}
     </div>
   );
 }
