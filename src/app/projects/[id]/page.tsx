@@ -156,6 +156,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   };
 
   const handleRemoveFromProject = async (listId: string) => {
+    const listName = lists.find((l) => l.id === listId)?.name || "this list";
+    // eslint-disable-next-line no-alert
+    if (!confirm(`Remove "${listName}" from this project?`)) return;
     try {
       const response = await fetch(`/api/lists/${listId}`, {
         method: "PUT",

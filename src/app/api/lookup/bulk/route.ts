@@ -63,13 +63,12 @@ export async function POST(request: NextRequest) {
 
         if (response.ok && data.data) {
           return { input: trimmedItem, success: true, data: data.data };
-        } else {
-          return {
-            input: trimmedItem,
-            success: false,
-            error: data.error || "Failed to fetch metadata"
-          };
         }
+        return {
+          input: trimmedItem,
+          success: false,
+          error: data.error || "Failed to fetch metadata"
+        };
       } catch (err) {
         return {
           input: trimmedItem,

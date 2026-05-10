@@ -335,12 +335,15 @@ export default function ListDetailPage({
   };
 
   const handleDeleteCitation = async (citationId: string) => {
+    const citation = citations.find((c) => c.id === citationId);
+    const label =
+      citation?.fields?.title ||
+      citation?.formattedText?.slice(0, 60) ||
+      "this citation";
     // eslint-disable-next-line no-alert
-    if (!confirm("Are you sure you want to delete this citation?")) {
+    if (!confirm(`Delete "${label}"?`)) {
       return;
     }
-
-    const citation = citations.find((c) => c.id === citationId);
     try {
       const response = await fetch(
         `/api/lists/${listId}/citations/${citationId}`,
@@ -546,7 +549,7 @@ export default function ListDetailPage({
   const deleteSelected = async () => {
     const count = selectedCitationIds.size;
     // eslint-disable-next-line no-alert
-    if (!confirm(`Delete ${count} citation${count === 1 ? "" : "s"}?`)) return;
+    if (!confirm(`Delete ${count} selected citation${count === 1 ? "" : "s"} from "${list?.name}"? This cannot be undone.`)) return;
     const ids = [...selectedCitationIds];
     setCitations((prev) => prev.filter((c) => !selectedCitationIds.has(c.id)));
     setSelectedCitationIds(new Set());
