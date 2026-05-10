@@ -335,6 +335,7 @@ function CitePageContent() {
   const [citationFields, setCitationFields] = useState<CitationFields | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [titleError, setTitleError] = useState<string | null>(null);
 
   // Add to List state
   const [showListModal, setShowListModal] = useState(false);
@@ -606,9 +607,10 @@ function CitePageContent() {
 
   const handleManualGenerate = () => {
     setError(null);
+    setTitleError(null);
 
     if (!formData.title.trim()) {
-      setError("Title is required");
+      setTitleError("Title is required");
       return;
     }
 
@@ -1406,11 +1408,14 @@ function CitePageContent() {
           <input
             type="text"
             value={formData.title}
-            onChange={(e) => updateFormData("title", e.target.value)}
+            onChange={(e) => { updateFormData("title", e.target.value); setTitleError(null); }}
             placeholder="Title of work"
             className="w-full"
             required
           />
+          {titleError && (
+            <p className="mt-1 text-xs text-wiki-text-muted">{titleError}</p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Subtitle</label>
@@ -2320,9 +2325,10 @@ function CitePageContent() {
                     </div>
                     <div className="divide-y divide-wiki-border-light max-h-64 overflow-y-auto">
                       {bibtexResults.map((entry, index) => (
-                        <div
+                        <button
                           key={index}
-                          className="p-3 text-sm hover:bg-wiki-tab-bg cursor-pointer"
+                          type="button"
+                          className="w-full text-left p-3 text-sm hover:bg-wiki-tab-bg"
                           onClick={() => applyBibtexEntry(entry)}
                         >
                           <div className="flex items-start gap-2">
@@ -2336,7 +2342,7 @@ function CitePageContent() {
                             </div>
                             <span className="text-xs text-wiki-link shrink-0">Select</span>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </div>
@@ -2519,43 +2525,58 @@ https://another-site.com/paper"
                       </span>
                     </div>
                     <div className="divide-y divide-wiki-border-light max-h-64 overflow-y-auto">
-                      {bulkResults.map((result, index) => (
-                        <div
-                          key={index}
-                          className={`p-3 text-sm ${
-                            result.success
-                              ? "hover:bg-wiki-tab-bg cursor-pointer"
-                              : "bg-wiki-offwhite border-l-4 border-l-wiki-border"
-                          }`}
-                          onClick={() => handleBulkResultClick(result)}
-                        >
-                          <div className="flex items-start gap-2">
-                            <span
-                              className="text-wiki-text-muted font-mono"
-                              aria-label={result.success ? "success" : "failed"}
-                            >
-                              {result.success ? "✓" : "✗"}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <div className="truncate font-mono text-xs text-wiki-text-muted">
-                                {result.input}
-                              </div>
-                              {result.success && result.data ? (
-                                <div className="mt-1 truncate">
-                                  {(result.data.title as string) || "Untitled"}
+                      {bulkResults.map((result, index) =>
+                        result.success ? (
+                          <button
+                            key={index}
+                            type="button"
+                            className="w-full text-left p-3 text-sm hover:bg-wiki-tab-bg"
+                            onClick={() => handleBulkResultClick(result)}
+                          >
+                            <div className="flex items-start gap-2">
+                              <span
+                                className="text-wiki-text-muted font-mono"
+                                aria-label="success"
+                              >
+                                ✓
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="truncate font-mono text-xs text-wiki-text-muted">
+                                  {result.input}
                                 </div>
-                              ) : (
+                                {result.data && (
+                                  <div className="mt-1 truncate">
+                                    {(result.data.title as string) || "Untitled"}
+                                  </div>
+                                )}
+                              </div>
+                              <span className="text-xs text-wiki-link">Click to view</span>
+                            </div>
+                          </button>
+                        ) : (
+                          <div
+                            key={index}
+                            className="p-3 text-sm bg-wiki-offwhite border-l-4 border-l-wiki-border"
+                          >
+                            <div className="flex items-start gap-2">
+                              <span
+                                className="text-wiki-text-muted font-mono"
+                                aria-label="failed"
+                              >
+                                ✗
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                <div className="truncate font-mono text-xs text-wiki-text-muted">
+                                  {result.input}
+                                </div>
                                 <div className="mt-1 text-wiki-text-muted">
                                   {result.error}
                                 </div>
-                              )}
+                              </div>
                             </div>
-                            {result.success && (
-                              <span className="text-xs text-wiki-link">Click to view</span>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        )
+                      )}
                     </div>
                   </div>
                 )}
