@@ -49,6 +49,7 @@ export function ShareDialog({
       const result = await response.json();
       if (!result.success) {
         setActiveShare(null);
+        setError(result.error || "Could not load existing share link.");
         return;
       }
       const match = (result.data as ShareListEntry[]).find(

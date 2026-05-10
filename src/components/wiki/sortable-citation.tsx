@@ -198,6 +198,7 @@ export function SortableCitation({
           {...listeners}
           className="cursor-grab active:cursor-grabbing p-1 hover:bg-wiki-border-light text-wiki-text-muted"
           title="Drag to reorder"
+          aria-label="Drag to reorder"
         >
           <svg
             width="16"
@@ -332,7 +333,7 @@ export function SortableCitation({
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(citation.formattedHtml) }}
               />
             </div>
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-3 mb-3">
               <button
                 onClick={() => onCopy(citation.formattedText)}
                 className="text-wiki-link text-sm hover:underline"
@@ -569,6 +570,7 @@ export function SortableCitation({
                     onClick={() => onRemoveTag(citation.id, tag)}
                     className="hover:text-wiki-link"
                     title="Remove tag"
+                    aria-label={`Remove tag ${tag}`}
                   >
                     &times;
                   </button>
