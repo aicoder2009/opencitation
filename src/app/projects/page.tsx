@@ -351,7 +351,6 @@ export default function ProjectsPage() {
                           >
                             {isSavingEdit ? "[saving...]" : "[save]"}
                           </button>
-                          <span className="text-wiki-border-light">|</span>
                           <button
                             onClick={cancelEditing}
                             disabled={isSavingEdit}
@@ -368,7 +367,6 @@ export default function ProjectsPage() {
                           >
                             [view]
                           </button>
-                          <span className="text-wiki-border-light">|</span>
                           <button
                             onClick={() => startEditing(project)}
                             className="text-wiki-link hover:underline"
