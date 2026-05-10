@@ -192,15 +192,15 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   // HTML with proper formatting
   let journalHtml = italic(escapeHtml(fields.journalTitle));
   if (fields.volume) {
-    journalHtml += `, ${italic(fields.volume)}`;
+    journalHtml += `, ${italic(escapeHtml(fields.volume))}`;
     if (fields.issue) {
-      journalHtml += `(${fields.issue})`;
+      journalHtml += `(${escapeHtml(fields.issue)})`;
     }
   }
   if (fields.pageRange) {
-    journalHtml += `, ${fields.pageRange}`;
+    journalHtml += `, ${escapeHtml(fields.pageRange)}`;
   } else if (fields.articleNumber) {
-    journalHtml += `, Article ${fields.articleNumber}`;
+    journalHtml += `, Article ${escapeHtml(fields.articleNumber)}`;
   }
   htmlParts.push(`${journalHtml}.`);
 

@@ -201,7 +201,7 @@ export function formatAuthorsChicago(authors: Author[]): string {
   }
 
   if (authors.length === 2) {
-    return `${formatAuthorChicago(authors[0], true)} and ${formatAuthorChicago(authors[1], false)}`;
+    return `${formatAuthorChicago(authors[0], true)}, and ${formatAuthorChicago(authors[1], false)}`;
   }
 
   if (authors.length === 3) {

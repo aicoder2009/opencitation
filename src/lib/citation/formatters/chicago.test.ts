@@ -22,6 +22,35 @@ describe('Chicago Formatter', () => {
       expect(result.text).toContain('Scribner');
     });
 
+    it('should place editor in author slot for edited volumes', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [{ firstName: 'John', lastName: 'Smith' }],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatChicago(fields);
+      expect(result.text).toContain('Smith, John, ed.');
+    });
+
+    it('should use Oxford comma and "and" for two-author books', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Test Book',
+        authors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+        publisher: 'Test Publisher',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatChicago(fields);
+      expect(result.text).toContain('Smith, John, and Jane Doe');
+    });
+
     it('should format place and publisher correctly', () => {
       const fields: BookFields = {
         sourceType: 'book',

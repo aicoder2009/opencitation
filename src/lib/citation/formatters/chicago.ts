@@ -88,11 +88,16 @@ function formatBook(fields: BookFields): FormattedCitation {
   const parts: string[] = [];
   const htmlParts: string[] = [];
 
-  // Authors
+  // Authors — or editors in author slot for edited volumes with no authors
   const authors = formatAuthorsChicago(fields.authors || []);
   if (authors) {
     parts.push(`${authors}.`);
     htmlParts.push(`${escapeHtml(authors)}.`);
+  } else if (fields.editors && fields.editors.length > 0) {
+    const editorStr = formatAuthorsChicago(fields.editors);
+    const editorEntry = `${editorStr}, ${fields.editors.length === 1 ? 'ed.' : 'eds.'}`;
+    parts.push(`${editorEntry}.`);
+    htmlParts.push(`${escapeHtml(editorEntry)}.`);
   }
 
   // Title (italicized)
@@ -102,13 +107,6 @@ function formatBook(fields: BookFields): FormattedCitation {
   }
   parts.push(`${title}.`);
   htmlParts.push(`${italic(escapeHtml(title))}.`);
-
-  // Editors (if anthology or edited volume)
-  if (fields.editors && fields.editors.length > 0 && (!fields.authors || fields.authors.length === 0)) {
-    const editors = formatAuthorsChicago(fields.editors);
-    parts.push(`Edited by ${editors}.`);
-    htmlParts.push(`Edited by ${escapeHtml(editors)}.`);
-  }
 
   // Edition
   if (fields.edition) {

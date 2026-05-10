@@ -90,11 +90,16 @@ function formatBook(fields: BookFields): FormattedCitation {
   const parts: string[] = [];
   const htmlParts: string[] = [];
 
-  // Authors
+  // Authors — or editors in author slot for edited volumes with no authors
   const authors = formatAuthorsMLA(fields.authors || []);
   if (authors) {
     parts.push(`${authors}.`);
     htmlParts.push(`${escapeHtml(authors)}.`);
+  } else if (fields.editors && fields.editors.length > 0) {
+    const editorStr = formatAuthorsMLA(fields.editors);
+    const edLabel = fields.editors.length === 1 ? ', editor.' : ', editors.';
+    parts.push(`${editorStr}${edLabel}`);
+    htmlParts.push(`${escapeHtml(editorStr)}${escapeHtml(edLabel)}`);
   }
 
   // Title (italicized)
@@ -105,8 +110,8 @@ function formatBook(fields: BookFields): FormattedCitation {
   parts.push(`${title}.`);
   htmlParts.push(`${italic(escapeHtml(title))}.`);
 
-  // Editors (if different from authors)
-  if (fields.editors && fields.editors.length > 0) {
+  // Editors secondary (book has both authors and editors, e.g. translated/edited)
+  if (fields.authors && fields.authors.length > 0 && fields.editors && fields.editors.length > 0) {
     const editors = formatAuthorsMLA(fields.editors);
     parts.push(`Edited by ${editors},`);
     htmlParts.push(`Edited by ${escapeHtml(editors)},`);

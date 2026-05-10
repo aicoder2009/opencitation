@@ -95,11 +95,16 @@ function formatBook(fields: BookFields): FormattedCitation {
   const parts: string[] = [];
   const htmlParts: string[] = [];
 
-  // Authors
+  // Authors — or editors in author slot for edited volumes with no authors
   const authors = formatAuthorsHarvard(fields.authors || []);
   if (authors) {
     parts.push(authors);
     htmlParts.push(escapeHtml(authors));
+  } else if (fields.editors && fields.editors.length > 0) {
+    const editorStr = formatAuthorsHarvard(fields.editors);
+    const edLabel = fields.editors.length === 1 ? ' (ed.)' : ' (eds.)';
+    parts.push(editorStr + edLabel);
+    htmlParts.push(escapeHtml(editorStr + edLabel));
   }
 
   // Year
