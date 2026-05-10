@@ -208,14 +208,8 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
         <WikiBreadcrumbs
           items={[{ label: "Home", href: "/" }, { label: "Loading..." }]}
         />
-        <div className="mt-6 border border-wiki-border-light bg-wiki-white p-6 md:p-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-3 w-24 bg-wiki-border-light" />
-            <div className="h-6 w-1/2 bg-wiki-border-light" />
-            <div className="h-3 w-32 bg-wiki-border-light" />
-            <div className="h-24 w-full bg-wiki-offwhite border border-wiki-border-light mt-6" />
-            <div className="h-24 w-full bg-wiki-offwhite border border-wiki-border-light" />
-          </div>
+        <div className="flex items-center justify-center py-12">
+          <span className="text-sm text-wiki-text-muted">Loading…</span>
         </div>
       </WikiLayout>
     );
