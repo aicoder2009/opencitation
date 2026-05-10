@@ -101,8 +101,8 @@ function formatBook(fields: BookFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title (italicized, sentence case)
   let title = toSentenceCase(fields.title);
@@ -158,8 +158,8 @@ function formatJournal(fields: JournalFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Article title (sentence case, not italicized)
   let articleTitle = toSentenceCase(fields.title);
@@ -238,8 +238,8 @@ function formatWebsite(fields: WebsiteFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title (italicized)
   let {title} = fields;
@@ -287,8 +287,8 @@ function formatBlog(fields: BlogFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title (plain text — APA 7 does not italicize blog post titles)
   let {title} = fields;
@@ -332,8 +332,8 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Article title
   let {title} = fields;
@@ -377,24 +377,24 @@ function formatVideo(fields: VideoFields): FormattedCitation {
   if (authors) {
     let authorStr = authors;
     if (fields.channelName && authors !== fields.channelName) {
-      authorStr += ` [${fields.channelName}]`;
+      authorStr = `${authorStr} [${fields.channelName}].`;
     }
     parts.push(authorStr);
     htmlParts.push(escapeHtml(authorStr));
   } else if (fields.channelName) {
-    parts.push(fields.channelName);
-    htmlParts.push(escapeHtml(fields.channelName));
+    parts.push(`${fields.channelName}.`);
+    htmlParts.push(`${escapeHtml(fields.channelName)}.`);
   }
 
   // Date
   const date = formatDateAPA(fields.uploadDate || fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title [Video]
-  let {title} = fields;
+  let title = toSentenceCase(fields.title);
   if (fields.subtitle) {
-    title += `: ${fields.subtitle}`;
+    title += `: ${toSentenceCase(fields.subtitle)}`;
   }
   title += ' [Video]';
   parts.push(`${title}.`);
@@ -436,8 +436,8 @@ function formatImage(fields: ImageFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title [Medium]
   let {title} = fields;
@@ -491,8 +491,8 @@ function formatFilm(fields: FilmFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title [Film]
   let {title} = fields;
@@ -596,8 +596,8 @@ function formatTVEpisode(fields: TVEpisodeFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.airDate || fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Episode title (Season X, Episode X) [TV series episode]
   let episodeInfo = fields.episodeTitle || fields.title;
@@ -648,8 +648,8 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
 
   // Date
   const date = formatDateAPA(fields.publicationDate);
-  parts.push(date);
-  htmlParts.push(date);
+  parts.push(`${date}.`);
+  htmlParts.push(`${date}.`);
 
   // Title [Medium/Format]
   let {title} = fields;

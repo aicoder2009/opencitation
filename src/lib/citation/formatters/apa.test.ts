@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { formatAPA } from './apa';
-import type { BookFields, JournalFields, WebsiteFields } from '@/types/citation';
+import type { BookFields, JournalFields, WebsiteFields, VideoFields } from '@/types/citation';
 
 describe('APA Formatter', () => {
   describe('Book formatting', () => {
@@ -207,6 +207,56 @@ describe('APA Formatter', () => {
       // The href must not contain a raw unescaped double-quote
       expect(result.html).not.toContain('href="https://example.com/"onmouseover');
       expect(result.html).toContain('&quot;');
+    });
+  });
+
+  describe('Video formatting', () => {
+    it('should format a YouTube video with author and channel name', () => {
+      const fields: VideoFields = {
+        sourceType: 'video',
+        accessType: 'web',
+        title: 'The Bigger Picture: America job market is collapsing',
+        authors: [{ firstName: 'Max', lastName: 'Fisher' }],
+        channelName: 'Max Fisher',
+        platform: 'YouTube',
+        url: 'https://youtu.be/aUM4kv0HnG0',
+        uploadDate: { year: 2026, month: 4, day: 10 },
+      };
+
+      const result = formatAPA(fields);
+      expect(result.text).toContain('Fisher, M. [Max Fisher].');
+      expect(result.text).toContain('(2026, April 10).');
+      expect(result.text).toContain('The bigger picture:');
+      expect(result.text).toContain('[Video]');
+      expect(result.text).toContain('YouTube');
+    });
+
+    it('should sentence-case the video title', () => {
+      const fields: VideoFields = {
+        sourceType: 'video',
+        accessType: 'web',
+        title: 'How To Build A React App From Scratch',
+        platform: 'YouTube',
+        url: 'https://youtu.be/example',
+        uploadDate: { year: 2024 },
+      };
+
+      const result = formatAPA(fields);
+      expect(result.text).toContain('How to build a react app from scratch');
+    });
+
+    it('should italicise the title in HTML output', () => {
+      const fields: VideoFields = {
+        sourceType: 'video',
+        accessType: 'web',
+        title: 'Test Video Title',
+        platform: 'YouTube',
+        url: 'https://youtu.be/example',
+        uploadDate: { year: 2024 },
+      };
+
+      const result = formatAPA(fields);
+      expect(result.html).toContain('<em>Test video title</em>');
     });
   });
 
