@@ -195,7 +195,7 @@ export function SortableCitation({
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-wiki-border-light rounded text-wiki-text-muted"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-wiki-border-light text-wiki-text-muted"
           title="Drag to reorder"
         >
           <svg
