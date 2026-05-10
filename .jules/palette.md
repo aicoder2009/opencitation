@@ -1,0 +1,3 @@
+## 2024-05-10 - ARIA context for generic visual text buttons
+**Learning:** The `WikiCollapsible` component used generic text `[hide]` and `[show]` for its toggle button, which lacks context when read by a screen reader (especially out of context). Additionally, interactive collapsibles require `aria-expanded` and `aria-controls` to properly announce their state and associate the control with the collapsible content.
+**Action:** Always provide a contextual `aria-label` (e.g., `"Hide [Title]"`) for buttons using generic visual text. Use React's `useId` to link `aria-controls` on the button to the `id` of the collapsible content, and ensure `aria-expanded` accurately reflects the current state to support screen reader users.
