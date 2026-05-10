@@ -1414,7 +1414,7 @@ function CitePageContent() {
             required
           />
           {titleError && (
-            <p className="mt-1 text-xs text-wiki-text-muted">{titleError}</p>
+            <p className="mt-1 text-xs text-wiki-text">{titleError}</p>
           )}
         </div>
         <div>
@@ -2692,7 +2692,7 @@ https://another-site.com/paper"
                             key={list.id}
                             onClick={() => addCitationToList(list.id)}
                             disabled={isAddingToList}
-                            className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50"
+                            className="w-full text-left p-3 border border-wiki-border-light hover:bg-wiki-offwhite disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {list.name}
                           </button>
