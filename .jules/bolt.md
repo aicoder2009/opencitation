@@ -1,0 +1,3 @@
+## 2024-05-10 - Client-Side Waterfall Fetching in Detail Pages
+**Learning:** The codebase has an anti-pattern of sequential `await fetch()` calls on Detail pages (e.g., fetching project details, then its lists, then all user lists) which causes waterfall latency and significantly degrades Time to First Byte / load time for the client since these requests do not strictly depend on each other's responses.
+**Action:** When fetching independent data models on detail pages, always group them using `Promise.all` for both the network requests and the subsequent `.json()` parsing to execute them concurrently.
