@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
@@ -1928,7 +1927,7 @@ function CitePageContent() {
           Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry.
           {!isSignedIn && (
             <span className="ml-1">
-              <Link href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</Link> to save citations to lists.
+              <a href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</a> to save citations to lists.
             </span>
           )}
         </p>

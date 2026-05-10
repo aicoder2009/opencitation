@@ -66,7 +66,6 @@ export function useTagColors() {
   const [map, setMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMap(readMap());
     const onChange = () => setMap(readMap());
     window.addEventListener(CHANGE_EVENT, onChange);

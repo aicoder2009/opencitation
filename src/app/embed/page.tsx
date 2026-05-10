@@ -4,7 +4,6 @@ import { useState } from "react";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
-import posthog from "posthog-js";
 
 export default function EmbedPage() {
   const [pageUrl, setPageUrl] = useState("");
@@ -29,10 +28,6 @@ export default function EmbedPage() {
     navigator.clipboard.writeText(code);
     setCopied(type);
     setTimeout(() => setCopied(null), 2000);
-    posthog.capture("embed_badge_code_copied", {
-      format: type,
-      has_custom_url: !!pageUrl,
-    });
   };
 
   return (
