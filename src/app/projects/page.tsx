@@ -233,7 +233,7 @@ export default function ProjectsPage() {
                     disabled={isCreating}
                   />
                   {nameError && (
-                    <p className="mt-1 text-xs text-wiki-text-muted">{nameError}</p>
+                    <p className="mt-1 text-xs text-wiki-text">{nameError}</p>
                   )}
                 </div>
                 <div>
