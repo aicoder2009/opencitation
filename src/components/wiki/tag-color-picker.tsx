@@ -48,7 +48,7 @@ export function TagColorPicker({ tagName, currentColor, onPick, onReset, onClose
               onReset();
               onClose();
             }}
-            className="text-xs text-wiki-link hover:underline"
+            className="text-xs text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             reset
           </button>
@@ -65,7 +65,7 @@ export function TagColorPicker({ tagName, currentColor, onPick, onReset, onClose
                 onPick(c.name);
                 onClose();
               }}
-              className={`flex flex-col items-center gap-1 p-1 border hover:bg-wiki-tab-bg ${
+              className={`flex flex-col items-center gap-1 p-1 border hover:bg-wiki-tab-bg focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text ${
                 isActive ? "border-wiki-link" : "border-transparent"
               }`}
               title={c.name}

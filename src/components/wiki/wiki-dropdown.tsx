@@ -63,7 +63,7 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
                 item.onClick();
                 setOpen(false);
               }}
-              className="block w-full text-left px-3 py-2 text-sm hover:bg-wiki-tab-bg cursor-pointer"
+              className="block w-full text-left px-3 py-2 text-sm hover:bg-wiki-tab-bg cursor-pointer focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
             >
               <span className="text-wiki-text">{item.label}</span>
               {item.hint && (

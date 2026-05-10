@@ -36,7 +36,7 @@ export function TemplatePicker({
         <button
           type="button"
           onClick={() => setShowTemplates(!showTemplates)}
-          className="text-wiki-link hover:underline"
+          className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
         >
           {showTemplates ? "[-] Hide Templates" : "[+] Templates"}
           {templates.length > 0 && (
@@ -63,7 +63,7 @@ export function TemplatePicker({
                   <button
                     type="button"
                     onClick={() => onSelectTemplate(template)}
-                    className="flex-1 text-left"
+                    className="flex-1 text-left text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     <span className="font-medium text-sm">{template.name}</span>
                     <span className="ml-2 text-xs text-wiki-text-muted">
@@ -73,7 +73,7 @@ export function TemplatePicker({
                   <button
                     type="button"
                     onClick={() => handleDeleteTemplate(template.id)}
-                    className="text-wiki-link text-xs hover:underline ml-2"
+                    className="text-wiki-link text-xs hover:underline ml-2 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     title="Delete template"
                   >
                     [delete]

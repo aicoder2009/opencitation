@@ -196,7 +196,7 @@ export function SortableCitation({
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-wiki-border-light text-wiki-text-muted"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-wiki-border-light text-wiki-text-muted focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           title="Drag to reorder"
           aria-label="Drag to reorder"
         >
@@ -336,7 +336,7 @@ export function SortableCitation({
             <div className="flex flex-wrap gap-3 mb-3">
               <button
                 onClick={() => onCopy(citation.formattedText)}
-                className="text-wiki-link text-sm hover:underline"
+                className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [copy]
               </button>
@@ -350,7 +350,7 @@ export function SortableCitation({
                       )
                     )
                   }
-                  className="text-wiki-link text-sm hover:underline"
+                  className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   title={`In-text citation (${citation.style.toUpperCase()})`}
                 >
                   [copy in-text]
@@ -358,13 +358,13 @@ export function SortableCitation({
               )}
               <button
                 onClick={startEditing}
-                className="text-wiki-link text-sm hover:underline"
+                className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [edit]
               </button>
               <button
                 onClick={() => onDelete(citation.id)}
-                className="text-wiki-link text-sm hover:underline"
+                className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [delete]
               </button>
@@ -412,13 +412,13 @@ export function SortableCitation({
                       setNotesDraft(citation.notes ?? "");
                       setEditingNotes(true);
                     }}
-                    className="text-wiki-link text-xs hover:underline"
+                    className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [edit]
                   </button>
                   <button
                     onClick={() => onSaveNotes(citation.id, "")}
-                    className="text-wiki-link text-xs hover:underline"
+                    className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [clear]
                   </button>
@@ -431,7 +431,7 @@ export function SortableCitation({
                   setNotesDraft("");
                   setEditingNotes(true);
                 }}
-                className="text-wiki-link text-xs hover:underline"
+                className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [+ add notes]
               </button>
@@ -475,7 +475,7 @@ export function SortableCitation({
                       onClick={() =>
                         setQuotesDraft(quotesDraft.filter((_, idx) => idx !== i))
                       }
-                      className="text-wiki-link text-xs hover:underline pt-1"
+                      className="text-wiki-link text-xs hover:underline pt-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     >
                       remove
                     </button>
@@ -486,7 +486,7 @@ export function SortableCitation({
                     onClick={() =>
                       setQuotesDraft([...quotesDraft, { text: "", page: "" }])
                     }
-                    className="text-wiki-link text-xs hover:underline"
+                    className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     + add quote
                   </button>
@@ -523,7 +523,7 @@ export function SortableCitation({
                       setQuotesDraft(citation.quotes ?? []);
                       setEditingQuotes(true);
                     }}
-                    className="text-wiki-link text-xs hover:underline"
+                    className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [edit]
                   </button>
@@ -547,7 +547,7 @@ export function SortableCitation({
                   setQuotesDraft([{ text: "", page: "" }]);
                   setEditingQuotes(true);
                 }}
-                className="text-wiki-link text-xs hover:underline"
+                className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [+ add quote]
               </button>
@@ -568,7 +568,7 @@ export function SortableCitation({
                   <span>{tag}</span>
                   <button
                     onClick={() => onRemoveTag(citation.id, tag)}
-                    className="hover:text-wiki-link"
+                    className="hover:text-wiki-link focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     title="Remove tag"
                     aria-label={`Remove tag ${tag}`}
                   >
@@ -597,7 +597,7 @@ export function SortableCitation({
                 />
                 <button
                   onClick={() => onAddTag(citation.id, newTagInput)}
-                  className="text-wiki-link text-xs hover:underline"
+                  className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   [add]
                 </button>
@@ -606,7 +606,7 @@ export function SortableCitation({
                     setEditingTagsId(null);
                     setNewTagInput("");
                   }}
-                  className="text-wiki-text-muted text-xs hover:underline"
+                  className="text-wiki-text-muted text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   [cancel]
                 </button>
@@ -628,7 +628,7 @@ export function SortableCitation({
                             key={tag}
                             type="button"
                             onClick={() => onAddTag(citation.id, tag)}
-                            className={`inline-flex items-center px-2 py-0.5 text-xs border ${color.bg} ${color.text} ${color.border}`}
+                            className={`inline-flex items-center px-2 py-0.5 text-xs border focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text ${color.bg} ${color.text} ${color.border}`}
                             title={`Add "${tag}"`}
                           >
                             + {tag}
@@ -642,7 +642,7 @@ export function SortableCitation({
             ) : (
               <button
                 onClick={() => setEditingTagsId(citation.id)}
-                className="text-wiki-link text-xs hover:underline"
+                className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [+ add tag]
               </button>

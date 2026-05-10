@@ -32,7 +32,7 @@ export function WikiNotice({ variant = "info", children, className = "", onDismi
         <button
           type="button"
           onClick={onDismiss}
-          className="ml-2 text-wiki-link hover:underline"
+          className="ml-2 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           aria-label="Dismiss"
         >
           [dismiss]

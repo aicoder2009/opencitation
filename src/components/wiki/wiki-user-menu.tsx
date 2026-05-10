@@ -103,7 +103,7 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
                 openUserProfile();
                 setIsOpen(false);
               }}
-              className="w-full text-left px-3 py-1.5 text-sm text-wiki-link hover:bg-wiki-offwhite hover:underline"
+              className="w-full text-left px-3 py-1.5 text-sm text-wiki-link hover:bg-wiki-offwhite hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
             >
               Manage account
             </button>
@@ -112,7 +112,7 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
                 signOut({ redirectUrl: "/" });
                 setIsOpen(false);
               }}
-              className="w-full text-left px-3 py-1.5 text-sm text-wiki-link hover:bg-wiki-offwhite hover:underline"
+              className="w-full text-left px-3 py-1.5 text-sm text-wiki-link hover:bg-wiki-offwhite hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
             >
               Sign out
             </button>

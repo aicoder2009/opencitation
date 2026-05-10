@@ -270,7 +270,7 @@ export function ShareDialog({
               ) : (
                 <button
                   onClick={() => setConfirmRevoke(true)}
-                  className="text-wiki-link hover:underline text-xs"
+                  className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Revoke link
                 </button>

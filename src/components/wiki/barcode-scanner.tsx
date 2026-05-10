@@ -94,7 +94,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
           <button
             type="button"
             onClick={onClose}
-            className="text-wiki-link text-sm hover:underline"
+            className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             [close]
           </button>

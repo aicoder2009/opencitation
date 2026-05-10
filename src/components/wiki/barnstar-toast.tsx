@@ -31,7 +31,7 @@ export function BarnstarToast() {
         </div>
         <button
           onClick={dismiss}
-          className="text-wiki-text-muted hover:text-wiki-text text-xs"
+          className="text-wiki-text-muted hover:text-wiki-text text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           aria-label="Dismiss"
         >
           [×]

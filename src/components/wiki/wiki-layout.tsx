@@ -70,7 +70,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
   const desktopThemeToggle = mounted ? (
     <button
       onClick={toggle}
-      className="p-1.5 border border-wiki-border-light bg-wiki-offwhite hover:bg-wiki-tab-bg text-wiki-text"
+      className="p-1.5 border border-wiki-border-light bg-wiki-offwhite hover:bg-wiki-tab-bg text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
@@ -158,7 +158,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
             </SignedIn>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1 text-wiki-text"
+              className="p-1 text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               aria-label="Toggle menu"
             >
               <svg
@@ -266,7 +266,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               {mounted && (
                 <button
                   onClick={toggle}
-                  className="inline-flex items-center gap-1.5 py-1 text-wiki-text hover:underline"
+                  className="inline-flex items-center gap-1.5 py-1 text-wiki-text hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   {isDark ? (
                     <>

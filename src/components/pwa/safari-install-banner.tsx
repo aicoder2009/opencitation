@@ -61,7 +61,7 @@ export function SafariInstallBanner() {
         {/* Close button */}
         <button
           onClick={handleDismiss}
-          className="text-wiki-text-muted text-xl leading-none px-1"
+          className="text-wiki-text-muted text-xl leading-none px-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           aria-label="Close"
         >
           ×
@@ -90,14 +90,14 @@ export function SafariInstallBanner() {
         {!showInstructions ? (
           <button
             onClick={handleView}
-            className="bg-wiki-link text-wiki-white text-[12px] font-semibold px-3 py-1"
+            className="border border-wiki-border-light bg-wiki-white text-wiki-link text-[12px] font-semibold px-3 py-1 hover:bg-wiki-tab-bg focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             INSTALL
           </button>
         ) : (
           <button
             onClick={() => setShowInstructions(false)}
-            className="text-wiki-link text-[12px] font-semibold px-2"
+            className="text-wiki-link text-[12px] font-semibold px-2 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             Hide
           </button>
@@ -142,7 +142,7 @@ export function SafariInstallBanner() {
           )}
           <button
             onClick={handleDismiss}
-            className="mt-3 text-[12px] text-wiki-text-muted underline"
+            className="mt-3 text-[12px] text-wiki-text-muted underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             Don&apos;t show again
           </button>

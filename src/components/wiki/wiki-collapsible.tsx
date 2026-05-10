@@ -21,7 +21,7 @@ export function WikiCollapsible({
         <span className="font-medium text-sm">{title}</span>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="text-wiki-link text-sm hover:underline"
+          className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
         >
           [{isOpen ? "hide" : "show"}]
         </button>
