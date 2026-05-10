@@ -3,6 +3,23 @@ import { formatHarvard } from './harvard';
 import type { BookFields, JournalFields, WebsiteFields } from '@/types/citation';
 
 describe('Harvard Formatter', () => {
+  describe('Author formatting', () => {
+    it('should put a space between first and middle initials', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Test Book',
+        authors: [{ firstName: 'John', lastName: 'Smith', middleName: 'Michael' }],
+        publisher: 'Test Publisher',
+        publicationDate: { year: 2020 },
+      };
+
+      const result = formatHarvard(fields);
+      // Should produce "Smith, J. M." not "Smith, J.M."
+      expect(result.text).toContain('Smith, J. M.');
+    });
+  });
+
   describe('Book formatting', () => {
     it('should format a basic book citation', () => {
       const fields: BookFields = {
@@ -59,6 +76,23 @@ describe('Harvard Formatter', () => {
       expect(result.text).toContain('42');
       expect(result.text).toContain('3');
       expect(result.text).toContain('pp. 123-145');
+    });
+  });
+
+  describe('HTML safety', () => {
+    it('should escape URL in href attribute to prevent XSS', () => {
+      const fields: WebsiteFields = {
+        sourceType: 'website',
+        accessType: 'web',
+        title: 'Test Page',
+        siteName: 'Test Site',
+        url: 'https://example.com/"onmouseover="alert(1)',
+        publicationDate: { year: 2020 },
+      };
+
+      const result = formatHarvard(fields);
+      expect(result.html).not.toContain('href="https://example.com/"onmouseover');
+      expect(result.html).toContain('&quot;');
     });
   });
 

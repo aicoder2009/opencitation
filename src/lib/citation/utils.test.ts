@@ -55,7 +55,7 @@ describe('Citation Utilities', () => {
         middleName: 'Michael',
         lastName: 'Smith',
       };
-      expect(formatAuthorHarvard(author)).toBe('Smith, J.M.');
+      expect(formatAuthorHarvard(author)).toBe('Smith, J. M.');
     });
 
     it('should handle organization authors', () => {

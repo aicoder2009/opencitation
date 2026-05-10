@@ -82,6 +82,41 @@ describe('MLA Formatter', () => {
     });
   });
 
+  describe('HTML safety', () => {
+    it('should escape URL in href attribute to prevent XSS', () => {
+      const fields: WebsiteFields = {
+        sourceType: 'website',
+        accessType: 'web',
+        title: 'Test Page',
+        siteName: 'Test Site',
+        url: 'https://example.com/"onmouseover="alert(1)',
+        publicationDate: { year: 2020 },
+      };
+
+      const result = formatMLA(fields);
+      expect(result.html).not.toContain('href="https://example.com/"onmouseover');
+      expect(result.html).toContain('&quot;');
+    });
+
+    it('should escape volume and issue in HTML output', () => {
+      const fields: JournalFields = {
+        sourceType: 'journal',
+        accessType: 'database',
+        title: 'Test Article',
+        authors: [{ firstName: 'John', lastName: 'Smith' }],
+        journalTitle: 'Test Journal',
+        volume: '42<script>alert(1)</script>',
+        issue: '3<b>bold</b>',
+        publicationDate: { year: 2020 },
+      };
+
+      const result = formatMLA(fields);
+      expect(result.html).not.toContain('<script>');
+      expect(result.html).not.toContain('<b>bold</b>');
+      expect(result.html).toContain('&lt;script&gt;');
+    });
+  });
+
   describe('Website formatting', () => {
     it('should format a basic website citation', () => {
       const fields: WebsiteFields = {

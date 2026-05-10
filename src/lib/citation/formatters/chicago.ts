@@ -192,7 +192,7 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   if (fields.doi) {
     const doiUrl = fields.doi.startsWith('http') ? fields.doi : `https://doi.org/${fields.doi}`;
     parts.push(doiUrl);
-    htmlParts.push(`<a href="${doiUrl}">${escapeHtml(doiUrl)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(doiUrl)}">${escapeHtml(doiUrl)}</a>`);
   }
 
   return {
@@ -250,7 +250,7 @@ function formatWebsite(fields: WebsiteFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
@@ -299,7 +299,7 @@ function formatBlog(fields: BlogFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
@@ -355,7 +355,7 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
@@ -411,7 +411,7 @@ function formatVideo(fields: VideoFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
@@ -473,7 +473,7 @@ function formatImage(fields: ImageFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
@@ -698,7 +698,7 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {

@@ -129,7 +129,7 @@ export function formatAuthorHarvard(author: Author): string {
   }
 
   if (author.middleName) {
-    name += `${author.middleName.charAt(0)}.`;
+    name += ` ${author.middleName.charAt(0)}.`;
   }
 
   if (author.suffix) {

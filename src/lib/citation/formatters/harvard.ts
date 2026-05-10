@@ -210,7 +210,7 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   if (fields.doi) {
     const doiUrl = fields.doi.startsWith('http') ? fields.doi : `https://doi.org/${fields.doi}`;
     parts.push(doiUrl);
-    htmlParts.push(`<a href="${doiUrl}">${escapeHtml(doiUrl)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(doiUrl)}">${escapeHtml(doiUrl)}</a>`);
   }
 
   return {
@@ -263,7 +263,7 @@ function formatWebsite(fields: WebsiteFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     let availableStr = `Available at: ${url}`;
-    let availableHtml = `Available at: <a href="${url}">${escapeHtml(url)}</a>`;
+    let availableHtml = `Available at: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`;
 
     if (fields.accessDate) {
       const accessDate = formatDateHarvard(fields.accessDate);
@@ -324,7 +324,7 @@ function formatBlog(fields: BlogFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     let availableStr = `Available at: ${url}`;
-    let availableHtml = `Available at: <a href="${url}">${escapeHtml(url)}</a>`;
+    let availableHtml = `Available at: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`;
 
     if (fields.accessDate) {
       const accessDate = formatDateHarvard(fields.accessDate);
@@ -393,7 +393,7 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`Available at: ${url}`);
-    htmlParts.push(`Available at: <a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`Available at: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
 
     if (fields.accessDate) {
       const accessDate = formatDateHarvard(fields.accessDate);
@@ -453,7 +453,7 @@ function formatVideo(fields: VideoFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     let availableStr = `Available at: ${url}`;
-    let availableHtml = `Available at: <a href="${url}">${escapeHtml(url)}</a>`;
+    let availableHtml = `Available at: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`;
 
     if (fields.accessDate) {
       const accessDate = formatDateHarvard(fields.accessDate);
@@ -522,7 +522,7 @@ function formatImage(fields: ImageFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`Available at: ${url}`);
-    htmlParts.push(`Available at: <a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`Available at: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
@@ -742,7 +742,7 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     let availableStr = `Available at: ${url}`;
-    let availableHtml = `Available at: <a href="${url}">${escapeHtml(url)}</a>`;
+    let availableHtml = `Available at: <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`;
 
     if (fields.accessDate) {
       const accessDate = formatDateHarvard(fields.accessDate);

@@ -192,6 +192,24 @@ describe('APA Formatter', () => {
     });
   });
 
+  describe('HTML safety', () => {
+    it('should escape URL in href attribute to prevent XSS', () => {
+      const fields: WebsiteFields = {
+        sourceType: 'website',
+        accessType: 'web',
+        title: 'Test Page',
+        siteName: 'Test Site',
+        url: 'https://example.com/"onmouseover="alert(1)',
+        publicationDate: { year: 2020 },
+      };
+
+      const result = formatAPA(fields);
+      // The href must not contain a raw unescaped double-quote
+      expect(result.html).not.toContain('href="https://example.com/"onmouseover');
+      expect(result.html).toContain('&quot;');
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle missing authors gracefully', () => {
       const fields: BookFields = {

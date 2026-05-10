@@ -172,11 +172,11 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   // Volume and issue
   if (fields.volume) {
     parts.push(`vol. ${fields.volume},`);
-    htmlParts.push(`vol. ${fields.volume},`);
+    htmlParts.push(`vol. ${escapeHtml(fields.volume)},`);
   }
   if (fields.issue) {
     parts.push(`no. ${fields.issue},`);
-    htmlParts.push(`no. ${fields.issue},`);
+    htmlParts.push(`no. ${escapeHtml(fields.issue)},`);
   }
 
   // Year
@@ -189,7 +189,7 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   if (fields.pageRange) {
     const pp = /[-–]/.test(fields.pageRange) ? 'pp.' : 'p.';
     parts.push(`${pp} ${fields.pageRange}.`);
-    htmlParts.push(`${pp} ${fields.pageRange}.`);
+    htmlParts.push(`${pp} ${escapeHtml(fields.pageRange)}.`);
   } else {
     // Remove trailing comma and add period
     parts[parts.length - 1] = parts[parts.length - 1].replace(/,$/, '.');
@@ -200,7 +200,7 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   if (fields.doi) {
     const doiUrl = fields.doi.startsWith('http') ? fields.doi : `https://doi.org/${fields.doi}`;
     parts.push(doiUrl);
-    htmlParts.push(`<a href="${doiUrl}">${escapeHtml(doiUrl)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(doiUrl)}">${escapeHtml(doiUrl)}</a>`);
   }
 
   return {
@@ -251,7 +251,7 @@ function formatWebsite(fields: WebsiteFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>.`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.`);
   } else {
     // Remove trailing comma and add period
     parts[parts.length - 1] = parts[parts.length - 1].replace(/,$/, '.');
@@ -311,7 +311,7 @@ function formatBlog(fields: BlogFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>.`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.`);
   } else {
     parts[parts.length - 1] = parts[parts.length - 1].replace(/,$/, '.');
     htmlParts[htmlParts.length - 1] = htmlParts[htmlParts.length - 1].replace(/,$/, '.');
@@ -367,7 +367,7 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
   } else if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>.`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.`);
   } else {
     parts[parts.length - 1] = parts[parts.length - 1].replace(/,$/, '.');
     htmlParts[htmlParts.length - 1] = htmlParts[htmlParts.length - 1].replace(/,$/, '.');
@@ -422,7 +422,7 @@ function formatVideo(fields: VideoFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>.`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.`);
   } else {
     parts[parts.length - 1] = parts[parts.length - 1].replace(/,$/, '.');
     htmlParts[htmlParts.length - 1] = htmlParts[htmlParts.length - 1].replace(/,$/, '.');
@@ -483,7 +483,7 @@ function formatImage(fields: ImageFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>.`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.`);
   }
 
   return {
@@ -708,7 +708,7 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
   if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>.`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.`);
   }
 
   return {

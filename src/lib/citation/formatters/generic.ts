@@ -327,11 +327,11 @@ export function formatGeneric(
   if (fields.doi) {
     const doi = `https://doi.org/${fields.doi.replace(/^https?:\/\/(dx\.)?doi\.org\//, '')}`;
     parts.push(doi);
-    htmlParts.push(`<a href="${doi}">${escapeHtml(doi)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(doi)}">${escapeHtml(doi)}</a>`);
   } else if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(url);
-    htmlParts.push(`<a href="${url}">${escapeHtml(url)}</a>`);
+    htmlParts.push(`<a href="${escapeHtml(url)}">${escapeHtml(url)}</a>`);
   }
 
   return {
