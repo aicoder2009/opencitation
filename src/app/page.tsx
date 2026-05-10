@@ -431,7 +431,7 @@ export default function LandingPage() {
 
       {/* Privacy Policy Modal */}
       {showPrivacy && (
-        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)}>
+        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)} role="dialog" aria-modal="true" aria-label="Privacy Policy">
           <div className="bg-wiki-white border border-wiki-border max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
@@ -440,7 +440,7 @@ export default function LandingPage() {
                   <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
                 </p>
               </div>
-              <button onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+              <button onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-sm" aria-label="Close">[close]</button>
             </div>
             <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: 'var(--color-wiki-border) var(--color-wiki-tab-bg)' }}>
               <p><b>Last updated:</b> January 2025</p>
@@ -493,7 +493,7 @@ export default function LandingPage() {
 
       {/* Terms of Service Modal */}
       {showTerms && (
-        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)}>
+        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)} role="dialog" aria-modal="true" aria-label="Terms of Service">
           <div className="bg-wiki-white border border-wiki-border max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
@@ -502,7 +502,7 @@ export default function LandingPage() {
                   <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
                 </p>
               </div>
-              <button onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+              <button onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-sm" aria-label="Close">[close]</button>
             </div>
             <div className="p-4 text-sm space-y-4 pb-12 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: 'var(--color-wiki-border) var(--color-wiki-tab-bg)' }}>
               <p><b>Last updated:</b> January 2025</p>
@@ -562,14 +562,14 @@ export default function LandingPage() {
 
       {/* Report Issue Modal */}
       {showReportIssue && (
-        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={closeReportModal}>
+        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={closeReportModal} role="dialog" aria-modal="true" aria-label="Report an Issue">
           <div className="bg-wiki-white border border-wiki-border max-w-lg w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
                 <h2 className="text-xl font-bold">Report an Issue</h2>
                 <p className="text-xs text-wiki-text-muted">Help us improve OpenCitation</p>
               </div>
-              <button onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-2xl leading-none">&times;</button>
+              <button onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-sm" aria-label="Close">[close]</button>
             </div>
             <div className="p-4 overflow-y-auto flex-1" style={{ scrollbarWidth: 'auto', scrollbarColor: 'var(--color-wiki-border) var(--color-wiki-tab-bg)' }}>
               {/* Choice Screen */}

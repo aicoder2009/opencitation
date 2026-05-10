@@ -58,6 +58,9 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={() => setIsOpen(false)}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Keyboard Shortcuts"
     >
       <div
         className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-md w-full mx-4 shadow-lg"

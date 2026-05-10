@@ -81,6 +81,9 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
     <div
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Scan ISBN barcode"
     >
       <div
         className="bg-wiki-white border border-wiki-border-light max-w-lg w-full"
