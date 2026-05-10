@@ -335,13 +335,13 @@ export default function ListsPage() {
                         onClick={() => router.push(`/lists/${list.id}`)}
                         className="text-wiki-link hover:underline mr-3"
                       >
-                        View
+                        [view]
                       </button>
                       <button
                         onClick={() => handleDeleteList(list.id, list.name)}
                         className="text-wiki-link hover:underline"
                       >
-                        Delete
+                        [delete]
                       </button>
                     </td>
                   </tr>

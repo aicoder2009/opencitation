@@ -361,7 +361,7 @@ export default function ProjectsPage() {
                             disabled={isSavingEdit || !editName.trim()}
                             className="text-wiki-link hover:underline disabled:opacity-50 disabled:no-underline"
                           >
-                            {isSavingEdit ? "Saving..." : "Save"}
+                            {isSavingEdit ? "[saving...]" : "[save]"}
                           </button>
                           <span className="text-wiki-border-light">|</span>
                           <button
@@ -369,7 +369,7 @@ export default function ProjectsPage() {
                             disabled={isSavingEdit}
                             className="text-wiki-text-muted hover:underline"
                           >
-                            Cancel
+                            [cancel]
                           </button>
                         </>
                       ) : (
@@ -378,20 +378,20 @@ export default function ProjectsPage() {
                             onClick={() => router.push(`/projects/${project.id}`)}
                             className="text-wiki-link hover:underline"
                           >
-                            View
+                            [view]
                           </button>
                           <span className="text-wiki-border-light">|</span>
                           <button
                             onClick={() => startEditing(project)}
                             className="text-wiki-link hover:underline"
                           >
-                            Edit
+                            [edit]
                           </button>
                           <button
                             onClick={() => handleDeleteProject(project.id, project.name)}
                             className="text-wiki-link hover:underline ml-auto"
                           >
-                            Delete
+                            [delete]
                           </button>
                         </>
                       )}

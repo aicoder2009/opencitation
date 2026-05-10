@@ -453,13 +453,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         onClick={() => router.push(`/lists/${list.id}`)}
                         className="text-wiki-link hover:underline mr-3"
                       >
-                        View
+                        [view]
                       </button>
                       <button
                         onClick={() => handleRemoveFromProject(list.id)}
                         className="text-wiki-link hover:underline"
                       >
-                        Remove
+                        [remove]
                       </button>
                     </td>
                   </tr>
