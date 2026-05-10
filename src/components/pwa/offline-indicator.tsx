@@ -168,7 +168,7 @@ export function OfflineIndicator({
                   aria-label={isExpanded ? 'Collapse details' : 'Expand details'}
                 >
                   <svg
-                    className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`w-4 h-4 ${isExpanded ? 'rotate-180' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
