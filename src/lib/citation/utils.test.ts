@@ -183,5 +183,10 @@ describe('Citation Utilities', () => {
       expect(toSentenceCase('THE GREAT GATSBY')).toBe('The great gatsby');
       expect(toSentenceCase('test title')).toBe('Test title');
     });
+
+    it('should preserve acronyms in mixed-case titles', () => {
+      expect(toSentenceCase('The impact of NASA policy')).toBe('The impact of NASA policy');
+      expect(toSentenceCase('Effects of DNA on aging')).toBe('Effects of DNA on aging');
+    });
   });
 });

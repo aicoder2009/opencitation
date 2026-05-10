@@ -180,10 +180,11 @@ function formatJournal(fields: JournalFields): FormattedCitation {
     htmlParts.push(`${fields.publicationDate.year},`);
   }
 
-  // Pages
+  // Pages (p. for single page, pp. for range)
   if (fields.pageRange) {
-    parts.push(`pp. ${fields.pageRange}.`);
-    htmlParts.push(`pp. ${fields.pageRange}.`);
+    const pp = /[-–]/.test(fields.pageRange) ? 'pp.' : 'p.';
+    parts.push(`${pp} ${fields.pageRange}.`);
+    htmlParts.push(`${pp} ${fields.pageRange}.`);
   } else {
     // Remove trailing comma and add period
     parts[parts.length - 1] = parts[parts.length - 1].replace(/,$/, '.');
@@ -353,10 +354,11 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
     }
   }
 
-  // Pages
+  // Pages (p. for single page, pp. for range)
   if (fields.pageRange) {
-    parts.push(`pp. ${fields.pageRange}.`);
-    htmlParts.push(`pp. ${fields.pageRange}.`);
+    const pp = /[-–]/.test(fields.pageRange) ? 'pp.' : 'p.';
+    parts.push(`${pp} ${fields.pageRange}.`);
+    htmlParts.push(`${pp} ${fields.pageRange}.`);
   } else if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);

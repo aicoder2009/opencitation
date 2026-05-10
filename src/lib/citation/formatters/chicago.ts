@@ -172,26 +172,23 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   htmlParts.push(`"${escapeHtml(articleTitle)}."`);
 
   // Journal title and volume/issue
-  let journalInfo = fields.journalTitle;
+  let journalSuffix = '';
   if (fields.volume) {
-    journalInfo += ` ${fields.volume}`;
+    journalSuffix += ` ${fields.volume}`;
   }
   if (fields.issue) {
-    journalInfo += `, no. ${fields.issue}`;
+    journalSuffix += `, no. ${fields.issue}`;
   }
-
-  // Year
   if (fields.publicationDate?.year) {
-    journalInfo += ` (${fields.publicationDate.year})`;
+    journalSuffix += ` (${fields.publicationDate.year})`;
   }
-
-  // Pages
   if (fields.pageRange) {
-    journalInfo += `: ${fields.pageRange}`;
+    journalSuffix += `: ${fields.pageRange}`;
   }
 
+  const journalInfo = fields.journalTitle + journalSuffix;
   parts.push(`${journalInfo}.`);
-  htmlParts.push(`${italic(escapeHtml(fields.journalTitle))}${journalInfo.replace(fields.journalTitle, '')}.`);
+  htmlParts.push(`${italic(escapeHtml(fields.journalTitle))}${escapeHtml(journalSuffix)}.`);
 
   // DOI
   if (fields.doi) {

@@ -286,17 +286,17 @@ function formatBlog(fields: BlogFields): FormattedCitation {
   parts.push(date);
   htmlParts.push(date);
 
-  // Title (italicized)
+  // Title (plain text — APA 7 does not italicize blog post titles)
   let {title} = fields;
   if (fields.subtitle) {
     title += `: ${fields.subtitle}`;
   }
   parts.push(`${title}.`);
-  htmlParts.push(`${italic(escapeHtml(title))}.`);
+  htmlParts.push(`${escapeHtml(title)}.`);
 
-  // Blog name
+  // Blog name (italicized as the container/source)
   parts.push(`${fields.blogName}.`);
-  htmlParts.push(`${escapeHtml(fields.blogName)}.`);
+  htmlParts.push(`${italic(escapeHtml(fields.blogName))}.`);
 
   // URL
   if (fields.url) {

@@ -154,7 +154,7 @@ export function formatAuthorsAPA(authors: Author[]): string {
   }
 
   if (authors.length === 2) {
-    return `${formatAuthorAPA(authors[0])} & ${formatAuthorAPA(authors[1])}`;
+    return `${formatAuthorAPA(authors[0])}, & ${formatAuthorAPA(authors[1])}`;
   }
 
   if (authors.length <= 20) {
@@ -395,15 +395,28 @@ export function capitalizeFirst(text: string): string {
 export function toSentenceCase(title: string): string {
   if (!title) return '';
 
-  // Split by colon for subtitle handling
   const parts = title.split(':');
 
   return parts.map((part, index) => {
     const trimmed = part.trim();
     if (!trimmed) return '';
 
-    // Capitalize first letter
-    const result = trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+    const words = trimmed.split(' ');
+
+    // If ≥75% of multi-char words are ALL-CAPS the whole segment is an all-caps
+    // title (e.g. "THE GREAT GATSBY"), not a mixed-case title with acronyms.
+    const multiChar = words.filter(w => w.length >= 2);
+    const allCapsRatio = multiChar.length > 0
+      ? multiChar.filter(w => /^[A-Z]+$/.test(w)).length / multiChar.length
+      : 0;
+    const isAllCapsSegment = allCapsRatio >= 0.75;
+
+    const result = words.map((word, wordIndex) => {
+      if (!isAllCapsSegment && /^[A-Z]{2,}$/.test(word)) return word; // preserve acronyms (NASA, DNA)
+      if (word === 'I') return word;
+      if (wordIndex === 0) return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return word.toLowerCase();
+    }).join(' ');
 
     return index === 0 ? result : ` ${result}`;
   }).join(':');
