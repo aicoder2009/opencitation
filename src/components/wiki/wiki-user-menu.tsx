@@ -43,7 +43,7 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
   if (!isLoaded || !user) {
     return (
       <div
-        className="bg-wiki-border-light animate-pulse"
+        className="bg-wiki-border-light"
         style={{ width: avatarSize, height: avatarSize }}
       />
     );
