@@ -146,7 +146,7 @@ describe('MLA Formatter', () => {
       };
 
       const result = formatMLA(fields);
-      expect(result.text).toContain('Accessed');
+      expect(result.text).toContain('Accessed 15 Jan. 2024.');
     });
   });
 });

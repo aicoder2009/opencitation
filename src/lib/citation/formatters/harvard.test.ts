@@ -94,6 +94,26 @@ describe('Harvard Formatter', () => {
       expect(result.html).not.toContain('href="https://example.com/"onmouseover');
       expect(result.html).toContain('&quot;');
     });
+
+    it('should escape volume, issue and pageRange in journal HTML output', () => {
+      const fields: JournalFields = {
+        sourceType: 'journal',
+        accessType: 'database',
+        title: 'Test Article',
+        authors: [{ firstName: 'John', lastName: 'Smith' }],
+        journalTitle: 'Test Journal',
+        volume: '42<script>alert(1)</script>',
+        issue: '3<b>bold</b>',
+        pageRange: '123-145<img src=x onerror=alert(1)>',
+        publicationDate: { year: 2020 },
+      };
+
+      const result = formatHarvard(fields);
+      expect(result.html).not.toContain('<script>');
+      expect(result.html).not.toContain('<b>bold</b>');
+      expect(result.html).not.toContain('<img');
+      expect(result.html).toContain('&lt;script&gt;');
+    });
   });
 
   describe('Website formatting', () => {

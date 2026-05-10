@@ -196,13 +196,13 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   // HTML with italicized journal title
   let journalHtml = italic(escapeHtml(fields.journalTitle));
   if (fields.volume) {
-    journalHtml += `, ${fields.volume}`;
+    journalHtml += `, ${escapeHtml(fields.volume)}`;
     if (fields.issue) {
-      journalHtml += `(${fields.issue})`;
+      journalHtml += `(${escapeHtml(fields.issue)})`;
     }
   }
   if (fields.pageRange) {
-    journalHtml += `, pp. ${fields.pageRange}`;
+    journalHtml += `, pp. ${escapeHtml(fields.pageRange)}`;
   }
   htmlParts.push(`${journalHtml}.`);
 
@@ -379,14 +379,14 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
     const date = formatDateHarvard(fields.publicationDate);
     if (fields.pageRange) {
       parts.push(`${date}, pp. ${fields.pageRange}.`);
-      htmlParts.push(`${date}, pp. ${fields.pageRange}.`);
+      htmlParts.push(`${date}, pp. ${escapeHtml(fields.pageRange)}.`);
     } else {
       parts.push(`${date}.`);
       htmlParts.push(`${date}.`);
     }
   } else if (fields.pageRange) {
     parts.push(`pp. ${fields.pageRange}.`);
-    htmlParts.push(`pp. ${fields.pageRange}.`);
+    htmlParts.push(`pp. ${escapeHtml(fields.pageRange)}.`);
   }
 
   // URL for online newspapers

@@ -363,7 +363,7 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
   if (fields.pageRange) {
     const pp = /[-–]/.test(fields.pageRange) ? 'pp.' : 'p.';
     parts.push(`${pp} ${fields.pageRange}.`);
-    htmlParts.push(`${pp} ${fields.pageRange}.`);
+    htmlParts.push(`${pp} ${escapeHtml(fields.pageRange)}.`);
   } else if (fields.url) {
     const url = formatUrl(fields.url);
     parts.push(`${url}.`);
