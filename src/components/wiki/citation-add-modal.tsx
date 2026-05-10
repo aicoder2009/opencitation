@@ -197,6 +197,9 @@ export function CitationAddModal({
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add Citation"
     >
       <div className="bg-wiki-white border border-wiki-border-light w-full max-w-xl mx-4 shadow-lg max-h-[90vh] flex flex-col">
         {/* Header */}
@@ -214,10 +217,10 @@ export function CitationAddModal({
           </div>
           <button
             onClick={onClose}
-            className="text-wiki-text-muted hover:text-wiki-text text-lg leading-none"
+            className="text-wiki-text-muted hover:text-wiki-text text-sm"
             aria-label="Close"
           >
-            ×
+            [close]
           </button>
         </div>
 
@@ -256,7 +259,7 @@ export function CitationAddModal({
           </div>
 
           {lookupError && (
-            <p className="text-wiki-text-muted text-sm">{lookupError}</p>
+            <p className="text-wiki-text text-sm">{lookupError}</p>
           )}
 
           {/* Citation preview */}
@@ -273,7 +276,7 @@ export function CitationAddModal({
           )}
 
           {saveError && (
-            <p className="text-wiki-text-muted text-sm">{saveError}</p>
+            <p className="text-wiki-text text-sm">{saveError}</p>
           )}
 
           {showSuccess && (
