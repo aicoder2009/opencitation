@@ -34,6 +34,7 @@ export default function ListsPage() {
   const [newListDescription, setNewListDescription] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
   const [factoid, setFactoid] = useState<string>("");
 
   useEffect(() => {
@@ -85,7 +86,11 @@ export default function ListsPage() {
   };
 
   const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+    if (!newListName.trim()) {
+      setNameError("List name is required.");
+      return;
+    }
+    setNameError(null);
 
     try {
       setIsCreating(true);
@@ -201,12 +206,15 @@ export default function ListsPage() {
                   <input
                     type="text"
                     value={newListName}
-                    onChange={(e) => setNewListName(e.target.value)}
+                    onChange={(e) => { setNewListName(e.target.value); setNameError(null); }}
                     placeholder="Enter list name..."
                     className="w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
                     disabled={isCreating}
                   />
+                  {nameError && (
+                    <p className="mt-1 text-xs text-wiki-text-muted">{nameError}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">

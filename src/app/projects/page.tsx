@@ -30,6 +30,7 @@ export default function ProjectsPage() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -62,7 +63,11 @@ export default function ProjectsPage() {
   };
 
   const handleCreateProject = async () => {
-    if (!newProjectName.trim()) return;
+    if (!newProjectName.trim()) {
+      setNameError("Project name is required.");
+      return;
+    }
+    setNameError(null);
 
     try {
       setIsCreating(true);
@@ -224,12 +229,15 @@ export default function ProjectsPage() {
                   <input
                     type="text"
                     value={newProjectName}
-                    onChange={(e) => setNewProjectName(e.target.value)}
+                    onChange={(e) => { setNewProjectName(e.target.value); setNameError(null); }}
                     placeholder="Enter project name..."
                     className="w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleCreateProject()}
                     disabled={isCreating}
                   />
+                  {nameError && (
+                    <p className="mt-1 text-xs text-wiki-text-muted">{nameError}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Description (optional)</label>

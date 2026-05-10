@@ -41,6 +41,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [showAddList, setShowAddList] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [newListNameError, setNewListNameError] = useState<string | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
 
   const fetchProjectAndLists = useCallback(async () => {
@@ -126,7 +127,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   };
 
   const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+    if (!newListName.trim()) {
+      setNewListNameError("List name is required.");
+      return;
+    }
+    setNewListNameError(null);
 
     try {
       setIsCreating(true);
@@ -363,7 +368,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   <input
                     type="text"
                     value={newListName}
-                    onChange={(e) => setNewListName(e.target.value)}
+                    onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
                     placeholder="Enter list name..."
                     className="flex-1"
                     onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
@@ -377,6 +382,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {isCreating ? "Creating..." : "Create"}
                   </WikiButton>
                 </div>
+                {newListNameError && (
+                  <p className="mt-1 text-xs text-wiki-text-muted">{newListNameError}</p>
+                )}
               </div>
 
               {/* Add existing list */}
