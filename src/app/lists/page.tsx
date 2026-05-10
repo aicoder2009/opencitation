@@ -210,7 +210,7 @@ export default function ListsPage() {
                     disabled={isCreating}
                   />
                   {nameError && (
-                    <p className="mt-1 text-xs text-wiki-text-muted">{nameError}</p>
+                    <p className="mt-1 text-xs text-wiki-text">{nameError}</p>
                   )}
                 </div>
                 <div>
@@ -325,18 +325,20 @@ export default function ListsPage() {
                       {formatDate(list.updatedAt)}
                     </td>
                     <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() => router.push(`/lists/${list.id}`)}
-                        className="text-wiki-link hover:underline mr-3"
-                      >
-                        [view]
-                      </button>
-                      <button
-                        onClick={() => handleDeleteList(list.id, list.name)}
-                        className="text-wiki-link hover:underline"
-                      >
-                        [delete]
-                      </button>
+                      <span className="inline-flex gap-3">
+                        <button
+                          onClick={() => router.push(`/lists/${list.id}`)}
+                          className="text-wiki-link hover:underline"
+                        >
+                          [view]
+                        </button>
+                        <button
+                          onClick={() => handleDeleteList(list.id, list.name)}
+                          className="text-wiki-link hover:underline"
+                        >
+                          [delete]
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 ))}
