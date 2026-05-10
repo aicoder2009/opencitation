@@ -264,7 +264,7 @@ export default function ListsPage() {
                   <button
                     type="button"
                     onClick={() => setFactoid(pickFactoid())}
-                    className="mt-2 text-xs text-wiki-link hover:underline"
+                    className="mt-2 text-xs text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [another fact]
                   </button>
@@ -322,13 +322,13 @@ export default function ListsPage() {
                       <span className="inline-flex gap-3">
                         <button
                           onClick={() => router.push(`/lists/${list.id}`)}
-                          className="text-wiki-link hover:underline"
+                          className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                         >
                           [view]
                         </button>
                         <button
                           onClick={() => handleDeleteList(list.id, list.name)}
-                          className="text-wiki-link hover:underline"
+                          className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                         >
                           [delete]
                         </button>

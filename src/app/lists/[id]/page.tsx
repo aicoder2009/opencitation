@@ -24,6 +24,7 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { WikiSelect } from "@/components/wiki/wiki-select";
 import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { ShareDialog } from "@/components/wiki/share-dialog";
 import { CitationAddModal } from "@/components/wiki/citation-add-modal";
@@ -1149,7 +1150,7 @@ export default function ListDetailPage({
                     {list?.name}
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="ml-2 text-wiki-link text-sm font-normal hover:underline"
+                      className="ml-2 text-wiki-link text-sm font-normal hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     >
                       [edit]
                     </button>
@@ -1199,7 +1200,7 @@ export default function ListDetailPage({
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="text-wiki-text-muted hover:text-wiki-text text-sm"
+                    className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     Clear
                   </button>
@@ -1211,7 +1212,7 @@ export default function ListDetailPage({
                   <span className="text-sm text-wiki-text-muted">Tags:</span>
                   <button
                     onClick={() => setFilterTag(null)}
-                    className={`px-2 py-0.5 text-xs border ${
+                    className={`px-2 py-0.5 text-xs border focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text ${
                       filterTag === null
                         ? "bg-wiki-white text-wiki-link border-wiki-link font-medium"
                         : "bg-wiki-white text-wiki-text border-wiki-border-light hover:border-wiki-link"
@@ -1238,7 +1239,7 @@ export default function ListDetailPage({
                             e.stopPropagation();
                             setTagColorPickerOpen(isPickerOpen ? null : tag);
                           }}
-                          className={`flex items-center justify-center px-1.5 border-r ${
+                          className={`flex items-center justify-center px-1.5 border-r focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text ${
                             isActive ? "border-white/40" : color.border
                           }`}
                           title="Change color"
@@ -1258,7 +1259,7 @@ export default function ListDetailPage({
                         <button
                           type="button"
                           onClick={() => setFilterTag(isActive ? null : tag)}
-                          className="px-2 py-0.5"
+                          className="px-2 py-0.5 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           aria-pressed={isActive}
                           title={isActive ? "Clear filter" : `Filter by ${tag}`}
                         >
@@ -1309,21 +1310,12 @@ export default function ListDetailPage({
                     <label htmlFor="reformat-target" className="text-xs">
                       Reformat all to:
                     </label>
-                    <select
-                      id="reformat-target"
+                    <WikiSelect
                       value={reformatTarget}
-                      onChange={(e) =>
-                        setReformatTarget(e.target.value as CitationStyle)
-                      }
-                      className="text-xs"
-                      disabled={isReformatting}
-                    >
-                      {CITATION_STYLES.map((s) => (
-                        <option key={s} value={s}>
-                          {CITATION_STYLE_LABELS[s]}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(v) => setReformatTarget(v as CitationStyle)}
+                      options={CITATION_STYLES.map((s) => ({ value: s, label: CITATION_STYLE_LABELS[s] }))}
+                      className="w-36"
+                    />
                     <WikiButton
                       onClick={handleReformatAll}
                       disabled={isReformatting}
@@ -1505,7 +1497,7 @@ export default function ListDetailPage({
                   <button
                     type="button"
                     onClick={() => setFactoid(pickFactoid())}
-                    className="mt-2 text-xs text-wiki-link hover:underline"
+                    className="mt-2 text-xs text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [another fact]
                   </button>

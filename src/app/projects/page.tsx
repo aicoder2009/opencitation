@@ -347,14 +347,14 @@ export default function ProjectsPage() {
                           <button
                             onClick={() => handleSaveEdit(project.id)}
                             disabled={isSavingEdit || !editName.trim()}
-                            className="text-wiki-link hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-wiki-link hover:underline disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           >
                             {isSavingEdit ? "[saving...]" : "[save]"}
                           </button>
                           <button
                             onClick={cancelEditing}
                             disabled={isSavingEdit}
-                            className="text-wiki-text-muted hover:underline"
+                            className="text-wiki-text-muted hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           >
                             [cancel]
                           </button>
@@ -363,19 +363,19 @@ export default function ProjectsPage() {
                         <>
                           <button
                             onClick={() => router.push(`/projects/${project.id}`)}
-                            className="text-wiki-link hover:underline"
+                            className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           >
                             [view]
                           </button>
                           <button
                             onClick={() => startEditing(project)}
-                            className="text-wiki-link hover:underline"
+                            className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           >
                             [edit]
                           </button>
                           <button
                             onClick={() => handleDeleteProject(project.id, project.name)}
-                            className="text-wiki-link hover:underline ml-auto"
+                            className="text-wiki-link hover:underline ml-auto focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                           >
                             [delete]
                           </button>

@@ -1398,7 +1398,7 @@ function CitePageContent() {
           <button
             type="button"
             onClick={addAuthor}
-            className="text-sm text-wiki-link hover:underline"
+            className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             + Add another author
           </button>
@@ -2149,7 +2149,7 @@ function CitePageContent() {
                   <button
                     type="button"
                     onClick={() => setShowBarcodeScanner(true)}
-                    className="mt-1 text-wiki-link text-xs hover:underline"
+                    className="mt-1 text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [scan ISBN barcode with camera]
                   </button>
@@ -2159,17 +2159,12 @@ function CitePageContent() {
                   <label className="block text-sm font-medium mb-2">
                     Source Type
                   </label>
-                  <select
+                  <WikiSelect
                     value={selectedSourceType}
-                    onChange={(e) => setSelectedSourceType(e.target.value as SourceType)}
+                    onChange={(v) => setSelectedSourceType(v as SourceType)}
+                    options={SOURCE_TYPES}
                     className="w-full max-w-xs"
-                  >
-                    {SOURCE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
 
                 {error && (
@@ -2432,7 +2427,7 @@ function CitePageContent() {
                         setShowTemplateSave(true);
                       }
                     }}
-                    className="text-sm text-wiki-link hover:underline"
+                    className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     {showTemplateSave ? "Cancel" : "Save as Template"}
                   </button>
@@ -2612,7 +2607,7 @@ https://another-site.com/paper"
                     )}
                   </div>
                   <details className="mt-4">
-                    <summary className="cursor-pointer text-sm text-wiki-link hover:underline">
+                    <summary className="cursor-pointer text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Export options
                     </summary>
                     <div className="mt-3 flex flex-wrap gap-2">

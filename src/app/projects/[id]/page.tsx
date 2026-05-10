@@ -313,7 +313,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     {project?.name}
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="ml-2 text-wiki-link text-sm font-normal hover:underline"
+                      className="ml-2 text-wiki-link text-sm font-normal hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     >
                       [edit]
                     </button>
@@ -388,7 +388,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         <span>{list.name}</span>
                         <button
                           onClick={() => handleAddExistingList(list.id)}
-                          className="text-wiki-link text-sm hover:underline"
+                          className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                         >
                           [add]
                         </button>
@@ -440,13 +440,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       <span className="inline-flex gap-3">
                         <button
                           onClick={() => router.push(`/lists/${list.id}`)}
-                          className="text-wiki-link hover:underline"
+                          className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                         >
                           [view]
                         </button>
                         <button
                           onClick={() => handleRemoveFromProject(list.id)}
-                          className="text-wiki-link hover:underline"
+                          className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                         >
                           [remove]
                         </button>
