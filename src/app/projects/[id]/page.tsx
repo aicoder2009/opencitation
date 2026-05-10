@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { WikiNotice } from "@/components/wiki/wiki-notice";
 import { ShareDialog } from "@/components/wiki/share-dialog";
 import posthog from "posthog-js";
 
@@ -338,15 +339,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-sm">
-              {error}
-              <button
-                onClick={() => setError(null)}
-                className="ml-2 text-wiki-link hover:underline"
-                aria-label="Dismiss error"
-              >
-                [dismiss]
-              </button>
+            <div className="mb-4">
+              <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
             </div>
           )}
 

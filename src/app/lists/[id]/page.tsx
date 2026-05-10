@@ -23,6 +23,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
+import { WikiNotice } from "@/components/wiki/wiki-notice";
 import { SortableCitation } from "@/components/wiki/sortable-citation";
 import { ShareDialog } from "@/components/wiki/share-dialog";
 import { CitationAddModal } from "@/components/wiki/citation-add-modal";
@@ -1177,15 +1178,8 @@ export default function ListDetailPage({
 
           {/* Error Message */}
           {error && (
-            <div className="mb-4 p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-sm">
-              {error}
-              <button
-                onClick={() => setError(null)}
-                className="ml-2 text-wiki-link hover:underline"
-                aria-label="Dismiss error"
-              >
-                [dismiss]
-              </button>
+            <div className="mb-4">
+              <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
             </div>
           )}
 

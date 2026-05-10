@@ -2644,7 +2644,8 @@ https://another-site.com/paper"
                   <h3 className="font-bold">Add to List</h3>
                   <button
                     onClick={() => setShowListModal(false)}
-                    className="text-wiki-text-muted hover:text-wiki-text"
+                    className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                    aria-label="Close"
                   >
                     [close]
                   </button>

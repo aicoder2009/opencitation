@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
 import { WikiButton } from "./wiki-button";
+import { WikiNotice } from "./wiki-notice";
 import { formatCitation } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import type { CitationStyle, SourceType, CitationFields } from "@/types";
@@ -259,7 +260,7 @@ export function CitationAddModal({
           </div>
 
           {lookupError && (
-            <p className="text-wiki-text text-sm">{lookupError}</p>
+            <WikiNotice variant="warn" onDismiss={() => setLookupError(null)}>{lookupError}</WikiNotice>
           )}
 
           {/* Citation preview */}
@@ -276,7 +277,7 @@ export function CitationAddModal({
           )}
 
           {saveError && (
-            <p className="text-wiki-text text-sm">{saveError}</p>
+            <WikiNotice variant="warn" onDismiss={() => setSaveError(null)}>{saveError}</WikiNotice>
           )}
 
           {showSuccess && (

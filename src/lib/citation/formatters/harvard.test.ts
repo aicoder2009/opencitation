@@ -77,6 +77,24 @@ describe('Harvard Formatter', () => {
       expect(result.text).toContain('3');
       expect(result.text).toContain('pp. 123-145');
     });
+
+    it('strips "doi:" prefix and produces a clean https://doi.org/ URL', () => {
+      const fields: JournalFields = {
+        sourceType: 'journal',
+        accessType: 'database',
+        title: 'Test Article',
+        authors: [{ firstName: 'John', lastName: 'Smith' }],
+        journalTitle: 'Test Journal',
+        volume: '1',
+        publicationDate: { year: 2020 },
+        doi: 'doi:10.1000/test',
+      };
+
+      const result = formatHarvard(fields);
+      expect(result.text).toContain('https://doi.org/10.1000/test');
+      expect(result.text).not.toContain('doi:doi');
+      expect(result.html).toContain('<a href="https://doi.org/10.1000/test">');
+    });
   });
 
   describe('HTML safety', () => {
