@@ -506,7 +506,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                       {isSaving ? "Saving…" : "Save to my account"}
                     </WikiButton>
                     {saveError && (
-                      <p className="text-wiki-text-muted text-xs">{saveError}</p>
+                      <p className="text-wiki-text text-xs">{saveError}</p>
                     )}
                   </div>
                 )
