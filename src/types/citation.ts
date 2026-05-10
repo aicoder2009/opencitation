@@ -283,7 +283,7 @@ export interface ArtworkFields extends BaseCitationFields {
 export interface ThesisFields extends BaseCitationFields {
   sourceType: 'thesis';
   degree?: 'doctoral' | 'masters' | 'bachelors';
-  institution: string;
+  institution?: string;
   advisor?: Author;
   department?: string;
   databaseAccessionNumber?: string;
@@ -294,7 +294,7 @@ export interface ThesisFields extends BaseCitationFields {
  */
 export interface ConferencePaperFields extends BaseCitationFields {
   sourceType: 'conference-paper';
-  conferenceName: string;
+  conferenceName?: string;
   conferenceLocation?: string;
   conferenceDate?: CitationDate;
   proceedingsTitle?: string;

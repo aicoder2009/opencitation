@@ -70,7 +70,7 @@ describe('Badge API', () => {
     const extractWidth = (svg: string) => svg.match(/width="(\d+)"/)?.[1];
     const withWidth = extractWidth(withCount);
     const withoutWidth = extractWidth(withoutCount);
-    expect(withWidth && withoutWidth && parseInt(withWidth)).toBeGreaterThan(parseInt(withoutWidth));
+    expect(withWidth && withoutWidth && parseInt(withWidth)).toBeGreaterThan(parseInt(withoutWidth!));
   });
   it('returns fallback SVG when db throws', async () => {
     mockGetStats.mockRejectedValue(new Error('db error'));
