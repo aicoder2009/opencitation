@@ -132,12 +132,13 @@ export function generateInTextCitation(
     case 'chicago':
       if (authors.length === 1) {
         return `(${firstAuthor} ${year})`;
-      } if (authors.length <= 3) {
-        const lastNames = authors.map((a) => a.lastName).join(', ');
-        return `(${lastNames} ${year})`;
-      } 
+      } if (authors.length === 2) {
+        return `(${firstAuthor} and ${authors[1].lastName} ${year})`;
+      } if (authors.length === 3) {
+        return `(${firstAuthor}, ${authors[1].lastName}, and ${authors[2].lastName} ${year})`;
+      }
         return `(${firstAuthor} et al. ${year})`;
-      
+
 
     case 'harvard':
       if (authors.length === 1) {

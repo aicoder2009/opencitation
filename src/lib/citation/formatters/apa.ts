@@ -88,11 +88,15 @@ function formatBook(fields: BookFields): FormattedCitation {
   const parts: string[] = [];
   const htmlParts: string[] = [];
 
-  // Authors
+  // Authors — or editors in author position when no authors (e.g. edited volumes)
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
     parts.push(authors);
     htmlParts.push(escapeHtml(authors));
+  } else if (fields.editors && fields.editors.length > 0) {
+    const editorStr = `${formatAuthorsAPA(fields.editors)} (${fields.editors.length === 1 ? 'Ed.' : 'Eds.'})`;
+    parts.push(editorStr);
+    htmlParts.push(escapeHtml(editorStr));
   }
 
   // Date

@@ -40,6 +40,36 @@ describe('APA Formatter', () => {
       expect(result.text).toContain('&');
     });
 
+    it('should place editors in author slot for edited volumes (no authors)', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [{ firstName: 'John', lastName: 'Smith' }],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('Smith, J.');
+      expect(result.text).toContain('(Ed.)');
+    });
+
+    it('should use Eds. for multiple editors in author slot', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatAPA(fields);
+      expect(result.text).toContain('(Eds.)');
+    });
+
     it('should format book with subtitle', () => {
       const fields: BookFields = {
         sourceType: 'book',

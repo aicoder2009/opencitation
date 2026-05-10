@@ -51,20 +51,20 @@ describe('generateInTextCitation – Chicago', () => {
     expect(result).toBe('(Smith 2023)');
   });
 
-  it('2 authors lists both last names', () => {
+  it('2 authors uses "and" separator', () => {
     const result = generateInTextCitation(
       makeFields({ authors: authors('Smith', 'Jones') }),
       'chicago'
     );
-    expect(result).toBe('(Smith, Jones 2023)');
+    expect(result).toBe('(Smith and Jones 2023)');
   });
 
-  it('3 authors lists all three last names', () => {
+  it('3 authors uses Oxford comma and "and"', () => {
     const result = generateInTextCitation(
       makeFields({ authors: authors('Smith', 'Jones', 'Williams') }),
       'chicago'
     );
-    expect(result).toBe('(Smith, Jones, Williams 2023)');
+    expect(result).toBe('(Smith, Jones, and Williams 2023)');
   });
 
   it('4 authors uses et al.', () => {

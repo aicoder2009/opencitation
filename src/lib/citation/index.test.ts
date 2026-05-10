@@ -122,6 +122,29 @@ describe('Citation Engine', () => {
       expect(result).toContain('et al.');
     });
 
+    it('should format Chicago 2-author in-text with "and"', () => {
+      const twoAuthors: BookFields = {
+        ...sampleBook,
+        authors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+      };
+      expect(generateInTextCitation(twoAuthors, 'chicago')).toBe('(Smith and Doe 2020)');
+    });
+
+    it('should format Chicago 3-author in-text with Oxford comma', () => {
+      const threeAuthors: BookFields = {
+        ...sampleBook,
+        authors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+          { firstName: 'Bob', lastName: 'Johnson' },
+        ],
+      };
+      expect(generateInTextCitation(threeAuthors, 'chicago')).toBe('(Smith, Doe, and Johnson 2020)');
+    });
+
     it('should handle missing authors', () => {
       const noAuthor: BookFields = {
         ...sampleBook,

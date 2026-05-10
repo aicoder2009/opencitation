@@ -204,8 +204,8 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   // DOI
   if (fields.doi) {
     const doiUrl = fields.doi.startsWith('http') ? fields.doi : `https://doi.org/${fields.doi}`;
-    parts.push(`doi: ${fields.doi}`);
-    htmlParts.push(`doi: <a href="${doiUrl}">${escapeHtml(fields.doi)}</a>`);
+    parts.push(doiUrl);
+    htmlParts.push(`<a href="${doiUrl}">${escapeHtml(doiUrl)}</a>`);
   }
 
   return {
@@ -656,18 +656,17 @@ function formatTVEpisode(fields: TVEpisodeFields): FormattedCitation {
   htmlParts.push(year);
 
   // Series title (italicized)
-  let seriesInfo = fields.seriesTitle;
-
-  // Season and episode
+  let seriesSuffix = '';
   if (fields.season) {
-    seriesInfo += `, Season ${fields.season}`;
+    seriesSuffix += `, Season ${fields.season}`;
   }
   if (fields.episodeNumber) {
-    seriesInfo += `, Episode ${fields.episodeNumber}`;
+    seriesSuffix += `, Episode ${fields.episodeNumber}`;
   }
 
+  const seriesInfo = fields.seriesTitle + seriesSuffix;
   parts.push(`${seriesInfo}.`);
-  htmlParts.push(`${italic(escapeHtml(fields.seriesTitle))}${seriesInfo.replace(fields.seriesTitle, '')}.`);
+  htmlParts.push(`${italic(escapeHtml(fields.seriesTitle))}${escapeHtml(seriesSuffix)}.`);
 
   // [TV Episode]
   parts.push('[TV Episode].');
