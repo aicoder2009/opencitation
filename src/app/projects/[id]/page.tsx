@@ -443,18 +443,20 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       {formatDate(list.createdAt)}
                     </td>
                     <td className="py-3 px-2 text-right">
-                      <button
-                        onClick={() => router.push(`/lists/${list.id}`)}
-                        className="text-wiki-link hover:underline mr-3"
-                      >
-                        [view]
-                      </button>
-                      <button
-                        onClick={() => handleRemoveFromProject(list.id)}
-                        className="text-wiki-link hover:underline"
-                      >
-                        [remove]
-                      </button>
+                      <span className="inline-flex gap-3">
+                        <button
+                          onClick={() => router.push(`/lists/${list.id}`)}
+                          className="text-wiki-link hover:underline"
+                        >
+                          [view]
+                        </button>
+                        <button
+                          onClick={() => handleRemoveFromProject(list.id)}
+                          className="text-wiki-link hover:underline"
+                        >
+                          [remove]
+                        </button>
+                      </span>
                     </td>
                   </tr>
                 ))}
