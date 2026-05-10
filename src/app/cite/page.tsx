@@ -1334,7 +1334,7 @@ function CitePageContent() {
                     type="button"
                     onClick={() => removeAuthor(index)}
                     disabled={formData.authors.length === 1 && !author.lastName}
-                    className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-30 disabled:cursor-not-allowed border border-wiki-border-light"
+                    className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-50 disabled:cursor-not-allowed border border-wiki-border-light"
                     title="Remove author"
                     aria-label={`Remove author ${index + 1}`}
                   >
@@ -1383,7 +1383,7 @@ function CitePageContent() {
                     type="button"
                     onClick={() => removeAuthor(index)}
                     disabled={formData.authors.length === 1 && !author.firstName && !author.middleName && !author.lastName}
-                    className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-30 disabled:cursor-not-allowed border border-wiki-border-light"
+                    className="px-2 py-1 text-xs text-wiki-text-muted hover:text-wiki-text disabled:opacity-50 disabled:cursor-not-allowed border border-wiki-border-light"
                     title="Remove author"
                     aria-label={`Remove author ${index + 1}`}
                   >
