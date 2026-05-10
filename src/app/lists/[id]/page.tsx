@@ -399,9 +399,12 @@ export default function ListDetailPage({
             c.id === citationId ? { ...c, tags: updatedTags } : c,
           ),
         );
+      } else {
+        setError(result.error || "Failed to add tag.");
       }
     } catch (err) {
       console.error("Error adding tag:", err);
+      setError("Failed to add tag.");
     }
 
     setNewTagInput("");
@@ -440,9 +443,12 @@ export default function ListDetailPage({
         ) {
           setFilterTag(null);
         }
+      } else {
+        setError(result.error || "Failed to remove tag.");
       }
     } catch (err) {
       console.error("Error removing tag:", err);
+      setError("Failed to remove tag.");
     }
   };
 
@@ -463,9 +469,12 @@ export default function ListDetailPage({
             c.id === citationId ? { ...c, notes: notes || undefined } : c,
           ),
         );
+      } else {
+        setError(result.error || "Failed to save notes.");
       }
     } catch (err) {
       console.error("Error saving notes:", err);
+      setError("Failed to save notes.");
     }
   };
 
@@ -487,9 +496,12 @@ export default function ListDetailPage({
         setCitations((prev) =>
           prev.map((c) => (c.id === citationId ? { ...c, quotes } : c)),
         );
+      } else {
+        setError(result.error || "Failed to save quotes.");
       }
     } catch (err) {
       console.error("Error saving quotes:", err);
+      setError("Failed to save quotes.");
     }
   };
 
