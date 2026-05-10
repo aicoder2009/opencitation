@@ -6,6 +6,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { useTagColors } from "@/lib/tag-colors";
 import { generateInTextCitation } from "@/lib/citation";
 import DOMPurify from "isomorphic-dompurify";
+import { WikiButton } from "@/components/wiki/wiki-button";
 import type { CitationFields as FullCitationFields, CitationStyle } from "@/types";
 
 interface CitationFields {
@@ -311,19 +312,16 @@ export function SortableCitation({
               </div>
             </div>
             <div className="flex gap-2">
-              <button
+              <WikiButton
+                variant="primary"
                 onClick={saveEditing}
                 disabled={isSaving}
-                className="px-3 py-1 text-sm bg-wiki-link text-white hover:bg-wiki-link-hover disabled:opacity-50"
               >
                 {isSaving ? "Saving..." : "Save"}
-              </button>
-              <button
-                onClick={cancelEditing}
-                className="px-3 py-1 text-sm border border-wiki-border-light hover:bg-wiki-offwhite"
-              >
+              </WikiButton>
+              <WikiButton onClick={cancelEditing}>
                 Cancel
-              </button>
+              </WikiButton>
             </div>
           </div>
         ) : (
@@ -388,21 +386,18 @@ export function SortableCitation({
                   autoFocus
                 />
                 <div className="flex gap-2">
-                  <button
+                  <WikiButton
+                    variant="primary"
                     onClick={async () => {
                       await onSaveNotes(citation.id, notesDraft.trim());
                       setEditingNotes(false);
                     }}
-                    className="px-3 py-1 text-sm bg-wiki-link text-white hover:bg-wiki-link-hover"
                   >
                     Save notes
-                  </button>
-                  <button
-                    onClick={() => setEditingNotes(false)}
-                    className="px-3 py-1 text-sm border border-wiki-border-light hover:bg-wiki-offwhite"
-                  >
+                  </WikiButton>
+                  <WikiButton onClick={() => setEditingNotes(false)}>
                     Cancel
-                  </button>
+                  </WikiButton>
                 </div>
               </div>
             ) : citation.notes ? (
@@ -494,7 +489,8 @@ export function SortableCitation({
                   </button>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <WikiButton
+                    variant="primary"
                     onClick={async () => {
                       const cleaned = quotesDraft
                         .map((q) => ({
@@ -505,16 +501,12 @@ export function SortableCitation({
                       await onSaveQuotes(citation.id, cleaned);
                       setEditingQuotes(false);
                     }}
-                    className="px-3 py-1 text-sm bg-wiki-link text-white hover:bg-wiki-link-hover"
                   >
                     Save quotes
-                  </button>
-                  <button
-                    onClick={() => setEditingQuotes(false)}
-                    className="px-3 py-1 text-sm border border-wiki-border-light hover:bg-wiki-offwhite"
-                  >
+                  </WikiButton>
+                  <WikiButton onClick={() => setEditingQuotes(false)}>
                     Cancel
-                  </button>
+                  </WikiButton>
                 </div>
               </div>
             ) : citation.quotes && citation.quotes.length > 0 ? (
@@ -603,7 +595,7 @@ export function SortableCitation({
                   onClick={() => onAddTag(citation.id, newTagInput)}
                   className="text-wiki-link text-xs hover:underline"
                 >
-                  add
+                  [add]
                 </button>
                 <button
                   onClick={() => {
@@ -612,7 +604,7 @@ export function SortableCitation({
                   }}
                   className="text-wiki-text-muted text-xs hover:underline"
                 >
-                  cancel
+                  [cancel]
                 </button>
                 {(() => {
                   const existing = new Set(citation.tags || []);
