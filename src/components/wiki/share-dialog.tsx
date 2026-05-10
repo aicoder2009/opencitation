@@ -184,7 +184,7 @@ export function ShareDialog({
           </div>
           <button
             onClick={onClose}
-            className="text-wiki-text-muted hover:text-wiki-text text-sm"
+            className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
             aria-label="Close"
           >
             [close]
@@ -236,7 +236,7 @@ export function ShareDialog({
                   </WikiButton>
                   <a
                     href={`mailto:?subject=${encodeURIComponent(`${targetName || (type === "list" ? "Citation list" : "Citation project")} — OpenCitation`)}&body=${encodeURIComponent(`I wanted to share this ${type === "list" ? "citation list" : "citation project"} with you:\n\n${activeShare.url}`)}`}
-                    className="inline-flex items-center px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg"
+                    className="inline-flex items-center px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     Email
                   </a>

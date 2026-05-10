@@ -353,7 +353,7 @@ export default function ProjectsPage() {
                           <button
                             onClick={() => handleSaveEdit(project.id)}
                             disabled={isSavingEdit || !editName.trim()}
-                            className="text-wiki-link hover:underline disabled:opacity-50 disabled:no-underline"
+                            className="text-wiki-link hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {isSavingEdit ? "[saving...]" : "[save]"}
                           </button>

@@ -217,7 +217,7 @@ export function CitationAddModal({
           </div>
           <button
             onClick={onClose}
-            className="text-wiki-text-muted hover:text-wiki-text text-sm"
+            className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
             aria-label="Close"
           >
             [close]
