@@ -101,6 +101,8 @@ const RESEARCH_TYPES: { value: ResearchType; label: string }[] = [
   { value: "wikipedia", label: "Wikipedia" },
 ];
 
+const RESEARCH_TYPE_MAP = new Map(RESEARCH_TYPES.map((rt) => [rt.value, rt.label]));
+
 const ARXIV_NEW = /^(?:arxiv:)?\d{4}\.\d{4,5}(?:v\d+)?$/i;
 const ARXIV_OLD = /^(?:arxiv:)?[a-z-]+\/\d{7}(?:v\d+)?$/i;
 const PMID_BARE = /^(?:pmid[:\s]*)?\d{5,9}$/i;
@@ -118,7 +120,7 @@ function detectResearchType(raw: string): ResearchType | null {
 }
 
 function researchTypeLabel(rt: ResearchType): string {
-  return RESEARCH_TYPES.find((r) => r.value === rt)?.label ?? rt;
+  return RESEARCH_TYPE_MAP.get(rt) ?? rt;
 }
 
 function researchTypeHelp(rt: ResearchType): string {
