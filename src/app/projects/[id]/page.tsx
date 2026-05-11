@@ -260,7 +260,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           ]}
         />
         <div className="mt-6 p-6 border-l-4 border-l-wiki-border border border-wiki-border-light bg-wiki-offwhite text-wiki-text">
-          <h2 className="font-bold mb-2">Error</h2>
+          <h2 className="text-lg font-semibold mb-2">Error</h2>
           <p>{error}</p>
           <WikiButton onClick={() => router.push("/projects")} className="mt-4">
             Back to Projects
