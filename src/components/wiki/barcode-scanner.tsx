@@ -17,6 +17,8 @@ function isIsbn(value: string): boolean {
 export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
+  const onDetectRef = useRef(onDetect);
+  onDetectRef.current = onDetect;
   const [error, setError] = useState<string | null>(null);
   const [isStarting, setIsStarting] = useState(true);
 
@@ -46,15 +48,15 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
         const video = videoRef.current;
         if (!video || cancelled) return;
 
-        const controls = await reader.decodeFromVideoDevice(
-          undefined,
+        const controls = await reader.decodeFromConstraints(
+          { video: { facingMode: { ideal: "environment" } } },
           video,
           (result) => {
             if (!result) return;
             const text = result.getText();
             if (isIsbn(text)) {
               controls.stop();
-              onDetect(text.replace(/[^\dX]/gi, ""));
+              onDetectRef.current(text.replace(/[^\dX]/gi, ""));
             }
           }
         );
@@ -75,7 +77,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
       cancelled = true;
       controlsRef.current?.stop();
     };
-  }, [onDetect]);
+  }, []);
 
   return (
     <div
@@ -108,6 +110,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
                 <video
                   ref={videoRef}
                   className="w-full h-full object-cover"
+                  style={{ transform: "scaleX(-1)" }}
                   playsInline
                   muted
                 />
