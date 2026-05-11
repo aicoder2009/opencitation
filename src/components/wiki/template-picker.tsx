@@ -25,7 +25,9 @@ export function TemplatePicker({
     setTemplates(getTemplates());
   }, [refreshKey]);
 
-  const handleDeleteTemplate = (id: string) => {
+  const handleDeleteTemplate = (id: string, name: string) => {
+    // eslint-disable-next-line no-alert
+    if (!confirm(`Delete template "${name}"?`)) return;
     deleteTemplate(id);
     setTemplates(templates.filter((t) => t.id !== id));
   };
@@ -72,9 +74,9 @@ export function TemplatePicker({
                   </button>
                   <button
                     type="button"
-                    onClick={() => handleDeleteTemplate(template.id)}
+                    onClick={() => handleDeleteTemplate(template.id, template.name)}
                     className="text-wiki-link text-xs hover:underline ml-2 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                    title="Delete template"
+                    aria-label={`Delete template ${template.name}`}
                   >
                     [delete]
                   </button>
