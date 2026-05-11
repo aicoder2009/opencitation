@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { syncManager, SyncManagerState } from '@/lib/pwa/sync-manager';
 import { pwaManager, PWAState } from '@/lib/pwa/pwa-utils';
+import { WikiButton } from '@/components/wiki/wiki-button';
 
 interface OfflineIndicatorProps {
   position?: 'top' | 'bottom';
@@ -244,12 +245,9 @@ export function OfflineIndicator({
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleUpdate}
-                className="px-3 py-1 text-sm bg-wiki-white border border-wiki-border-light text-wiki-link font-medium hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-              >
+              <WikiButton variant="primary" onClick={handleUpdate}>
                 Update now
-              </button>
+              </WikiButton>
               <button
                 onClick={() => setShowUpdateBanner(false)}
                 className="p-1 text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
@@ -277,10 +275,7 @@ export function OfflineIndicator({
       {/* Install Prompt (for non-installed PWA) */}
       {pwaState.isInstallable && !pwaState.isInstalled && (
         <div className="fixed bottom-4 right-4 z-40">
-          <button
-            onClick={handleInstall}
-            className="flex items-center gap-2 px-4 py-3 bg-wiki-white border border-wiki-border-light text-wiki-link font-medium hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-          >
+          <WikiButton variant="primary" onClick={handleInstall} className="flex items-center gap-2">
             <svg
               className="w-5 h-5"
               fill="none"
@@ -294,8 +289,8 @@ export function OfflineIndicator({
                 d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
               />
             </svg>
-            <span className="font-medium">Install App</span>
-          </button>
+            <span>Install App</span>
+          </WikiButton>
         </div>
       )}
     </>

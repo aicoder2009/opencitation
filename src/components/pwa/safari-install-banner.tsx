@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { WikiButton } from '@/components/wiki/wiki-button';
 
 function ShareIcon() {
   return (
@@ -88,12 +89,9 @@ export function SafariInstallBanner() {
 
         {/* View/Install button */}
         {!showInstructions ? (
-          <button
-            onClick={handleView}
-            className="border border-wiki-border-light bg-wiki-white text-wiki-link text-[12px] font-semibold px-3 py-1 hover:bg-wiki-tab-bg focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-          >
+          <WikiButton variant="primary" onClick={handleView}>
             INSTALL
-          </button>
+          </WikiButton>
         ) : (
           <button
             onClick={() => setShowInstructions(false)}
