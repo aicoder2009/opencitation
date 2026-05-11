@@ -1120,7 +1120,7 @@ export default function ListDetailPage({
                     aria-label="List name"
                     value={editName}
                     onChange={(e) => { setEditName(e.target.value); setEditNameError(null); }}
-                    className="text-xl font-bold w-full"
+                    className="text-2xl font-bold w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleUpdateName()}
                     placeholder="List name"
                     autoFocus
