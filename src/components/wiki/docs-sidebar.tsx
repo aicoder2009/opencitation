@@ -12,7 +12,6 @@ export const DOCS_NAV = [
   { label: "Lists & Projects", href: "/docs/organize" },
   { label: "Sharing & Export", href: "/docs/sharing" },
   { label: "Keyboard Shortcuts", href: "/docs/keyboard-shortcuts" },
-  { label: "Browser Extension", href: "/docs/browser-extension" },
 ];
 
 export function WikiDocsSidebar() {

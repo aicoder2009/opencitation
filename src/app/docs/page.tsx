@@ -42,11 +42,6 @@ const sections = [
     description: "Power-user shortcuts for the citation page and list view.",
   },
   {
-    href: "/docs/browser-extension",
-    label: "Browser Extension",
-    description: "Cite any webpage in one click from Chrome, Edge, or Firefox.",
-  },
-  {
     href: "/docs/changelog",
     label: "Changelog",
     description: "Release history — what's new in each version of OpenCitation.",
@@ -91,7 +86,6 @@ export default function DocsIndex() {
                 ["Lists & Projects", "#organize"],
                 ["Sharing & Export", "#sharing"],
                 ["Keyboard shortcuts", "#shortcuts"],
-                ["Browser extension", "#extension"],
                 ["Desktop app & PWA", "#desktop"],
                 ["Reporting issues", "#issues"],
               ].map(([label, href], i) => (
@@ -263,20 +257,9 @@ export default function DocsIndex() {
         </p>
       </section>
 
-      {/* === EXTENSION === */}
-      <section id="extension">
-        <h2 className="text-xl font-bold border-b border-wiki-border-light pb-1 mb-3 mt-8">9. Browser extension</h2>
-        <p className="text-sm mb-3 leading-relaxed">
-          The OpenCitation extension adds a toolbar button to Chrome and Edge. Click it on any page to instantly generate a citation for that URL. Install by cloning the repo and loading the <span className="font-mono bg-wiki-offwhite border border-wiki-border-light px-1 text-xs">browser-extension/</span> folder as an unpacked extension.
-        </p>
-        <p className="text-sm text-wiki-text-muted">
-          <Link href="/docs/browser-extension" className="text-wiki-link hover:underline">Full installation guide →</Link>
-        </p>
-      </section>
-
       {/* === DESKTOP === */}
       <section id="desktop">
-        <h2 className="text-xl font-bold border-b border-wiki-border-light pb-1 mb-3 mt-8">10. Desktop app & PWA</h2>
+        <h2 className="text-xl font-bold border-b border-wiki-border-light pb-1 mb-3 mt-8">9. Desktop app & PWA</h2>
         <p className="text-sm mb-3 leading-relaxed">
           <strong>PWA:</strong> Install from the address bar in Chrome/Edge or Share → Add to Home Screen on iOS. <strong>Electron:</strong> Available for macOS, Windows, and Linux — download from GitHub releases or build with <span className="font-mono bg-wiki-offwhite border border-wiki-border-light px-1 text-xs">npm run electron:build</span>.
         </p>
@@ -284,7 +267,7 @@ export default function DocsIndex() {
 
       {/* === ISSUES === */}
       <section id="issues">
-        <h2 className="text-xl font-bold border-b border-wiki-border-light pb-1 mb-3 mt-8">11. Reporting issues</h2>
+        <h2 className="text-xl font-bold border-b border-wiki-border-light pb-1 mb-3 mt-8">10. Reporting issues</h2>
         <p className="text-sm mb-3 leading-relaxed">
           Found a bug or have a suggestion?{" "}
           <a

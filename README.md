@@ -123,7 +123,6 @@ opencitation/
 │   │   ├── db/              # DynamoDB client
 │   │   └── pwa/             # Service worker utilities
 │   └── types/               # TypeScript definitions
-├── browser-extension/       # Chrome extension
 ├── electron/                # Desktop app
 └── public/                  # Static assets
 ```

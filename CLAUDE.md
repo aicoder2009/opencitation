@@ -89,7 +89,6 @@ src/
 └── types/                  # TypeScript definitions
 
 electron/                   # Electron main + preload (desktop app)
-browser-extension/          # Chromium-style extension (one-click cite from any page)
 ```
 
 ## Design Philosophy
