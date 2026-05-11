@@ -1115,6 +1115,7 @@ export default function ListDetailPage({
                 <div className="space-y-2">
                   <input
                     type="text"
+                    aria-label="List name"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     className="text-xl font-bold w-full"
@@ -1123,6 +1124,7 @@ export default function ListDetailPage({
                     autoFocus
                   />
                   <textarea
+                    aria-label="List description"
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
                     className="w-full text-sm h-20"
@@ -1189,6 +1191,7 @@ export default function ListDetailPage({
                 <input
                   ref={searchInputRef}
                   type="text"
+                  aria-label="Search citations"
                   placeholder="Search citations... (press / to focus)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

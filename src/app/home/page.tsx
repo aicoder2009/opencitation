@@ -9,6 +9,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { WikiSpinner } from "@/components/wiki/wiki-spinner";
 
 interface List {
   id: string;
@@ -152,6 +153,7 @@ export default function Dashboard() {
         <div className="flex gap-2 mb-2">
           <input
             type="text"
+            aria-label="URL, DOI, ISBN, arXiv ID, or PubMed ID to look up"
             placeholder="URL, DOI, ISBN, arXiv, PubMed…"
             className="flex-1 text-sm px-2 py-1.5 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
             value={quickAddInput}
@@ -199,7 +201,9 @@ export default function Dashboard() {
         </div>
 
         {isLoading && (
-          <p className="py-3 text-sm text-wiki-text-muted">Loading…</p>
+          <div className="py-3">
+            <WikiSpinner />
+          </div>
         )}
 
         {!isLoading && recentLists.length === 0 && !showNewListForm && (
@@ -239,6 +243,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 py-2 border-b border-wiki-border-light">
             <input
               type="text"
+              aria-label="New list name"
               className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               placeholder="List name…"
               value={newListName}
@@ -288,7 +293,9 @@ export default function Dashboard() {
         </div>
 
         {isLoading && (
-          <p className="py-3 text-sm text-wiki-text-muted">Loading…</p>
+          <div className="py-3">
+            <WikiSpinner />
+          </div>
         )}
 
         {!isLoading && recentProjects.length === 0 && (
