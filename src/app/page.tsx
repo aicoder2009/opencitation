@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiButton } from "@/components/wiki/wiki-button";
 
@@ -18,9 +19,14 @@ const RECENT_CITATIONS_KEY = "opencitation_recent";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
   const [quickAddInput, setQuickAddInput] = useState("");
   const [recentCitations, setRecentCitations] = useState<RecentCitation[]>([]);
   const [citationCount, setCitationCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) router.replace("/home");
+  }, [isLoaded, isSignedIn, router]);
 
   // Load recent citations from localStorage
   useEffect(() => {
