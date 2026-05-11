@@ -437,8 +437,8 @@ export default function LandingPage() {
 
       {/* Privacy Policy Modal */}
       {showPrivacy && (
-        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)} role="dialog" aria-modal="true" aria-label="Privacy Policy">
-          <div className="bg-wiki-white border border-wiki-border max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)} role="dialog" aria-modal="true" aria-label="Privacy Policy">
+          <div className="bg-wiki-white border border-wiki-border-light max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
                 <h2 className="text-xl font-bold">Privacy Policy</h2>
@@ -499,8 +499,8 @@ export default function LandingPage() {
 
       {/* Terms of Service Modal */}
       {showTerms && (
-        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)} role="dialog" aria-modal="true" aria-label="Terms of Service">
-          <div className="bg-wiki-white border border-wiki-border max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)} role="dialog" aria-modal="true" aria-label="Terms of Service">
+          <div className="bg-wiki-white border border-wiki-border-light max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
                 <h2 className="text-xl font-bold">Terms of Service</h2>
@@ -568,8 +568,8 @@ export default function LandingPage() {
 
       {/* Report Issue Modal */}
       {showReportIssue && (
-        <div className="fixed inset-0 bg-wiki-text/80 z-50 flex items-center justify-center p-4" onClick={closeReportModal} role="dialog" aria-modal="true" aria-label="Report an Issue">
-          <div className="bg-wiki-white border border-wiki-border max-w-lg w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeReportModal} role="dialog" aria-modal="true" aria-label="Report an Issue">
+          <div className="bg-wiki-white border border-wiki-border-light max-w-lg w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
                 <h2 className="text-xl font-bold">Report an Issue</h2>
