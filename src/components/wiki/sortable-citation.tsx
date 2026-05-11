@@ -7,6 +7,7 @@ import { useTagColors } from "@/lib/tag-colors";
 import { generateInTextCitation } from "@/lib/citation";
 import DOMPurify from "isomorphic-dompurify";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { WikiNotice } from "@/components/wiki/wiki-notice";
 import type { CitationFields as FullCitationFields, CitationStyle } from "@/types";
 
 interface CitationFields {
@@ -328,7 +329,7 @@ export function SortableCitation({
               </WikiButton>
             </div>
             {saveError && (
-              <p className="text-xs text-wiki-text mt-1" role="alert">{saveError}</p>
+              <WikiNotice variant="warn" onDismiss={() => setSaveError(null)}>{saveError}</WikiNotice>
             )}
           </div>
         ) : (

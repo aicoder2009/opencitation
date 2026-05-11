@@ -278,9 +278,7 @@ export function CitationAddModal({
           )}
 
           {showSuccess && (
-            <p className="text-wiki-link text-sm font-medium">
-              ✓ Added to &ldquo;{listName}&rdquo;
-            </p>
+            <WikiNotice>✓ Added to &ldquo;{listName}&rdquo;</WikiNotice>
           )}
         </div>
 
