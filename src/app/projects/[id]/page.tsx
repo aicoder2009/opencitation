@@ -355,7 +355,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           {/* Add List Form */}
           {showAddList && (
             <div className="mb-6 p-4 border border-wiki-border-light bg-wiki-offwhite">
-              <h3 className="font-bold mb-3">Add List to Project</h3>
+              <h3 className="font-bold text-base mb-3">Add List to Project</h3>
 
               {/* Create new list */}
               <div className="mb-4">

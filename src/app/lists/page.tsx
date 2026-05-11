@@ -196,7 +196,7 @@ export default function ListsPage() {
           {/* Create List Form */}
           {showCreateForm && (
             <div className="mb-6 p-4 border border-wiki-border-light bg-wiki-offwhite">
-              <h3 className="font-bold mb-3">Create New List</h3>
+              <h3 className="font-bold text-base mb-3">Create New List</h3>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Name</label>
@@ -339,7 +339,7 @@ export default function ListsPage() {
 
           {/* Quick Actions */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <h3 className="font-bold mb-3">Quick Actions</h3>
+            <h3 className="font-bold text-base mb-3">Quick Actions</h3>
             <div className="flex flex-wrap gap-3">
               <WikiButton onClick={() => router.push("/cite")}>
                 Create New Citation
