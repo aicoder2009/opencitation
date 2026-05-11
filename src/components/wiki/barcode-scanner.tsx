@@ -88,7 +88,7 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
       aria-label="Scan ISBN barcode"
     >
       <div
-        className="bg-wiki-white border border-wiki-border-light max-w-lg w-full shadow-lg"
+        className="bg-wiki-white border border-wiki-border-light max-w-xl w-full shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-3 border-b border-wiki-border-light flex items-center justify-between bg-wiki-tab-bg">
