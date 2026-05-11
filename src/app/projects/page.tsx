@@ -7,6 +7,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { WikiSpinner } from "@/components/wiki/wiki-spinner";
 import { pickFactoid } from "@/lib/did-you-know";
 import posthog from "posthog-js";
 
@@ -190,9 +191,7 @@ export default function ProjectsPage() {
   if (!isLoaded || (isLoaded && !isSignedIn)) {
     return (
       <WikiLayout>
-        <div className="flex items-center justify-center py-12">
-          <span className="text-sm text-wiki-text-muted">Loading…</span>
-        </div>
+        <WikiSpinner />
       </WikiLayout>
     );
   }
@@ -273,9 +272,7 @@ export default function ProjectsPage() {
 
           {/* Projects Table */}
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <span className="text-sm text-wiki-text-muted">Loading…</span>
-            </div>
+            <WikiSpinner />
           ) : projects.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-wiki-text-muted mb-4">

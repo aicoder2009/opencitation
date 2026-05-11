@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WikiButton } from "./wiki-button";
+import { WikiSpinner } from "./wiki-spinner";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -210,11 +211,7 @@ export function ShareDialog({
             </div>
           )}
 
-          {isLoading && (
-            <div className="flex items-center justify-center py-4">
-              <span className="text-sm text-wiki-text-muted">Loading…</span>
-            </div>
-          )}
+          {isLoading && <WikiSpinner />}
 
           {!isLoading && activeShare && (
             <div className="space-y-3">

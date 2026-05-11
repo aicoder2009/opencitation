@@ -8,6 +8,7 @@ import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { WikiSpinner } from "@/components/wiki/wiki-spinner";
 import { ShareDialog } from "@/components/wiki/share-dialog";
 import { pickFactoid } from "@/lib/did-you-know";
 import posthog from "posthog-js";
@@ -233,9 +234,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   if (!isLoaded || (isLoaded && !isSignedIn)) {
     return (
       <WikiLayout>
-        <div className="flex items-center justify-center py-12">
-          <span className="text-sm text-wiki-text-muted">Loading…</span>
-        </div>
+        <WikiSpinner />
       </WikiLayout>
     );
   }
@@ -243,9 +242,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   if (isLoading) {
     return (
       <WikiLayout>
-        <div className="flex items-center justify-center py-12">
-          <span className="text-sm text-wiki-text-muted">Loading…</span>
-        </div>
+        <WikiSpinner />
       </WikiLayout>
     );
   }
