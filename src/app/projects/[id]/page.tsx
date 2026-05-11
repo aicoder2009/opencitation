@@ -46,6 +46,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
   const [isCreating, setIsCreating] = useState(false);
   const [newListNameError, setNewListNameError] = useState<string | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [editNameError, setEditNameError] = useState<string | null>(null);
   const [factoid, setFactoid] = useState<string>("");
 
   useEffect(() => {
@@ -105,9 +106,10 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
   const handleUpdateProject = async () => {
     if (!editName.trim()) {
-      setIsEditing(false);
+      setEditNameError("Project name is required.");
       return;
     }
+    setEditNameError(null);
 
     try {
       const response = await fetch(`/api/projects/${projectId}`, {
@@ -290,10 +292,13 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     <input
                       type="text"
                       value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
+                      onChange={(e) => { setEditName(e.target.value); setEditNameError(null); }}
                       className="w-full max-w-md"
                       autoFocus
                     />
+                    {editNameError && (
+                      <p className="mt-1 text-xs text-wiki-text">{editNameError}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium mb-1">Description</label>
@@ -305,7 +310,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </div>
                   <div className="flex gap-2">
                     <WikiButton onClick={handleUpdateProject}>Save</WikiButton>
-                    <WikiButton onClick={() => { setIsEditing(false); setEditName(project?.name || ""); setEditDescription(project?.description || ""); }}>
+                    <WikiButton onClick={() => { setIsEditing(false); setEditName(project?.name || ""); setEditDescription(project?.description || ""); setEditNameError(null); }}>
                       Cancel
                     </WikiButton>
                   </div>
