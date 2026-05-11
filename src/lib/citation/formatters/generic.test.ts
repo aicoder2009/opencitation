@@ -189,7 +189,12 @@ describe('formatGeneric', () => {
       const result = formatGeneric(fields, style);
       expect(result.text).toContain('Mercury');
       expect(result.text).toContain('1975');
-      expect(result.text).toContain('Bohemian Rhapsody');
+      // APA sentence-cases the title; other styles preserve as-entered
+      if (style === 'apa') {
+        expect(result.text).toContain('Bohemian rhapsody');
+      } else {
+        expect(result.text).toContain('Bohemian Rhapsody');
+      }
       expect(result.text).toContain('[Song]');
     }
   });
@@ -204,7 +209,8 @@ describe('formatGeneric', () => {
       publicationDate: { year: 2024 },
     };
     const result = formatGeneric(fields, 'apa');
-    expect(result.text).toContain('VS Code: Code Editor');
+    // APA sentence-cases the title+subtitle
+    expect(result.text).toContain('VS code: Code editor');
   });
 
   it('includes publisher when present', () => {
@@ -276,7 +282,8 @@ describe('formatGeneric', () => {
       publicationDate: { year: 2020 },
     };
     const result = formatGeneric(fields, 'apa');
-    expect(result.text).toContain('Anonymous Track');
+    // APA sentence-cases the title; "Anonymous" stays capitalised as first word
+    expect(result.text).toContain('Anonymous track');
   });
 
   it('song extras include album and label', () => {

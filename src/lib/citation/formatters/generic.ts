@@ -44,6 +44,7 @@ import {
   formatUrl,
   escapeHtml,
   italic,
+  toSentenceCase,
 } from '../utils';
 
 export type Style = 'apa' | 'mla' | 'chicago' | 'harvard';
@@ -303,13 +304,14 @@ export function formatGeneric(
     htmlParts.push(date);
   }
 
-  let { title } = fields;
-  if (fields.subtitle) title += `: ${fields.subtitle}`;
+  // APA 7 requires sentence case for standalone titles; other styles preserve as-entered.
+  const rawTitle = fields.title + (fields.subtitle ? `: ${fields.subtitle}` : '');
+  const displayTitle = style === 'apa' ? toSentenceCase(rawTitle) : rawTitle;
   const descriptor = descriptorFor(fields);
-  const titleWithDescriptor = descriptor ? `${title} [${descriptor}]` : title;
+  const titleWithDescriptor = descriptor ? `${displayTitle} [${descriptor}]` : displayTitle;
   parts.push(`${titleWithDescriptor}.`);
 
-  let titleHtml = italic(escapeHtml(fields.title + (fields.subtitle ? `: ${fields.subtitle}` : '')));
+  let titleHtml = italic(escapeHtml(displayTitle));
   if (descriptor) titleHtml += ` [${escapeHtml(descriptor)}]`;
   htmlParts.push(`${titleHtml}.`);
 
