@@ -22,6 +22,7 @@ import {
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { WikiSpinner } from "@/components/wiki/wiki-spinner";
 import { WikiDropdown } from "@/components/wiki/wiki-dropdown";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
 import { WikiSelect } from "@/components/wiki/wiki-select";
@@ -1061,9 +1062,7 @@ export default function ListDetailPage({
   if (!isLoaded || (isLoaded && !isSignedIn)) {
     return (
       <WikiLayout>
-        <div className="flex items-center justify-center py-12">
-          <span className="text-sm text-wiki-text-muted">Loading…</span>
-        </div>
+        <WikiSpinner />
       </WikiLayout>
     );
   }
@@ -1071,9 +1070,7 @@ export default function ListDetailPage({
   if (isLoading) {
     return (
       <WikiLayout>
-        <div className="flex items-center justify-center py-12">
-          <span className="text-sm text-wiki-text-muted">Loading…</span>
-        </div>
+        <WikiSpinner />
       </WikiLayout>
     );
   }
@@ -1240,7 +1237,7 @@ export default function ListDetailPage({
                             setTagColorPickerOpen(isPickerOpen ? null : tag);
                           }}
                           className={`flex items-center justify-center px-1.5 border-r focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text ${
-                            isActive ? "border-white/40" : color.border
+                            isActive ? color.activeInnerBorder : color.border
                           }`}
                           title="Change color"
                           aria-haspopup="dialog"
