@@ -63,7 +63,7 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
       aria-label="Keyboard Shortcuts"
     >
       <div
-        className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-md w-full mx-4 shadow-lg"
+        className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
