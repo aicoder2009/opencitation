@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { WikiUserMenu } from "./wiki-user-menu";
 
@@ -50,7 +51,24 @@ const moonIconPath =
 
 export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(false);
+  const docsRef = useRef<HTMLDivElement>(null);
   const { isDark, toggle, mounted } = useTheme();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (docsRef.current && !docsRef.current.contains(e.target as Node)) {
+        setDocsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    setDocsOpen(false);
+  }, [pathname]);
 
   // Shared between SignedIn and SignedOut desktop nav
   const desktopGithubLink = (
@@ -107,15 +125,38 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
 
           {/* Desktop Nav */}
           <nav className="hidden sm:flex items-center gap-4 text-sm">
+            {/* Docs dropdown — shared across signed-in and signed-out */}
+            <div ref={docsRef} className="relative">
+              <button
+                onClick={() => setDocsOpen((o) => !o)}
+                className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+              >
+                Docs
+                <svg className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
+                  <path strokeLinecap="round" strokeLinejoin="round" d={docsOpen ? "M2 8l4-4 4 4" : "M2 4l4 4 4-4"} />
+                </svg>
+              </button>
+              {docsOpen && (
+                <div className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
+                  <Link
+                    href="/docs"
+                    className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline"
+                  >
+                    Documentation
+                  </Link>
+                  <div className="border-t border-wiki-border-light" />
+                  <Link
+                    href="/docs/changelog"
+                    className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline"
+                  >
+                    Changelog
+                  </Link>
+                </div>
+              )}
+            </div>
             <SignedOut>
               <Link href="/cite" className="text-wiki-link hover:underline">
                 Cite
-              </Link>
-              <Link href="/docs" className="text-wiki-link hover:underline">
-                Docs
-              </Link>
-              <Link href="/docs/changelog" className="text-wiki-link hover:underline">
-                Changelog
               </Link>
               <Link href="/sign-in" className="text-wiki-link hover:underline">
                 Sign In
@@ -138,12 +179,6 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               </Link>
               <Link href="/projects" className="text-wiki-link hover:underline">
                 Projects
-              </Link>
-              <Link href="/docs" className="text-wiki-link hover:underline">
-                Docs
-              </Link>
-              <Link href="/docs/changelog" className="text-wiki-link hover:underline">
-                Changelog
               </Link>
               {desktopGithubLink}
               {desktopThemeToggle}
@@ -207,10 +242,10 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               </Link>
               <Link
                 href="/docs/changelog"
-                className="text-wiki-link hover:underline py-1"
+                className="pl-3 text-wiki-link hover:underline py-1"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Changelog
+                ↳ Changelog
               </Link>
               <SignedOut>
                 <Link
