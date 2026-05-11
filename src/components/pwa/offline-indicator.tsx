@@ -142,7 +142,7 @@ export function OfflineIndicator({
                         : `${syncState.pendingCount} item${syncState.pendingCount !== 1 ? 's' : ''} pending`}
                   </span>
                   {showSyncStatus && syncState.pendingCount > 0 && !syncState.isSyncing && (
-                    <span className="text-xs opacity-80">
+                    <span className="text-xs text-wiki-text-muted">
                       {!syncState.isOnline
                         ? 'Will sync when back online'
                         : 'Click to sync now'}
@@ -189,17 +189,17 @@ export function OfflineIndicator({
               <div className="max-w-4xl mx-auto mt-3 pt-3 border-t border-wiki-border-light">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                   <div>
-                    <div className="text-xs opacity-70">Status</div>
+                    <div className="text-xs text-wiki-text-muted">Status</div>
                     <div className="font-medium">
                       {syncState.isOnline ? 'Online' : 'Offline'}
                     </div>
                   </div>
                   <div>
-                    <div className="text-xs opacity-70">Pending</div>
+                    <div className="text-xs text-wiki-text-muted">Pending</div>
                     <div className="font-medium">{syncState.pendingCount} items</div>
                   </div>
                   <div>
-                    <div className="text-xs opacity-70">Last Sync</div>
+                    <div className="text-xs text-wiki-text-muted">Last Sync</div>
                     <div className="font-medium">
                       {syncState.lastSyncAt
                         ? new Date(syncState.lastSyncAt).toLocaleTimeString()
@@ -208,7 +208,7 @@ export function OfflineIndicator({
                   </div>
                   {syncState.lastError && (
                     <div>
-                      <div className="text-xs opacity-70">Last Error</div>
+                      <div className="text-xs text-wiki-text-muted">Last Error</div>
                       <div className="font-medium text-wiki-text-muted truncate">
                         {syncState.lastError}
                       </div>
