@@ -25,6 +25,7 @@ import {
   formatAuthorsChicago,
   formatDateChicago,
   formatUrl,
+  formatDOI,
   escapeHtml,
   italic,
 } from '../utils';
@@ -190,7 +191,7 @@ function formatJournal(fields: JournalFields): FormattedCitation {
 
   // DOI
   if (fields.doi) {
-    const doiUrl = fields.doi.startsWith('http') ? fields.doi : `https://doi.org/${fields.doi}`;
+    const doiUrl = formatDOI(fields.doi);
     parts.push(doiUrl);
     htmlParts.push(`<a href="${escapeHtml(doiUrl)}">${escapeHtml(doiUrl)}</a>`);
   }
