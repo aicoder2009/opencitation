@@ -139,181 +139,176 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-2 mb-1">
+      {/* Page header */}
+      <div className="flex items-center justify-between mt-2 mb-4">
         <h1 className="text-2xl font-bold">Dashboard</h1>
         <WikiButton variant="primary" onClick={() => router.push("/cite")}>
           New Citation →
         </WikiButton>
       </div>
-      <div className="border-b border-wiki-border-light mb-4" />
 
-      {/* Two-column layout: Lists + Quick Add sidebar */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-
-        {/* My Lists panel */}
-        <div className="flex-1 border border-wiki-border-light">
-          <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
-            <span className="text-sm font-bold text-wiki-text">
-              My Lists{!isLoading && ` (${lists.length})`}
-            </span>
-          </div>
-
-          {isLoading && (
-            <p className="px-3 py-3 text-sm text-wiki-text-muted">Loading…</p>
-          )}
-          {!isLoading && recentLists.length === 0 && (
-            <p className="px-3 py-3 text-sm text-wiki-text-muted">
-              No lists yet.{" "}
-              <button
-                className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                onClick={() => setShowNewListForm(true)}
-              >
-                Create your first list
-              </button>
-            </p>
-          )}
-          {!isLoading && recentLists.length > 0 && (
-            <ul className="divide-y divide-wiki-border-light">
-              {recentLists.map((list) => (
-                <li key={list.id} className="flex items-center justify-between px-3 py-2">
-                  <Link
-                    href={`/lists/${list.id}`}
-                    className="text-sm text-wiki-link hover:underline truncate"
-                  >
-                    {list.name}
-                  </Link>
-                  <span className="text-xs text-wiki-text-muted tabular-nums ml-3 shrink-0">
-                    {relativeDate(list.createdAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="px-3 py-2 border-t border-wiki-border-light">
-            {showNewListForm ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                  placeholder="List name…"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleCreateList();
-                    if (e.key === "Escape") { setShowNewListForm(false); setNewListName(""); }
-                  }}
-                  autoFocus
-                />
-                <WikiButton
-                  variant="primary"
-                  onClick={handleCreateList}
-                  disabled={isCreatingList || !newListName.trim()}
-                >
-                  Create
-                </WikiButton>
-                <WikiButton
-                  onClick={() => { setShowNewListForm(false); setNewListName(""); }}
-                >
-                  Cancel
-                </WikiButton>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <button
-                  className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                  onClick={() => setShowNewListForm(true)}
-                >
-                  + New List
-                </button>
-                {lists.length > 5 && (
-                  <Link href="/lists" className="text-sm text-wiki-link hover:underline">
-                    View all {lists.length} →
-                  </Link>
-                )}
-                {lists.length > 0 && lists.length <= 5 && (
-                  <Link href="/lists" className="text-sm text-wiki-link hover:underline">
-                    View all →
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
+      {/* Quick Add — full width, top of page */}
+      <div className="border border-wiki-border-light p-3 mb-8">
+        <div className="flex gap-2 mb-2">
+          <input
+            type="text"
+            placeholder="URL, DOI, ISBN, arXiv, PubMed…"
+            className="flex-1 text-sm px-2 py-1.5 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+            value={quickAddInput}
+            onChange={(e) => setQuickAddInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
+          />
+          <WikiButton variant="primary" onClick={handleQuickAdd}>
+            Generate
+          </WikiButton>
         </div>
-
-        {/* Quick Add sidebar */}
-        <div className="w-full sm:w-64 shrink-0 border border-wiki-border-light self-start">
-          <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
-            <span className="text-sm font-bold text-wiki-text">Quick Add</span>
-          </div>
-          <div className="p-3">
-            <div className="flex gap-1">
-              <input
-                type="text"
-                placeholder="URL, DOI, ISBN, arXiv…"
-                className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text min-w-0"
-                value={quickAddInput}
-                onChange={(e) => setQuickAddInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
-              />
-              <button
-                onClick={handleQuickAdd}
-                className="px-2 py-1 border border-wiki-border-light bg-wiki-offwhite hover:bg-wiki-tab-bg text-wiki-link text-sm shrink-0 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                aria-label="Generate citation"
-              >
-                →
-              </button>
-            </div>
-
-            <div className="border-t border-wiki-border-light mt-3 pt-3">
-              <p className="text-xs text-wiki-text-muted mb-2">Manual entry</p>
-              <div className="flex flex-wrap gap-x-2 gap-y-1 text-sm">
-                {SOURCE_TYPES.map(({ label, type }) => (
-                  <button
-                    key={type}
-                    onClick={() => {
-                      posthog.capture("dashboard_source_type_clicked", { source_type: type });
-                      router.push(`/cite?tab=manual&source=${type}`);
-                    }}
-                    className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                  >
-                    {label}
-                  </button>
-                ))}
-                <Link href="/cite?tab=manual" className="text-wiki-link hover:underline">
-                  More →
-                </Link>
-              </div>
-            </div>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <span className="text-wiki-text-muted text-xs">Manual:</span>
+          {SOURCE_TYPES.map(({ label, type }) => (
+            <button
+              key={type}
+              onClick={() => {
+                posthog.capture("dashboard_source_type_clicked", { source_type: type });
+                router.push(`/cite?tab=manual&source=${type}`);
+              }}
+              className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+            >
+              {label}
+            </button>
+          ))}
+          <Link href="/cite?tab=manual" className="text-wiki-link hover:underline">
+            More →
+          </Link>
         </div>
       </div>
 
-      {/* My Projects panel */}
-      <div className="border border-wiki-border-light">
-        <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
-          <span className="text-sm font-bold text-wiki-text">
-            My Projects{!isLoading && ` (${projects.length})`}
-          </span>
+      {/* My Lists section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between border-b-2 border-wiki-border pb-1 mb-0">
+          <h2 className="text-lg font-semibold">
+            My Lists{!isLoading && ` (${lists.length})`}
+          </h2>
+          {!showNewListForm && (
+            <button
+              className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+              onClick={() => setShowNewListForm(true)}
+            >
+              + New List
+            </button>
+          )}
         </div>
 
         {isLoading && (
-          <p className="px-3 py-3 text-sm text-wiki-text-muted">Loading…</p>
+          <p className="py-3 text-sm text-wiki-text-muted">Loading…</p>
         )}
+
+        {!isLoading && recentLists.length === 0 && !showNewListForm && (
+          <p className="py-3 text-sm text-wiki-text-muted">
+            No lists yet.{" "}
+            <button
+              className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+              onClick={() => setShowNewListForm(true)}
+            >
+              Create your first list
+            </button>
+          </p>
+        )}
+
+        {!isLoading && recentLists.length > 0 && (
+          <>
+            {recentLists.map((list) => (
+              <div
+                key={list.id}
+                className="flex items-center justify-between py-1.5 border-b border-wiki-border-light"
+              >
+                <Link
+                  href={`/lists/${list.id}`}
+                  className="text-sm text-wiki-link hover:underline"
+                >
+                  {list.name}
+                </Link>
+                <span className="text-xs text-wiki-text-muted tabular-nums">
+                  {relativeDate(list.createdAt)}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+
+        {showNewListForm && (
+          <div className="flex items-center gap-2 py-2 border-b border-wiki-border-light">
+            <input
+              type="text"
+              className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+              placeholder="List name…"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCreateList();
+                if (e.key === "Escape") { setShowNewListForm(false); setNewListName(""); }
+              }}
+              autoFocus
+            />
+            <WikiButton
+              variant="primary"
+              onClick={handleCreateList}
+              disabled={isCreatingList || !newListName.trim()}
+            >
+              Create
+            </WikiButton>
+            <WikiButton onClick={() => { setShowNewListForm(false); setNewListName(""); }}>
+              Cancel
+            </WikiButton>
+          </div>
+        )}
+
+        {!isLoading && (
+          <div className="pt-2">
+            <Link href="/lists" className="text-sm text-wiki-link hover:underline">
+              {lists.length > 5
+                ? `View all ${lists.length} lists →`
+                : "View all lists →"}
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* My Projects section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between border-b-2 border-wiki-border pb-1 mb-0">
+          <h2 className="text-lg font-semibold">
+            My Projects{!isLoading && ` (${projects.length})`}
+          </h2>
+          <Link
+            href="/projects"
+            className="text-sm text-wiki-link hover:underline"
+          >
+            + New Project
+          </Link>
+        </div>
+
+        {isLoading && (
+          <p className="py-3 text-sm text-wiki-text-muted">Loading…</p>
+        )}
+
         {!isLoading && recentProjects.length === 0 && (
-          <p className="px-3 py-3 text-sm text-wiki-text-muted">
+          <p className="py-3 text-sm text-wiki-text-muted">
             No projects yet.{" "}
             <Link href="/projects" className="text-wiki-link hover:underline">
               Create your first project
             </Link>
           </p>
         )}
+
         {!isLoading && recentProjects.length > 0 && (
-          <ul className="divide-y divide-wiki-border-light">
+          <>
             {recentProjects.map((project) => {
               const count = listCountForProject(project.id);
               return (
-                <li key={project.id} className="flex items-center gap-4 px-3 py-2">
+                <div
+                  key={project.id}
+                  className="flex items-center gap-6 py-1.5 border-b border-wiki-border-light"
+                >
                   <Link
                     href={`/projects/${project.id}`}
                     className="text-sm text-wiki-link hover:underline flex-1 truncate"
@@ -326,27 +321,21 @@ export default function Dashboard() {
                   <span className="text-xs text-wiki-text-muted tabular-nums shrink-0">
                     {relativeDate(project.updatedAt)}
                   </span>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </>
         )}
 
-        <div className="px-3 py-2 border-t border-wiki-border-light flex items-center justify-between">
-          <Link href="/projects" className="text-sm text-wiki-link hover:underline">
-            + New Project
-          </Link>
-          {projects.length > 3 && (
+        {!isLoading && (
+          <div className="pt-2">
             <Link href="/projects" className="text-sm text-wiki-link hover:underline">
-              View all {projects.length} →
+              {projects.length > 3
+                ? `View all ${projects.length} projects →`
+                : "View all projects →"}
             </Link>
-          )}
-          {projects.length > 0 && projects.length <= 3 && (
-            <Link href="/projects" className="text-sm text-wiki-link hover:underline">
-              View all →
-            </Link>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </WikiLayout>
   );
