@@ -312,7 +312,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                       />
                       <button
                         onClick={() => copyOne(citation.formattedText)}
-                        className="text-wiki-link text-sm hover:underline"
+                        className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                       >
                         [copy]
                       </button>
@@ -463,7 +463,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                             />
                             <button
                               onClick={() => copyOne(citation.formattedText)}
-                              className="text-wiki-link text-xs hover:underline mt-2"
+                              className="text-wiki-link text-xs hover:underline mt-2 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                             >
                               [copy]
                             </button>

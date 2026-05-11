@@ -2637,7 +2637,7 @@ https://another-site.com/paper"
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Add to List">
               <div className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg">
                 <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
-                  <h3 className="font-bold">Add to List</h3>
+                  <h3 className="font-bold text-base">Add to List</h3>
                   <button
                     onClick={() => setShowListModal(false)}
                     className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
@@ -2727,7 +2727,7 @@ https://another-site.com/paper"
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-label="Possible Duplicate">
               <div className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg">
                 <div className="p-4 border-b border-wiki-border-light">
-                  <h3 className="font-bold text-wiki-text">Possible Duplicate</h3>
+                  <h3 className="font-bold text-base text-wiki-text">Possible Duplicate</h3>
                 </div>
                 <div className="p-4">
                   <p className="text-sm mb-4">{duplicateInfo}</p>

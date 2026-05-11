@@ -67,7 +67,7 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
-          <h3 className="font-bold">Keyboard Shortcuts</h3>
+          <h3 className="font-bold text-base">Keyboard Shortcuts</h3>
           <button
             onClick={() => setIsOpen(false)}
             className="text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
