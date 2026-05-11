@@ -3,298 +3,349 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUser, SignedIn, SignedOut } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import posthog from "posthog-js";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
-import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
+import { WikiNotice } from "@/components/wiki/wiki-notice";
 
 interface List {
   id: string;
   name: string;
+  description?: string;
+  projectId?: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 interface Project {
   id: string;
   name: string;
+  description?: string;
   createdAt: string;
+  updatedAt: string;
 }
+
+function relativeDate(iso: string) {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (d === 0) return "today";
+  if (d === 1) return "1d";
+  if (d < 30) return `${d}d`;
+  if (d < 365) return `${Math.floor(d / 30)}mo`;
+  return `${Math.floor(d / 365)}y`;
+}
+
+const SOURCE_TYPES = [
+  { label: "Book", type: "book" },
+  { label: "Journal", type: "journal" },
+  { label: "Website", type: "website" },
+  { label: "Blog", type: "blog" },
+  { label: "Video", type: "video" },
+];
 
 export default function Dashboard() {
   const router = useRouter();
-  const { isSignedIn } = useUser();
-  const [quickAddInput, setQuickAddInput] = useState("");
-  const [recentLists, setRecentLists] = useState<List[]>([]);
-  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(false);
+  const { isLoaded, isSignedIn } = useUser();
 
-  // Fetch user's lists and projects when signed in
+  const [lists, setLists] = useState<List[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [quickAddInput, setQuickAddInput] = useState("");
+  const [showNewListForm, setShowNewListForm] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [isCreatingList, setIsCreatingList] = useState(false);
+
   useEffect(() => {
-    if (isSignedIn) {
-      fetchUserData();
+    if (isLoaded && !isSignedIn) {
+      router.push("/sign-in");
+      return;
     }
-  }, [isSignedIn]);
+    if (isSignedIn) fetchUserData();
+  }, [isLoaded, isSignedIn, router]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchUserData = async () => {
-    setIsLoadingData(true);
+    setIsLoading(true);
     try {
       const [listsRes, projectsRes] = await Promise.all([
         fetch("/api/lists"),
         fetch("/api/projects"),
       ]);
-
-      const listsData = await listsRes.json();
-      const projectsData = await projectsRes.json();
-
-      if (listsData.success) {
-        // Get 3 most recent lists
-        setRecentLists(listsData.data.slice(0, 3));
-      }
-      if (projectsData.success) {
-        // Get 3 most recent projects
-        setRecentProjects(projectsData.data.slice(0, 3));
-      }
+      const [listsData, projectsData] = await Promise.all([
+        listsRes.json(),
+        projectsRes.json(),
+      ]);
+      if (listsData.success) setLists(listsData.data);
+      if (projectsData.success) setProjects(projectsData.data);
     } catch (err) {
       console.error("Error fetching user data:", err);
+      setError("Failed to load your data. Please refresh.");
     } finally {
-      setIsLoadingData(false);
+      setIsLoading(false);
     }
   };
 
   const handleQuickAdd = () => {
-    posthog.capture("quick_add_initiated", {
-      has_input: !!quickAddInput.trim(),
-    });
+    posthog.capture("quick_add_initiated", { has_input: !!quickAddInput.trim() });
     if (quickAddInput.trim()) {
-      // Navigate to cite page with the input pre-filled
       router.push(`/cite?input=${encodeURIComponent(quickAddInput.trim())}`);
     } else {
       router.push("/cite");
     }
   };
 
-  const handleSourceTypeClick = (sourceType: string) => {
-    posthog.capture("dashboard_source_type_clicked", { source_type: sourceType });
-    router.push(`/cite?tab=manual&source=${sourceType}`);
+  const handleCreateList = async () => {
+    if (!newListName.trim()) return;
+    setIsCreatingList(true);
+    try {
+      const res = await fetch("/api/lists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newListName.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewListName("");
+        setShowNewListForm(false);
+        await fetchUserData();
+      } else {
+        setError(data.error || "Failed to create list.");
+      }
+    } catch (err) {
+      console.error("Error creating list:", err);
+      setError("Failed to create list.");
+    } finally {
+      setIsCreatingList(false);
+    }
   };
+
+  const listCountForProject = (projectId: string) =>
+    lists.filter((l) => l.projectId === projectId).length;
+
+  const recentLists = lists.slice(0, 5);
+  const recentProjects = projects.slice(0, 3);
+
+  if (!isLoaded) return null;
+  if (isLoaded && !isSignedIn) return null;
 
   return (
     <WikiLayout>
-      <WikiBreadcrumbs
-        items={[
-          { label: "Dashboard" },
-        ]}
-      />
+      <WikiBreadcrumbs items={[{ label: "Dashboard" }]} />
 
-      <div className="mt-6">
-        <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
-          <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
-          <p className="text-wiki-text-muted text-sm border-b border-wiki-border-light pb-4 mb-6">
-            Your citation workspace
-          </p>
+      {error && (
+        <div className="mt-2">
+          <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
+        </div>
+      )}
 
-          {/* Welcome box - 2000s Wikipedia portal style */}
-          <div className="border border-wiki-border-light bg-wiki-offwhite p-4 mb-6">
-            <SignedOut>
-              <div className="text-center mb-3">
-                <span className="text-lg font-semibold">Welcome to OpenCitation</span>
-              </div>
-              <div className="text-center text-sm mb-4">
-                The free, ad-free citation generator for students and researchers.
-              </div>
-              <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm">
-                <span><b>4</b> citation styles</span>
-                <span><b>11</b> source types</span>
-                <span><b>3</b> lookup methods</span>
-              </div>
-            </SignedOut>
+      <div className="flex items-center justify-between mt-2 mb-1">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <WikiButton variant="primary" onClick={() => router.push("/cite")}>
+          New Citation →
+        </WikiButton>
+      </div>
+      <div className="border-b border-wiki-border-light mb-4" />
 
-            <SignedIn>
-              <div className="text-center mb-3">
-                <span className="text-lg font-semibold">Welcome back!</span>
-              </div>
-              <div className="text-center text-sm mb-4">
-                Ready to create more citations?
-              </div>
-              <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm">
-                <span><b>{recentLists.length}</b> {recentLists.length === 1 ? "list" : "lists"}</span>
-                <span><b>{recentProjects.length}</b> {recentProjects.length === 1 ? "project" : "projects"}</span>
-                <span><b>4</b> citation styles</span>
-              </div>
-              <div className="text-center mt-3">
-                <WikiButton variant="primary" onClick={() => router.push("/cite")}>
-                  Create Citation
-                </WikiButton>
-              </div>
-            </SignedIn>
+      {/* Two-column layout: Lists + Quick Add sidebar */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+
+        {/* My Lists panel */}
+        <div className="flex-1 border border-wiki-border-light">
+          <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
+            <span className="text-sm font-bold text-wiki-text">
+              My Lists{!isLoading && ` (${lists.length})`}
+            </span>
           </div>
 
-          {/* Brief intro */}
-          <p className="mb-4 text-sm">
-            <b>OpenCitation</b> generates properly formatted citations from URLs, DOIs, and ISBNs.
-            Supports <a href="/cite" className="text-wiki-link hover:underline">APA</a>,{" "}
-            <a href="/cite" className="text-wiki-link hover:underline">MLA</a>,{" "}
-            <a href="/cite" className="text-wiki-link hover:underline">Chicago</a>, and{" "}
-            <a href="/cite" className="text-wiki-link hover:underline">Harvard</a> styles.
-            No ads. No account required. <a href="https://github.com/aicoder2009/opencitation" className="text-wiki-link hover:underline" target="_blank" rel="noopener">Open source</a>.
-          </p>
-
-          <WikiCollapsible title="Contents" defaultOpen>
-            <nav className="text-sm">
-              <ol className="list-decimal list-inside space-y-1">
-                <li>
-                  <a href="#quick-add" className="text-wiki-link hover:underline">Quick Add</a>
-                </li>
-                <li>
-                  <a href="#manual-entry" className="text-wiki-link hover:underline">Manual Entry</a>
-                </li>
-                <li>
-                  <a href="#my-citations" className="text-wiki-link hover:underline">My Citations</a>
-                </li>
-              </ol>
-            </nav>
-          </WikiCollapsible>
-
-          <section id="quick-add" className="mt-8">
-            <h2 className="text-lg font-semibold border-b border-wiki-border-light pb-2 mb-4">
-              Quick Add
-            </h2>
-            <p className="mb-4">
-              Enter a URL, DOI, or ISBN to automatically generate a citation.
+          {isLoading && (
+            <p className="px-3 py-3 text-sm text-wiki-text-muted">Loading…</p>
+          )}
+          {!isLoading && recentLists.length === 0 && (
+            <p className="px-3 py-3 text-sm text-wiki-text-muted">
+              No lists yet.{" "}
+              <button
+                className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                onClick={() => setShowNewListForm(true)}
+              >
+                Create your first list
+              </button>
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
+          )}
+          {!isLoading && recentLists.length > 0 && (
+            <ul className="divide-y divide-wiki-border-light">
+              {recentLists.map((list) => (
+                <li key={list.id} className="flex items-center justify-between px-3 py-2">
+                  <Link
+                    href={`/lists/${list.id}`}
+                    className="text-sm text-wiki-link hover:underline truncate"
+                  >
+                    {list.name}
+                  </Link>
+                  <span className="text-xs text-wiki-text-muted tabular-nums ml-3 shrink-0">
+                    {relativeDate(list.createdAt)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="px-3 py-2 border-t border-wiki-border-light">
+            {showNewListForm ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  placeholder="List name…"
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreateList();
+                    if (e.key === "Escape") { setShowNewListForm(false); setNewListName(""); }
+                  }}
+                  autoFocus
+                />
+                <WikiButton
+                  variant="primary"
+                  onClick={handleCreateList}
+                  disabled={isCreatingList || !newListName.trim()}
+                >
+                  Create
+                </WikiButton>
+                <WikiButton
+                  onClick={() => { setShowNewListForm(false); setNewListName(""); }}
+                >
+                  Cancel
+                </WikiButton>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <button
+                  className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  onClick={() => setShowNewListForm(true)}
+                >
+                  + New List
+                </button>
+                {lists.length > 5 && (
+                  <Link href="/lists" className="text-sm text-wiki-link hover:underline">
+                    View all {lists.length} →
+                  </Link>
+                )}
+                {lists.length > 0 && lists.length <= 5 && (
+                  <Link href="/lists" className="text-sm text-wiki-link hover:underline">
+                    View all →
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Add sidebar */}
+        <div className="w-full sm:w-64 shrink-0 border border-wiki-border-light self-start">
+          <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
+            <span className="text-sm font-bold text-wiki-text">Quick Add</span>
+          </div>
+          <div className="p-3">
+            <div className="flex gap-1">
               <input
                 type="text"
-                placeholder="Enter URL, DOI, or ISBN..."
-                className="flex-1"
+                placeholder="URL, DOI, ISBN, arXiv…"
+                className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text min-w-0"
                 value={quickAddInput}
                 onChange={(e) => setQuickAddInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
               />
-              <WikiButton variant="primary" onClick={handleQuickAdd}>
-                Generate Citation
-              </WikiButton>
+              <button
+                onClick={handleQuickAdd}
+                className="px-2 py-1 border border-wiki-border-light bg-wiki-offwhite hover:bg-wiki-tab-bg text-wiki-link text-sm shrink-0 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label="Generate citation"
+              >
+                →
+              </button>
             </div>
-          </section>
 
-          <section id="manual-entry" className="mt-8">
-            <h2 className="text-lg font-semibold border-b border-wiki-border-light pb-2 mb-4">
-              Manual Entry
-            </h2>
-            <p className="mb-4">
-              Select a source type and enter the citation details manually.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <WikiButton onClick={() => handleSourceTypeClick("book")}>Book</WikiButton>
-              <WikiButton onClick={() => handleSourceTypeClick("journal")}>Journal</WikiButton>
-              <WikiButton onClick={() => handleSourceTypeClick("website")}>Website</WikiButton>
-              <WikiButton onClick={() => handleSourceTypeClick("blog")}>Blog</WikiButton>
-              <WikiButton onClick={() => handleSourceTypeClick("newspaper")}>Newspaper</WikiButton>
-              <WikiButton onClick={() => handleSourceTypeClick("video")}>Video</WikiButton>
-              <WikiButton onClick={() => router.push("/cite?tab=manual")}>More...</WikiButton>
+            <div className="border-t border-wiki-border-light mt-3 pt-3">
+              <p className="text-xs text-wiki-text-muted mb-2">Manual entry</p>
+              <div className="flex flex-wrap gap-x-2 gap-y-1 text-sm">
+                {SOURCE_TYPES.map(({ label, type }) => (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      posthog.capture("dashboard_source_type_clicked", { source_type: type });
+                      router.push(`/cite?tab=manual&source=${type}`);
+                    }}
+                    className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  >
+                    {label}
+                  </button>
+                ))}
+                <Link href="/cite?tab=manual" className="text-wiki-link hover:underline">
+                  More →
+                </Link>
+              </div>
             </div>
-          </section>
+          </div>
+        </div>
+      </div>
 
-          <section id="my-citations" className="mt-8">
-            <h2 className="text-lg font-semibold border-b border-wiki-border-light pb-2 mb-4">
-              My Citations
-            </h2>
+      {/* My Projects panel */}
+      <div className="border border-wiki-border-light">
+        <div className="px-3 py-2 bg-wiki-tab-bg border-b border-wiki-border-light">
+          <span className="text-sm font-bold text-wiki-text">
+            My Projects{!isLoading && ` (${projects.length})`}
+          </span>
+        </div>
 
-            <SignedOut>
-              <p className="text-wiki-text-muted">
-                <Link href="/sign-in" className="text-wiki-link hover:underline">Sign in</Link> to save and organize your citations
-                into Lists and Projects.
-              </p>
-            </SignedOut>
+        {isLoading && (
+          <p className="px-3 py-3 text-sm text-wiki-text-muted">Loading…</p>
+        )}
+        {!isLoading && recentProjects.length === 0 && (
+          <p className="px-3 py-3 text-sm text-wiki-text-muted">
+            No projects yet.{" "}
+            <Link href="/projects" className="text-wiki-link hover:underline">
+              Create your first project
+            </Link>
+          </p>
+        )}
+        {!isLoading && recentProjects.length > 0 && (
+          <ul className="divide-y divide-wiki-border-light">
+            {recentProjects.map((project) => {
+              const count = listCountForProject(project.id);
+              return (
+                <li key={project.id} className="flex items-center gap-4 px-3 py-2">
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="text-sm text-wiki-link hover:underline flex-1 truncate"
+                  >
+                    {project.name}
+                  </Link>
+                  <span className="text-xs text-wiki-text-muted shrink-0">
+                    {count} {count === 1 ? "list" : "lists"}
+                  </span>
+                  <span className="text-xs text-wiki-text-muted tabular-nums shrink-0">
+                    {relativeDate(project.updatedAt)}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
-            <SignedIn>
-              {isLoadingData ? (
-                <p className="text-wiki-text-muted">Loading your citations...</p>
-              ) : (
-                <div className="space-y-4">
-                  {/* Recent Lists */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Recent Lists</h3>
-                    {recentLists.length === 0 ? (
-                      <p className="text-wiki-text-muted text-sm">
-                        No lists yet.{" "}
-                        <Link href="/lists" className="text-wiki-link hover:underline">Create your first list</Link>
-                      </p>
-                    ) : (
-                      <ul className="space-y-1">
-                        {recentLists.map((list) => (
-                          <li key={list.id}>
-                            <a
-                              href={`/lists/${list.id}`}
-                              className="text-wiki-link hover:underline"
-                            >
-                              {list.name}
-                            </a>
-                          </li>
-                        ))}
-                        {recentLists.length > 0 && (
-                          <li>
-                            <Link
-                              href="/lists"
-                              className="text-wiki-link hover:underline text-sm"
-                            >
-                              View all lists &rarr;
-                            </Link>
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                  </div>
-
-                  {/* Recent Projects */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Recent Projects</h3>
-                    {recentProjects.length === 0 ? (
-                      <p className="text-wiki-text-muted text-sm">
-                        No projects yet.{" "}
-                        <Link href="/projects" className="text-wiki-link hover:underline">Create your first project</Link>
-                      </p>
-                    ) : (
-                      <ul className="space-y-1">
-                        {recentProjects.map((project) => (
-                          <li key={project.id}>
-                            <a
-                              href={`/projects/${project.id}`}
-                              className="text-wiki-link hover:underline"
-                            >
-                              {project.name}
-                            </a>
-                          </li>
-                        ))}
-                        {recentProjects.length > 0 && (
-                          <li>
-                            <Link
-                              href="/projects"
-                              className="text-wiki-link hover:underline text-sm"
-                            >
-                              View all projects &rarr;
-                            </Link>
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <WikiButton onClick={() => router.push("/lists")}>
-                      My Lists
-                    </WikiButton>
-                    <WikiButton onClick={() => router.push("/projects")}>
-                      My Projects
-                    </WikiButton>
-                  </div>
-                </div>
-              )}
-            </SignedIn>
-          </section>
+        <div className="px-3 py-2 border-t border-wiki-border-light flex items-center justify-between">
+          <Link href="/projects" className="text-sm text-wiki-link hover:underline">
+            + New Project
+          </Link>
+          {projects.length > 3 && (
+            <Link href="/projects" className="text-sm text-wiki-link hover:underline">
+              View all {projects.length} →
+            </Link>
+          )}
+          {projects.length > 0 && projects.length <= 3 && (
+            <Link href="/projects" className="text-sm text-wiki-link hover:underline">
+              View all →
+            </Link>
+          )}
         </div>
       </div>
     </WikiLayout>
