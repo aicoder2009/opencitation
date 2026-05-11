@@ -10,6 +10,7 @@ import { WikiTabs } from "@/components/wiki/wiki-tabs";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiNotice } from "@/components/wiki/wiki-notice";
+import { WikiSpinner } from "@/components/wiki/wiki-spinner";
 import { SourceTypePicker } from "@/components/wiki/source-type-picker";
 import { WikiDatePicker, type DateValue } from "@/components/wiki/wiki-date-picker";
 import { WikiSelect } from "@/components/wiki/wiki-select";
@@ -2647,8 +2648,8 @@ https://another-site.com/paper"
                 </div>
                 <div className="p-4">
                   {isLoadingLists ? (
-                    <div className="flex items-center justify-center py-4">
-                      <span className="text-sm text-wiki-text-muted">Loading…</span>
+                    <div className="py-4">
+                      <WikiSpinner />
                     </div>
                   ) : lists.length === 0 ? (
                     <div className="py-2">
