@@ -300,8 +300,11 @@ export function formatGeneric(
 
   const date = styleDate(fields.publicationDate, style);
   if (date) {
-    parts.push(date);
-    htmlParts.push(date);
+    // APA 7 requires a period after the parenthetical date: "(2020). Title."
+    // Other styles embed the date inline (MLA/Chicago/Harvard) without a sentence-closing period here.
+    const datePart = style === 'apa' ? `${date}.` : date;
+    parts.push(datePart);
+    htmlParts.push(datePart);
   }
 
   // APA 7 requires sentence case for standalone titles; other styles preserve as-entered.

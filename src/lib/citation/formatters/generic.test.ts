@@ -199,6 +199,34 @@ describe('formatGeneric', () => {
     }
   });
 
+  it('places a period after the parenthetical date for APA style', () => {
+    const fields: SongFields = {
+      sourceType: 'song',
+      accessType: 'web',
+      title: 'Track',
+      authors: [{ firstName: 'Freddie', lastName: 'Mercury' }],
+      publicationDate: { year: 1975 },
+    };
+    const result = formatGeneric(fields, 'apa');
+    // APA requires "Author. (Year). Title." — not "Author. (Year) Title."
+    expect(result.text).toContain('(1975). ');
+  });
+
+  it('does not add a period after the date for non-APA styles', () => {
+    const fields: SongFields = {
+      sourceType: 'song',
+      accessType: 'web',
+      title: 'Track',
+      authors: [{ firstName: 'Freddie', lastName: 'Mercury' }],
+      publicationDate: { year: 1975 },
+    };
+    for (const style of (['mla', 'chicago', 'harvard'] as Style[])) {
+      const result = formatGeneric(fields, style);
+      // Non-APA styles should not have "(1975)." — the year is a bare "1975"
+      expect(result.text).not.toContain('(1975).');
+    }
+  });
+
   it('includes subtitle when present', () => {
     const fields: SoftwareFields = {
       sourceType: 'software',
