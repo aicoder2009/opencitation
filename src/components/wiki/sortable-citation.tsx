@@ -405,7 +405,7 @@ export function SortableCitation({
               </div>
             ) : citation.notes ? (
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-3 mb-1">
                   <span className="text-xs font-medium text-wiki-text-muted">Notes</span>
                   <button
                     onClick={() => {
@@ -418,8 +418,9 @@ export function SortableCitation({
                   </button>
                   <button
                     onClick={() => {
+                      const label = citation.fields?.title || citation.formattedText?.slice(0, 60) || "this citation";
                       // eslint-disable-next-line no-alert
-                      if (confirm("Clear notes for this citation?")) onSaveNotes(citation.id, "");
+                      if (confirm(`Clear notes for "${label}"?`)) onSaveNotes(citation.id, "");
                     }}
                     className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
@@ -517,7 +518,7 @@ export function SortableCitation({
               </div>
             ) : citation.quotes && citation.quotes.length > 0 ? (
               <div>
-                <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-center gap-3 mb-1">
                   <span className="text-xs font-medium text-wiki-text-muted">
                     Quotes ({citation.quotes.length})
                   </span>
