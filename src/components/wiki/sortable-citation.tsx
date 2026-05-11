@@ -100,6 +100,7 @@ export function SortableCitation({
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const { getColor } = useTagColors();
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
@@ -152,12 +153,14 @@ export function SortableCitation({
 
   const saveEditing = async () => {
     setIsSaving(true);
+    setSaveError(null);
     try {
       await onEdit(citation.id, editFields);
       setInternalIsEditing(false);
       onEditDone?.();
     } catch (err) {
       console.error("Failed to save:", err);
+      setSaveError("Failed to save changes. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -324,6 +327,9 @@ export function SortableCitation({
                 Cancel
               </WikiButton>
             </div>
+            {saveError && (
+              <p className="text-xs text-wiki-text mt-1" role="alert">{saveError}</p>
+            )}
           </div>
         ) : (
           <>
