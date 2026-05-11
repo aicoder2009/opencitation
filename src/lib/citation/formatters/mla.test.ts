@@ -81,6 +81,25 @@ describe('MLA Formatter', () => {
       expect(result.text).toContain('pp. 123-145');
     });
 
+    it('uses p. for a single page and pp. for a range', () => {
+      const singlePage: JournalFields = {
+        sourceType: 'journal',
+        accessType: 'database',
+        title: 'Short Note',
+        authors: [{ firstName: 'John', lastName: 'Smith' }],
+        journalTitle: 'Test Journal',
+        volume: '5',
+        pageRange: '42',
+        publicationDate: { year: 2020 },
+      };
+      const rangePage: JournalFields = {
+        ...singlePage,
+        pageRange: '42-50',
+      };
+      expect(formatMLA(singlePage).text).toContain('p. 42');
+      expect(formatMLA(rangePage).text).toContain('pp. 42-50');
+    });
+
     it('strips "doi:" prefix and produces a clean https://doi.org/ URL', () => {
       const fields: JournalFields = {
         sourceType: 'journal',

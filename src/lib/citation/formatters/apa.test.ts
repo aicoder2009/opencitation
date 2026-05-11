@@ -51,6 +51,23 @@ describe('APA Formatter', () => {
       expect(result.text).toContain('&');
     });
 
+    it('should use comma before & for exactly two authors', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Joint Work',
+        authors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+        publisher: 'Test Publisher',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatAPA(fields);
+      // APA 7: "Smith, J., & Doe, J." — comma before the ampersand
+      expect(result.text).toContain(', &');
+    });
+
     it('should place editors in author slot for edited volumes (no authors)', () => {
       const fields: BookFields = {
         sourceType: 'book',
@@ -330,6 +347,22 @@ describe('APA Formatter', () => {
       };
       const result = formatAPA(fields);
       expect(result.text).toContain('How to improve your writing skills');
+    });
+
+    it('blog HTML: post title is plain text, blog name is italicised', () => {
+      const fields: BlogFields = {
+        sourceType: 'blog',
+        accessType: 'web',
+        title: 'My Blog Post Title',
+        blogName: 'The Container Blog',
+        url: 'https://example.com/post',
+        publicationDate: { year: 2023 },
+      };
+      const result = formatAPA(fields);
+      // Post title must NOT be wrapped in <em>
+      expect(result.html).not.toContain('<em>My blog post title</em>');
+      // Blog name (container) MUST be wrapped in <em>
+      expect(result.html).toContain('<em>The Container Blog</em>');
     });
 
     it('should apply sentence case to newspaper article titles', () => {

@@ -37,6 +37,21 @@ describe('Chicago Formatter', () => {
       expect(result.text).not.toContain('ed..');
     });
 
+    it('HTML output for editor-only: "Smith, John, ed." must appear escaped (not raw HTML)', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [{ firstName: 'John', lastName: 'Smith' }],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatChicago(fields);
+      // editor label text must survive into HTML
+      expect(result.html).toContain('Smith, John, ed.');
+      expect(result.html).not.toContain('ed..');
+    });
+
     it('should use eds. (not eds..) for multiple editors in author slot', () => {
       const fields: BookFields = {
         sourceType: 'book',

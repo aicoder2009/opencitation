@@ -134,6 +134,39 @@ describe('Harvard Formatter', () => {
     });
   });
 
+  describe('Editor-only in author slot', () => {
+    it('uses (ed.) for a single editor with no authors', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Research',
+        editors: [{ firstName: 'Alice', lastName: 'Brown' }],
+        publisher: 'Academic Press',
+        publicationDate: { year: 2019 },
+      };
+      const result = formatHarvard(fields);
+      expect(result.text).toContain('(ed.)');
+      expect(result.text).not.toContain('(eds.)');
+    });
+
+    it('uses (eds.) for multiple editors with no authors', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Research',
+        editors: [
+          { firstName: 'Alice', lastName: 'Brown' },
+          { firstName: 'Bob', lastName: 'Jones' },
+        ],
+        publisher: 'Academic Press',
+        publicationDate: { year: 2019 },
+      };
+      const result = formatHarvard(fields);
+      expect(result.text).toContain('(eds.)');
+      expect(result.text).not.toContain('(ed.),');
+    });
+  });
+
   describe('Website formatting', () => {
     it('should format a basic website citation', () => {
       const fields: WebsiteFields = {
