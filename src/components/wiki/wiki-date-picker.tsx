@@ -129,7 +129,7 @@ export function WikiDatePicker({
               className={`text-sm w-6 text-center
                 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
                 ${viewYear === todayY && viewMonth === todayM
-                  ? "text-wiki-text-muted opacity-30 cursor-not-allowed"
+                  ? "text-wiki-text-muted opacity-50 cursor-not-allowed"
                   : "text-wiki-link hover:underline"
                 }`}
               aria-label="Next month"
@@ -175,7 +175,7 @@ export function WikiDatePicker({
                     className={`w-8 h-8 text-sm flex items-center justify-center transition-colors
                       focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
                       ${isFuture
-                        ? "text-wiki-text-muted opacity-30 cursor-not-allowed"
+                        ? "text-wiki-text-muted opacity-50 cursor-not-allowed"
                         : isSelected
                         ? "bg-wiki-tab-bg border border-wiki-link text-wiki-link font-semibold"
                         : isTodayCell
