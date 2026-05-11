@@ -1,0 +1,42 @@
+name: PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: depot-ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: anthropic-ai/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          direct_prompt: |
+            Review PR #${{ github.event.pull_request.number }} in this repository.
+
+            1. Run `gh pr view ${{ github.event.pull_request.number }}` to read the description.
+            2. Run `gh pr diff ${{ github.event.pull_request.number }}` to see the changes.
+
+            This is OpenCitation — a citation manager (Next.js 16, React 19, Tailwind CSS 4, DynamoDB).
+
+            Reject only if there are real problems:
+            - Obvious bugs or broken logic
+            - Security issues (hardcoded secrets, XSS, SQL/command injection)
+            - Hardcoded colors instead of wiki-* CSS tokens, or border-radius added anywhere
+
+            Otherwise approve. Don't nitpick style, naming, or missing tests.
+
+            To approve:
+              gh pr review ${{ github.event.pull_request.number }} --approve --body "LGTM"
+
+            To request changes (only if genuinely necessary):
+              gh pr review ${{ github.event.pull_request.number }} --request-changes --body "<specific issues>"

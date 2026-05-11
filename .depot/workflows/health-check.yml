@@ -1,0 +1,46 @@
+# Depot CI Migration
+# Source: .github/workflows/health-check.yml
+#
+# Changes made:
+# - Changed GitHub runs-on labels to their Depot equivalents
+
+name: Full App Health Check
+on:
+  schedule:
+    - cron: '0 0 * * *' # midnight UTC = 5 PM MST (UTC-7)
+  workflow_dispatch:
+jobs:
+  health-check:
+    name: Full Test Suite + Type Check
+    runs-on: depot-ubuntu-latest # was: ubuntu-latest. Mapped standard GitHub runner to Depot equivalent.
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        id: lint
+        run: npm run lint 2>&1 | tee lint-output.txt; exit ${PIPESTATUS[0]}
+        continue-on-error: true
+      - name: Type check
+        id: typecheck
+        run: npx tsc --noEmit 2>&1 | tee typecheck-output.txt; exit ${PIPESTATUS[0]}
+        continue-on-error: true
+      - name: Full test suite
+        id: tests
+        run: npm run test:run 2>&1 | tee test-output.txt; exit ${PIPESTATUS[0]}
+        continue-on-error: true
+      - name: Report failures
+        if: steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.tests.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: "BODY=\"## Health Check Failed — $(date -u '+%Y-%m-%d %H:%M UTC')\\n\\n\"\n\nif [ \"${{ steps.lint.outcome }}\" = \"failure\" ]; then\n  BODY+=\"### ❌ Lint\\n\\`\\`\\`\\n$(tail -30 lint-output.txt)\\n\\`\\`\\`\\n\\n\"\nelse\n  BODY+=\"### ✅ Lint passed\\n\\n\"\nfi\n\nif [ \"${{ steps.typecheck.outcome }}\" = \"failure\" ]; then\n  BODY+=\"### ❌ Type check\\n\\`\\`\\`\\n$(tail -30 typecheck-output.txt)\\n\\`\\`\\`\\n\\n\"\nelse\n  BODY+=\"### ✅ Type check passed\\n\\n\"\nfi\n\nif [ \"${{ steps.tests.outcome }}\" = \"failure\" ]; then\n  BODY+=\"### ❌ Tests\\n\\`\\`\\`\\n$(tail -40 test-output.txt)\\n\\`\\`\\`\\n\\n\"\nelse\n  BODY+=\"### ✅ All tests passed\\n\\n\"\nfi\n\n# Open issue only if none already open for today\nDATE=$(date -u '+%Y-%m-%d')\nEXISTING=$(gh issue list --repo \"$REPO\" --label \"health-check\" --state open --json number --jq 'length')\nif [ \"$EXISTING\" = \"0\" ]; then\n  printf \"$BODY\" | gh issue create \\\n    --repo \"$REPO\" \\\n    --title \"\U0001F534 Health check failed ($DATE)\" \\\n    --body-file - \\\n    --label \"bug,health-check\" || \\\n  gh issue create \\\n    --repo \"$REPO\" \\\n    --title \"\U0001F534 Health check failed ($DATE)\" \\\n    --body \"$(printf \"$BODY\")\"\nfi\n"
+      - name: Fail workflow if any check failed
+        if: steps.lint.outcome == 'failure' || steps.typecheck.outcome == 'failure' || steps.tests.outcome == 'failure'
+        run: exit 1
