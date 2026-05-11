@@ -59,6 +59,39 @@ describe('MLA Formatter', () => {
     });
   });
 
+  describe('Editor-only in author slot', () => {
+    it('should place single editor in author slot with ", editor." label', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [{ firstName: 'John', lastName: 'Smith' }],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatMLA(fields);
+      expect(result.text).toContain('Smith, John, editor.');
+      expect(result.text).not.toContain('editor..');
+    });
+
+    it('should use ", editors." (not ", editors..") for multiple editors in author slot', () => {
+      const fields: BookFields = {
+        sourceType: 'book',
+        accessType: 'print',
+        title: 'Handbook of Psychology',
+        editors: [
+          { firstName: 'John', lastName: 'Smith' },
+          { firstName: 'Jane', lastName: 'Doe' },
+        ],
+        publisher: 'Wiley',
+        publicationDate: { year: 2020 },
+      };
+      const result = formatMLA(fields);
+      expect(result.text).toContain('editors.');
+      expect(result.text).not.toContain('editors..');
+    });
+  });
+
   describe('Journal formatting', () => {
     it('should format a basic journal article', () => {
       const fields: JournalFields = {
