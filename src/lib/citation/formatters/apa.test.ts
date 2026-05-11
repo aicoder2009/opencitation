@@ -371,6 +371,7 @@ describe('APA Formatter', () => {
         sourceType: 'tv-episode',
         accessType: 'web',
         title: 'Pilot Episode',
+        seriesTitle: 'Breaking Bad',
         episodeTitle: 'Pilot Episode',
         publicationDate: { year: 2008 },
       };
