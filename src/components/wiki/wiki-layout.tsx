@@ -67,6 +67,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDocsOpen(false);
   }, [pathname]);
 
