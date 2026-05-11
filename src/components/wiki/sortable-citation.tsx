@@ -417,7 +417,10 @@ export function SortableCitation({
                     [edit]
                   </button>
                   <button
-                    onClick={() => onSaveNotes(citation.id, "")}
+                    onClick={() => {
+                      // eslint-disable-next-line no-alert
+                      if (confirm("Clear notes for this citation?")) onSaveNotes(citation.id, "");
+                    }}
                     className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [clear]

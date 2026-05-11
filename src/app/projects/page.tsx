@@ -34,6 +34,7 @@ export default function ProjectsPage() {
   const [editDescription, setEditDescription] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [editNameError, setEditNameError] = useState<string | null>(null);
   const [factoid, setFactoid] = useState<string>("");
 
   useEffect(() => {
@@ -113,6 +114,7 @@ export default function ProjectsPage() {
     setEditingProjectId(project.id);
     setEditName(project.name);
     setEditDescription(project.description || "");
+    setEditNameError(null);
     setError(null);
   };
 
@@ -120,10 +122,15 @@ export default function ProjectsPage() {
     setEditingProjectId(null);
     setEditName("");
     setEditDescription("");
+    setEditNameError(null);
   };
 
   const handleSaveEdit = async (projectId: string) => {
-    if (!editName.trim()) return;
+    if (!editName.trim()) {
+      setEditNameError("Project name is required.");
+      return;
+    }
+    setEditNameError(null);
 
     try {
       setIsSavingEdit(true);
@@ -314,12 +321,15 @@ export default function ProjectsPage() {
                             <input
                               type="text"
                               value={editName}
-                              onChange={(e) => setEditName(e.target.value)}
+                              onChange={(e) => { setEditName(e.target.value); setEditNameError(null); }}
                               className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                               placeholder="Project name"
                               disabled={isSavingEdit}
                               autoFocus
                             />
+                            {editNameError && (
+                              <p className="mt-1 text-xs text-wiki-text">{editNameError}</p>
+                            )}
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-wiki-text-muted mb-1">

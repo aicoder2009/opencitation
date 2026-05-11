@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { WikiButton } from "./wiki-button";
+import { WikiNotice } from "./wiki-notice";
 import { WikiSpinner } from "./wiki-spinner";
 
 interface ShareDialogProps {
@@ -171,7 +172,7 @@ export function ShareDialog({
       aria-label={heading}
     >
       <div
-        className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
+        className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-wiki-border-light flex justify-between items-start">
@@ -206,9 +207,7 @@ export function ShareDialog({
           </div>
 
           {error && (
-            <div className="p-2 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-wiki-text text-xs">
-              {error}
-            </div>
+            <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
           )}
 
           {isLoading && <WikiSpinner />}

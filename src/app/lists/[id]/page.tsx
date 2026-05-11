@@ -117,6 +117,7 @@ export default function ListDetailPage({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editNameError, setEditNameError] = useState<string | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [showCiteModal, setShowCiteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -299,9 +300,10 @@ export default function ListDetailPage({
     const trimmedName = editName.trim();
     const trimmedDesc = editDescription.trim();
     if (!trimmedName) {
-      setIsEditing(false);
+      setEditNameError("List name is required.");
       return;
     }
+    setEditNameError(null);
 
     const nameChanged = trimmedName !== list?.name;
     const descChanged = trimmedDesc !== (list?.description || "");
@@ -1117,12 +1119,15 @@ export default function ListDetailPage({
                     type="text"
                     aria-label="List name"
                     value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
+                    onChange={(e) => { setEditName(e.target.value); setEditNameError(null); }}
                     className="text-xl font-bold w-full"
                     onKeyDown={(e) => e.key === "Enter" && handleUpdateName()}
                     placeholder="List name"
                     autoFocus
                   />
+                  {editNameError && (
+                    <p className="text-xs text-wiki-text">{editNameError}</p>
+                  )}
                   <textarea
                     aria-label="List description"
                     value={editDescription}
@@ -1137,6 +1142,7 @@ export default function ListDetailPage({
                         setIsEditing(false);
                         setEditName(list?.name || "");
                         setEditDescription(list?.description || "");
+                        setEditNameError(null);
                       }}
                     >
                       Cancel
