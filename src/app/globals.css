@@ -111,6 +111,12 @@ input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--color-wiki-link);
+}
+
+/* Suppress dotted outline for mouse/touch focus (keyboard focus handled by :focus-visible below) */
+input:focus:not(:focus-visible),
+textarea:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
   outline: none;
 }
 
