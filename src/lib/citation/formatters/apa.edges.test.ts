@@ -8,6 +8,7 @@ import type {
   BookFields,
   JournalFields,
   WebsiteFields,
+  VideoFields,
 } from '@/types/citation';
 
 function a(lastName: string, firstName?: string) {
@@ -261,6 +262,83 @@ describe('APA Journal – volume and issue edges', () => {
   it('volume with issue includes issue in parentheses', () => {
     const { text } = formatAPA({ ...base, volume: '10', issue: '3' });
     expect(text).toContain('10(3)');
+  });
+});
+
+// ── Descriptor-in-title edge cases ───────────────────────────────────────────
+// These tests guard against the .replace() stripping bug: when a user's own
+// title text contains the same substring as the APA descriptor (e.g. "[Video]"),
+// the HTML <em> wrapping must cover the full title, not truncate it.
+
+describe('APA HTML – descriptor substring in user title', () => {
+  it('video title containing "[Video]" wraps full title in <em>', () => {
+    const fields: VideoFields = {
+      sourceType: 'video',
+      accessType: 'web',
+      title: 'My [Video] Tutorial',
+      platform: 'YouTube',
+      url: 'https://youtu.be/example',
+      uploadDate: { year: 2024 },
+    };
+    const { html } = formatAPA(fields);
+    // Full sentence-cased title must be inside <em>
+    expect(html).toContain('<em>My [video] tutorial</em>');
+    // Descriptor must appear outside <em>
+    expect(html).toContain('</em> [Video].');
+  });
+
+  it('film title containing "[Film]" wraps full title in <em>', () => {
+    const fields: FilmFields = {
+      sourceType: 'film',
+      accessType: 'web',
+      title: 'The [Film] Experiment',
+      publicationDate: { year: 2022 },
+    };
+    const { html } = formatAPA(fields);
+    expect(html).toContain('<em>The [film] experiment</em>');
+    expect(html).toContain('</em> [Film].');
+  });
+
+  it('TV series title containing "[TV series]" wraps full title in <em>', () => {
+    const fields: TVSeriesFields = {
+      sourceType: 'tv-series',
+      accessType: 'web',
+      title: 'The [TV series] Chronicles',
+      publicationDate: { year: 2021 },
+    };
+    const { html } = formatAPA(fields);
+    expect(html).toContain('<em>The [tv series] chronicles</em>');
+    expect(html).toContain('</em> [TV series].');
+  });
+
+  it('TV episode title containing "[TV series episode]" keeps full episode info intact', () => {
+    const fields: TVEpisodeFields = {
+      sourceType: 'tv-episode',
+      accessType: 'web',
+      title: 'The [TV series episode] Pilot',
+      episodeTitle: 'The [TV series episode] Pilot',
+      seriesTitle: 'Test Show',
+      publicationDate: { year: 2020 },
+    };
+    const { html } = formatAPA(fields);
+    // The episode info string must appear before the descriptor bracket
+    expect(html).toContain('[TV series episode].');
+    // The raw title text must survive intact (sentence-cased)
+    expect(html).toContain('The [tv series episode] pilot');
+  });
+
+  it('image title containing the medium string wraps full title in <em>', () => {
+    const fields: ImageFields = {
+      sourceType: 'image',
+      accessType: 'web',
+      title: 'Abstract [Oil on canvas] Study',
+      medium: 'Oil on canvas',
+      authors: [a('Smith', 'Jane')],
+      publicationDate: { year: 2000 },
+    };
+    const { html } = formatAPA(fields);
+    expect(html).toContain('<em>Abstract [oil on canvas] study</em>');
+    expect(html).toContain('</em> [Oil on canvas].');
   });
 });
 

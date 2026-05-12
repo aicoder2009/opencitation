@@ -396,9 +396,8 @@ function formatVideo(fields: VideoFields): FormattedCitation {
   if (fields.subtitle) {
     title += `: ${toSentenceCase(fields.subtitle)}`;
   }
-  title += ' [Video]';
-  parts.push(`${title}.`);
-  htmlParts.push(`${italic(escapeHtml(title.replace(' [Video]', '')))} [Video].`);
+  parts.push(`${title} [Video].`);
+  htmlParts.push(`${italic(escapeHtml(title))} [Video].`);
 
   // Platform
   if (fields.platform) {
@@ -446,9 +445,8 @@ function formatImage(fields: ImageFields): FormattedCitation {
   }
 
   const medium = fields.medium || fields.imageType || 'Image';
-  title += ` [${medium}]`;
-  parts.push(`${title}.`);
-  htmlParts.push(`${italic(escapeHtml(title.replace(` [${medium}]`, '')))} [${escapeHtml(medium)}].`);
+  parts.push(`${title} [${medium}].`);
+  htmlParts.push(`${italic(escapeHtml(title))} [${escapeHtml(medium)}].`);
 
   // Museum/Collection, Location
   if (fields.museum || fields.collection) {
@@ -499,9 +497,8 @@ function formatFilm(fields: FilmFields): FormattedCitation {
   if (fields.subtitle) {
     title += `: ${toSentenceCase(fields.subtitle)}`;
   }
-  title += ' [Film]';
-  parts.push(`${title}.`);
-  htmlParts.push(`${italic(escapeHtml(title.replace(' [Film]', '')))} [Film].`);
+  parts.push(`${title} [Film].`);
+  htmlParts.push(`${italic(escapeHtml(title))} [Film].`);
 
   // Production company
   if (fields.productionCompany) {
@@ -554,9 +551,8 @@ function formatTVSeries(fields: TVSeriesFields): FormattedCitation {
   if (fields.subtitle) {
     title += `: ${toSentenceCase(fields.subtitle)}`;
   }
-  title += ' [TV series]';
-  parts.push(`${title}.`);
-  htmlParts.push(`${italic(escapeHtml(title.replace(' [TV series]', '')))} [TV series].`);
+  parts.push(`${title} [TV series].`);
+  htmlParts.push(`${italic(escapeHtml(title))} [TV series].`);
 
   // Network or streaming service
   if (fields.network || fields.streamingService) {
@@ -608,9 +604,8 @@ function formatTVEpisode(fields: TVEpisodeFields): FormattedCitation {
   } else if (fields.episodeNumber) {
     episodeInfo += ` (Episode ${fields.episodeNumber})`;
   }
-  episodeInfo += ' [TV series episode]';
-  parts.push(`${episodeInfo}.`);
-  htmlParts.push(`${escapeHtml(episodeInfo.replace(' [TV series episode]', ''))} [TV series episode].`);
+  parts.push(`${episodeInfo} [TV series episode].`);
+  htmlParts.push(`${escapeHtml(episodeInfo)} [TV series episode].`);
 
   // In Series title
   if (fields.seriesTitle) {
