@@ -1007,22 +1007,6 @@ function CitePageContent() {
     navigator.clipboard.writeText(generateInTextCitation(citationFields, selectedStyle));
   };
 
-  const copyHangingIndent = async () => {
-    if (!generatedCitation) return;
-    const sanitized = DOMPurify.sanitize(generatedCitation.html);
-    const htmlDoc = `<html><body><p style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 2; margin: 0; padding-left: 0.5in; text-indent: -0.5in;">${sanitized}</p></body></html>`;
-    if (typeof ClipboardItem !== "undefined") {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          "text/html": new Blob([htmlDoc], { type: "text/html" }),
-          "text/plain": new Blob([generatedCitation.text], { type: "text/plain" }),
-        }),
-      ]);
-    } else {
-      navigator.clipboard.writeText(generatedCitation.text);
-    }
-  };
-
   const exportCitation = () => {
     if (generatedCitation) {
       const blob = new Blob([generatedCitation.text], { type: "text/plain" });
@@ -2614,9 +2598,6 @@ https://another-site.com/paper"
                     </WikiButton>
                     <WikiButton onClick={copyInTextCitation}>
                       Copy In-text
-                    </WikiButton>
-                    <WikiButton onClick={copyHangingIndent} title="Copies with hanging indent — paste into Word or Google Docs">
-                      Copy (hanging)
                     </WikiButton>
                     {isSignedIn ? (
                       <WikiButton onClick={openAddToListModal}>Add to List</WikiButton>

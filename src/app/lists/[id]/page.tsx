@@ -518,6 +518,23 @@ export default function ListDetailPage({
     });
   };
 
+  const copyAllHangingIndent = async () => {
+    const style = 'font-family: Arial, Helvetica, sans-serif; font-size: 12pt; line-height: 2; margin: 0 0 0 0; padding-left: 0.5in; text-indent: -0.5in;';
+    const paragraphs = citations.map((c) => `<p style="${style}">${c.formattedHtml}</p>`).join("");
+    const htmlDoc = `<html><body>${paragraphs}</body></html>`;
+    const plainText = citations.map((c) => c.formattedText).join("\n\n");
+    if (typeof ClipboardItem !== "undefined") {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "text/html": new Blob([htmlDoc], { type: "text/html" }),
+          "text/plain": new Blob([plainText], { type: "text/plain" }),
+        }),
+      ]);
+    } else {
+      navigator.clipboard.writeText(plainText);
+    }
+  };
+
   const toggleSelectMode = () => {
     setIsSelectMode((prev) => !prev);
     setSelectedCitationIds(new Set());
@@ -1336,6 +1353,7 @@ export default function ListDetailPage({
               {!isSelectMode ? (
                 <div className="flex flex-wrap gap-3">
                   <WikiButton onClick={copyAllCitations}>Copy All</WikiButton>
+                  <WikiButton onClick={copyAllHangingIndent} title="Copies with hanging indent — paste into Word or Google Docs for a Works Cited / References page">Copy Hanging</WikiButton>
                   <WikiButton
                     onClick={handleAlphabetize}
                     disabled={citations.length < 2}
