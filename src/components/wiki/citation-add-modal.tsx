@@ -244,6 +244,7 @@ export function CitationAddModal({
                   }
                 }}
                 placeholder="URL, DOI, ISBN, or arXiv ID"
+                aria-label="URL, DOI, ISBN, or arXiv ID"
                 className="w-full"
                 disabled={isLooking || isSaving}
               />

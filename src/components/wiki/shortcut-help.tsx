@@ -71,6 +71,7 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
           <button
             onClick={() => setIsOpen(false)}
             className="text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+            aria-label="Close"
           >
             [close]
           </button>

@@ -2658,8 +2658,9 @@ https://another-site.com/paper"
                       </p>
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-medium mb-1">List Name</label>
+                          <label htmlFor="new-list-name-first" className="block text-sm font-medium mb-1">List Name</label>
                           <input
+                            id="new-list-name-first"
                             type="text"
                             value={newListName}
                             onChange={(e) => setNewListName(e.target.value)}
@@ -2703,6 +2704,7 @@ https://another-site.com/paper"
                             value={newListName}
                             onChange={(e) => setNewListName(e.target.value)}
                             placeholder="New list name..."
+                            aria-label="New list name"
                             className="flex-1"
                             onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
                           />
