@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [showNewListForm, setShowNewListForm] = useState(false);
   const [newListName, setNewListName] = useState("");
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [newListNameError, setNewListNameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) {
@@ -97,7 +98,11 @@ export default function Dashboard() {
   };
 
   const handleCreateList = async () => {
-    if (!newListName.trim()) return;
+    if (!newListName.trim()) {
+      setNewListNameError("List name is required.");
+      return;
+    }
+    setNewListNameError(null);
     setIsCreatingList(true);
     try {
       const res = await fetch("/api/lists", {
@@ -108,6 +113,7 @@ export default function Dashboard() {
       const data = await res.json();
       if (data.success) {
         setNewListName("");
+        setNewListNameError(null);
         setShowNewListForm(false);
         await fetchUserData();
       } else {
@@ -240,30 +246,35 @@ export default function Dashboard() {
         )}
 
         {showNewListForm && (
-          <div className="flex items-center gap-2 py-2 border-b border-wiki-border-light">
-            <input
-              type="text"
-              aria-label="New list name"
-              className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-              placeholder="List name…"
-              value={newListName}
-              onChange={(e) => setNewListName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleCreateList();
-                if (e.key === "Escape") { setShowNewListForm(false); setNewListName(""); }
-              }}
-              autoFocus
-            />
-            <WikiButton
-              variant="primary"
-              onClick={handleCreateList}
-              disabled={isCreatingList || !newListName.trim()}
-            >
-              Create
-            </WikiButton>
-            <WikiButton onClick={() => { setShowNewListForm(false); setNewListName(""); }}>
-              Cancel
-            </WikiButton>
+          <div className="py-2 border-b border-wiki-border-light">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                aria-label="New list name"
+                className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                placeholder="List name…"
+                value={newListName}
+                onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleCreateList();
+                  if (e.key === "Escape") { setShowNewListForm(false); setNewListName(""); setNewListNameError(null); }
+                }}
+                autoFocus
+              />
+              <WikiButton
+                variant="primary"
+                onClick={handleCreateList}
+                disabled={isCreatingList}
+              >
+                {isCreatingList ? "Creating..." : "Create"}
+              </WikiButton>
+              <WikiButton onClick={() => { setShowNewListForm(false); setNewListName(""); setNewListNameError(null); }}>
+                Cancel
+              </WikiButton>
+            </div>
+            {newListNameError && (
+              <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+            )}
           </div>
         )}
 

@@ -102,6 +102,7 @@ export function SortableCitation({
   const isEditingMode = internalIsEditing || externalIsEditing;
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<"copy" | "copy-in-text" | null>(null);
   const { getColor } = useTagColors();
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesDraft, setNotesDraft] = useState("");
@@ -342,25 +343,31 @@ export function SortableCitation({
             </div>
             <div className="flex flex-wrap gap-3 mb-3">
               <button
-                onClick={() => onCopy(citation.formattedText)}
+                onClick={() => {
+                  onCopy(citation.formattedText);
+                  setCopiedKey("copy");
+                  setTimeout(() => setCopiedKey(null), 1500);
+                }}
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
-                [copy]
+                {copiedKey === "copy" ? "[copied!]" : "[copy]"}
               </button>
               {citation.fields && (
                 <button
-                  onClick={() =>
+                  onClick={() => {
                     onCopy(
                       generateInTextCitation(
                         citation.fields as unknown as FullCitationFields,
                         citation.style as CitationStyle
                       )
-                    )
-                  }
+                    );
+                    setCopiedKey("copy-in-text");
+                    setTimeout(() => setCopiedKey(null), 1500);
+                  }}
                   className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   title={`In-text citation (${citation.style.toUpperCase()})`}
                 >
-                  [copy in-text]
+                  {copiedKey === "copy-in-text" ? "[copied!]" : "[copy in-text]"}
                 </button>
               )}
               <button

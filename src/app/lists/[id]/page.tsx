@@ -146,6 +146,8 @@ export default function ListDetailPage({
   const [selectedCitationIds, setSelectedCitationIds] = useState<Set<string>>(
     new Set(),
   );
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setFactoid(pickFactoid());
@@ -220,6 +222,7 @@ export default function ListDetailPage({
         if (selectedIndex >= 0 && selectedIndex < filteredCitations.length) {
           const cit = filteredCitations[selectedIndex];
           navigator.clipboard.writeText(cit.formattedText);
+          flashCopied(`kbd-${cit.id}`);
           posthog.capture("citation_copied", {
             citation_style: cit.style,
             source_type: cit.fields?.sourceType,
@@ -510,9 +513,16 @@ export default function ListDetailPage({
     }
   };
 
+  const flashCopied = (key: string) => {
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    setCopiedKey(key);
+    copiedTimer.current = setTimeout(() => setCopiedKey(null), 1500);
+  };
+
   const copyAllCitations = () => {
     const allText = citations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(allText);
+    flashCopied("all");
     posthog.capture("citations_copied_all", {
       citation_count: citations.length,
     });
@@ -533,6 +543,7 @@ export default function ListDetailPage({
     } else {
       navigator.clipboard.writeText(plainText);
     }
+    flashCopied("hanging");
   };
 
   const toggleSelectMode = () => {
@@ -560,6 +571,7 @@ export default function ListDetailPage({
   const copySelected = () => {
     const text = selectedCitations.map((c) => c.formattedText).join("\n\n");
     navigator.clipboard.writeText(text);
+    flashCopied("selected");
     posthog.capture("citations_bulk_copied", {
       citation_count: selectedCitations.length,
     });
@@ -574,6 +586,7 @@ export default function ListDetailPage({
       return;
     }
     navigator.clipboard.writeText(toBibTeXMultiple(fields));
+    flashCopied("selected-bibtex");
     posthog.capture("citations_bulk_copied", {
       format: "bibtex",
       citation_count: fields.length,
@@ -781,6 +794,7 @@ export default function ListDetailPage({
       return;
     }
     navigator.clipboard.writeText(toBibTeXMultiple(citationsWithFields));
+    flashCopied("bibtex");
     posthog.capture("citation_exported", {
       format: "bibtex_copy",
       citation_count: citationsWithFields.length,
@@ -1352,8 +1366,8 @@ export default function ListDetailPage({
               {/* Actions */}
               {!isSelectMode ? (
                 <div className="flex flex-wrap gap-3">
-                  <WikiButton onClick={copyAllCitations}>Copy All</WikiButton>
-                  <WikiButton onClick={copyAllHangingIndent} title="Copies with hanging indent — paste into Word or Google Docs for a Works Cited / References page">Copy Hanging</WikiButton>
+                  <WikiButton onClick={copyAllCitations}>{copiedKey === "all" ? "Copied!" : "Copy All"}</WikiButton>
+                  <WikiButton onClick={copyAllHangingIndent} title="Copies with hanging indent — paste into Word or Google Docs for a Works Cited / References page">{copiedKey === "hanging" ? "Copied!" : "Copy Hanging"}</WikiButton>
                   <WikiButton
                     onClick={handleAlphabetize}
                     disabled={citations.length < 2}
@@ -1392,7 +1406,7 @@ export default function ListDetailPage({
                         onClick: exportBibTeX,
                       },
                       {
-                        label: "Copy BibTeX",
+                        label: copiedKey === "bibtex" ? "Copied!" : "Copy BibTeX",
                         hint: "to clipboard",
                         onClick: copyBibTeX,
                       },
@@ -1437,14 +1451,14 @@ export default function ListDetailPage({
                     disabled={selectedCitationIds.size === 0}
                     title="Copy selected citations to clipboard"
                   >
-                    Copy
+                    {copiedKey === "selected" ? "Copied!" : "Copy"}
                   </WikiButton>
                   <WikiButton
                     onClick={copySelectedBibTeX}
                     disabled={selectedCitationIds.size === 0}
                     title="Copy selected citations as BibTeX to clipboard"
                   >
-                    Copy BibTeX
+                    {copiedKey === "selected-bibtex" ? "Copied!" : "Copy BibTeX"}
                   </WikiButton>
                   <WikiDropdown
                     label="Export"
@@ -1559,7 +1573,7 @@ export default function ListDetailPage({
                       isEditing={editingCitationId === citation.id}
                       availableTags={allTags}
                       onSelect={() => setSelectedIndex(index)}
-                      onCopy={(text) => navigator.clipboard.writeText(text)}
+                      onCopy={(text) => { navigator.clipboard.writeText(text); }}
                       onDelete={handleDeleteCitation}
                       onEdit={handleEditCitation}
                       onAddTag={handleAddTag}

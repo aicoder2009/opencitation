@@ -370,6 +370,15 @@ function CitePageContent() {
   const [bibtexResults, setBibtexResults] = useState<BibTeXParseResult[]>([]);
   const bibtexFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Copy feedback
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const copiedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flashCopied = (key: string) => {
+    if (copiedTimerRef.current) clearTimeout(copiedTimerRef.current);
+    setCopiedKey(key);
+    copiedTimerRef.current = setTimeout(() => setCopiedKey(null), 1500);
+  };
+
   // Access date state — defaults to today for Manual Entry
   const [accessDate, setAccessDate] = useState<DateValue | null>(() => {
     const t = new Date();
@@ -995,6 +1004,7 @@ function CitePageContent() {
   const copyToClipboard = () => {
     if (generatedCitation) {
       navigator.clipboard.writeText(generatedCitation.text);
+      flashCopied("copy");
       posthog.capture("citation_copied", {
         citation_style: selectedStyle,
         source_type: citationFields?.sourceType,
@@ -1005,6 +1015,7 @@ function CitePageContent() {
   const copyInTextCitation = () => {
     if (!citationFields) return;
     navigator.clipboard.writeText(generateInTextCitation(citationFields, selectedStyle));
+    flashCopied("copy-in-text");
   };
 
   const exportCitation = () => {
@@ -1039,6 +1050,7 @@ function CitePageContent() {
   const copyBibTeX = () => {
     if (citationFields) {
       navigator.clipboard.writeText(toBibTeX(citationFields));
+      flashCopied("copy-bibtex");
     }
   };
 
@@ -2594,10 +2606,10 @@ https://another-site.com/paper"
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <WikiButton variant="primary" onClick={copyToClipboard}>
-                      Copy
+                      {copiedKey === "copy" ? "Copied!" : "Copy"}
                     </WikiButton>
                     <WikiButton onClick={copyInTextCitation}>
-                      Copy In-text
+                      {copiedKey === "copy-in-text" ? "Copied!" : "Copy In-text"}
                     </WikiButton>
                     {isSignedIn ? (
                       <WikiButton onClick={openAddToListModal}>Add to List</WikiButton>
@@ -2615,7 +2627,7 @@ https://another-site.com/paper"
                       <WikiButton onClick={exportCitation}>.txt</WikiButton>
                       <WikiButton onClick={exportRTF} title="Word-compatible with hanging indent">.rtf</WikiButton>
                       <WikiButton onClick={exportBibTeX}>.bib</WikiButton>
-                      <WikiButton onClick={copyBibTeX} title="Copy BibTeX to clipboard">copy .bib</WikiButton>
+                      <WikiButton onClick={copyBibTeX} title="Copy BibTeX to clipboard">{copiedKey === "copy-bibtex" ? "Copied!" : "copy .bib"}</WikiButton>
                       <WikiButton onClick={exportRIS}>.ris</WikiButton>
                       <WikiButton onClick={exportZotero} title="Downloads .ris — then in Zotero: File > Import">
                         Zotero
