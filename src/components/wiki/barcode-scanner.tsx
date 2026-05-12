@@ -43,8 +43,9 @@ export function BarcodeScanner({ onDetect, onClose }: BarcodeScannerProps) {
           BarcodeFormat.UPC_A,
           BarcodeFormat.UPC_E,
         ]);
+        hints.set(DecodeHintType.TRY_HARDER, true);
 
-        const reader = new BrowserMultiFormatReader(hints);
+        const reader = new BrowserMultiFormatReader(hints, { delayBetweenScanAttempts: 150 });
         const video = videoRef.current;
         if (!video || cancelled) return;
 
