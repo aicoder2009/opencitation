@@ -112,7 +112,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
         <div className="max-w-[960px] mx-auto px-4 py-3 flex items-center justify-between">
           <Link
             href="/"
-            className="flex items-center gap-3 text-xl font-bold text-wiki-text hover:no-underline"
+            className="flex items-center gap-3 text-xl font-bold text-wiki-text hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
           >
             <Image
               src="/logo.png"
@@ -127,7 +127,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
           {/* Desktop Nav */}
           <nav className="hidden sm:flex items-center gap-4 text-sm">
             <SignedOut>
-              <Link href="/cite" className="text-wiki-link hover:underline">
+              <Link href="/cite" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Cite
               </Link>
               <div ref={docsRef} className="relative">
@@ -142,36 +142,36 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 </button>
                 {docsOpen && (
                   <div className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
-                    <Link href="/docs" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline">
+                    <Link href="/docs" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Documentation
                     </Link>
                     <div className="border-t border-wiki-border-light" />
-                    <Link href="/docs/changelog" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline">
+                    <Link href="/docs/changelog" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Changelog
                     </Link>
                   </div>
                 )}
               </div>
-              <Link href="/sign-in" className="text-wiki-link hover:underline">
+              <Link href="/sign-in" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Sign In
               </Link>
-              <Link href="/sign-up" className="text-wiki-link hover:underline">
+              <Link href="/sign-up" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Create Account
               </Link>
               {desktopGithubLink}
               {desktopThemeToggle}
             </SignedOut>
             <SignedIn>
-              <Link href="/home" className="text-wiki-link hover:underline">
+              <Link href="/home" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Dashboard
               </Link>
-              <Link href="/cite" className="text-wiki-link hover:underline">
+              <Link href="/cite" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Cite
               </Link>
-              <Link href="/lists" className="text-wiki-link hover:underline">
+              <Link href="/lists" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Lists
               </Link>
-              <Link href="/projects" className="text-wiki-link hover:underline">
+              <Link href="/projects" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Projects
               </Link>
               <div ref={docsRef} className="relative">
@@ -186,11 +186,11 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 </button>
                 {docsOpen && (
                   <div className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
-                    <Link href="/docs" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline">
+                    <Link href="/docs" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Documentation
                     </Link>
                     <div className="border-t border-wiki-border-light" />
-                    <Link href="/docs/changelog" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline">
+                    <Link href="/docs/changelog" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Changelog
                     </Link>
                   </div>
@@ -244,21 +244,21 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
             <nav className="max-w-[960px] mx-auto px-4 py-3 flex flex-col gap-2 text-sm">
               <Link
                 href="/cite"
-                className="text-wiki-link hover:underline py-1"
+                className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Cite
               </Link>
               <Link
                 href="/docs"
-                className="text-wiki-link hover:underline py-1"
+                className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Docs
               </Link>
               <Link
                 href="/docs/changelog"
-                className="pl-3 text-wiki-link hover:underline py-1"
+                className="pl-3 text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 ↳ Changelog
@@ -266,14 +266,14 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <SignedOut>
                 <Link
                   href="/sign-in"
-                  className="text-wiki-link hover:underline py-1"
+                  className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="text-wiki-link hover:underline py-1"
+                  className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Create Account
@@ -282,21 +282,21 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <SignedIn>
                 <Link
                   href="/home"
-                  className="text-wiki-link hover:underline py-1"
+                  className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/lists"
-                  className="text-wiki-link hover:underline py-1"
+                  className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Lists
                 </Link>
                 <Link
                   href="/projects"
-                  className="text-wiki-link hover:underline py-1"
+                  className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Projects
@@ -306,7 +306,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 py-1 text-wiki-text hover:underline"
+                className="inline-flex items-center gap-1.5 py-1 text-wiki-text hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -354,7 +354,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-wiki-link hover:underline"
+                className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 View source on GitHub
               </a>

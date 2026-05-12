@@ -1597,7 +1597,7 @@ export default function ListDetailPage({
 
           {/* Back Link */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <Link href="/lists" className="text-wiki-link hover:underline">
+            <Link href="/lists" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
               &larr; Back to My Lists
             </Link>
           </div>

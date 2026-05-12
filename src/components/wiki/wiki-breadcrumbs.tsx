@@ -21,7 +21,7 @@ export function WikiBreadcrumbs({ items }: WikiBreadcrumbsProps) {
           return (
             <li key={index} className="flex items-center gap-1">
               {item.href && !isLast ? (
-                <Link href={item.href} className="text-wiki-link hover:underline">
+                <Link href={item.href} className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                   {item.label}
                 </Link>
               ) : (

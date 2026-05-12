@@ -184,7 +184,7 @@ export default function Dashboard() {
               {label}
             </button>
           ))}
-          <Link href="/cite?tab=manual" className="text-wiki-link hover:underline">
+          <Link href="/cite?tab=manual" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
             More →
           </Link>
         </div>
@@ -280,7 +280,7 @@ export default function Dashboard() {
 
         {!isLoading && (
           <div className="pt-2">
-            <Link href="/lists" className="text-sm text-wiki-link hover:underline">
+            <Link href="/lists" className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
               {lists.length > 5
                 ? `View all ${lists.length} lists →`
                 : "View all lists →"}
@@ -312,7 +312,7 @@ export default function Dashboard() {
         {!isLoading && recentProjects.length === 0 && (
           <p className="py-3 text-sm text-wiki-text-muted">
             No projects yet.{" "}
-            <Link href="/projects" className="text-wiki-link hover:underline">
+            <Link href="/projects" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
               Create your first project
             </Link>
           </p>
@@ -347,7 +347,7 @@ export default function Dashboard() {
 
         {!isLoading && (
           <div className="pt-2">
-            <Link href="/projects" className="text-sm text-wiki-link hover:underline">
+            <Link href="/projects" className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
               {projects.length > 3
                 ? `View all ${projects.length} projects →`
                 : "View all projects →"}

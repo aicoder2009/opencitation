@@ -481,7 +481,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Back Link */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <Link href="/projects" className="text-wiki-link hover:underline">
+            <Link href="/projects" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
               &larr; Back to My Projects
             </Link>
           </div>

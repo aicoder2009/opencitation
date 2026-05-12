@@ -346,6 +346,7 @@ function CitePageContent() {
   const [addToListSuccess, setAddToListSuccess] = useState<string | null>(null);
   const [newListName, setNewListName] = useState("");
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [newListNameError, setNewListNameError] = useState<string | null>(null);
 
   // Duplicate detection state
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
@@ -1215,10 +1216,11 @@ function CitePageContent() {
   const createListAndAddCitation = async () => {
     if (!generatedCitation || !citationFields) return;
     if (!newListName.trim()) {
-      setError("Please enter a name for your list");
+      setNewListNameError("List name is required.");
       return;
     }
 
+    setNewListNameError(null);
     setIsCreatingList(true);
     setError(null);
 
@@ -1257,6 +1259,7 @@ function CitePageContent() {
         setAddToListSuccess(`Created "${newList.name}" and added citation!`);
         setShowListModal(false);
         setNewListName("");
+        setNewListNameError(null);
         // Add the new list to our local state so it appears next time
         setLists((prev) => [newList, ...prev]);
         recordCitationSave();
@@ -2098,7 +2101,7 @@ function CitePageContent() {
           Generate properly formatted citations from URLs, DOIs, ISBNs, or manual entry.
           {!isSignedIn && (
             <span className="ml-1">
-              <Link href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline">Sign in</Link> to save citations to lists.
+              <Link href="/sign-in?redirect_url=/cite" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">Sign in</Link> to save citations to lists.
             </span>
           )}
         </p>
@@ -2651,7 +2654,7 @@ https://another-site.com/paper"
                 <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
                   <h3 className="font-bold text-base">Add to List</h3>
                   <button
-                    onClick={() => setShowListModal(false)}
+                    onClick={() => { setShowListModal(false); setNewListName(""); setNewListNameError(null); }}
                     className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     aria-label="Close"
                   >
@@ -2675,12 +2678,15 @@ https://another-site.com/paper"
                             id="new-list-name-first"
                             type="text"
                             value={newListName}
-                            onChange={(e) => setNewListName(e.target.value)}
+                            onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
                             placeholder="e.g., Research Paper, History Essay..."
                             className="w-full"
                             onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
                             autoFocus
                           />
+                          {newListNameError && (
+                            <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+                          )}
                         </div>
                         {error && <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>}
                         <WikiButton
@@ -2710,23 +2716,28 @@ https://another-site.com/paper"
                       </div>
                       <div className="pt-3 border-t border-wiki-border-light">
                         <p className="text-sm text-wiki-text-muted mb-2">Or create a new list:</p>
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={newListName}
-                            onChange={(e) => setNewListName(e.target.value)}
-                            placeholder="New list name..."
-                            aria-label="New list name"
-                            className="flex-1"
-                            onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
-                          />
-                          <WikiButton
-                            variant="primary"
-                            onClick={createListAndAddCitation}
-                            disabled={isCreatingList || !newListName.trim()}
-                          >
-                            {isCreatingList ? "..." : "Create & Add"}
-                          </WikiButton>
+                        <div>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={newListName}
+                              onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
+                              placeholder="New list name..."
+                              aria-label="New list name"
+                              className="flex-1"
+                              onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
+                            />
+                            <WikiButton
+                              variant="primary"
+                              onClick={createListAndAddCitation}
+                              disabled={isCreatingList || !newListName.trim()}
+                            >
+                              {isCreatingList ? "..." : "Create & Add"}
+                            </WikiButton>
+                          </div>
+                          {newListNameError && (
+                            <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+                          )}
                         </div>
                       </div>
                     </div>
