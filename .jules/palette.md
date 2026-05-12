@@ -1,0 +1,3 @@
+## 2026-05-12 - Added ARIA Attributes to Collapsible Component
+**Learning:** For accessible React interactive widgets like collapsibles, using React's `useId` hook is crucial to generate unique IDs for `aria-controls` mappings without collisions. Furthermore, providing a contextual `aria-label` (e.g., "Hide [Title]" or "Show [Title]") is essential for generic text buttons (like "[hide]" or "[show]") so that screen reader users have proper context, and reflecting the current state with `aria-expanded` completes the interaction pattern.
+**Action:** When creating or modifying generic toggle elements, always ensure `aria-expanded`, `aria-controls` (with a uniquely generated ID via `useId`), and a descriptive `aria-label` are present for complete screen reader accessibility.
