@@ -1187,6 +1187,7 @@ export default function ListDetailPage({
                     <button
                       onClick={() => setIsEditing(true)}
                       className="ml-2 text-wiki-link text-sm font-normal hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                      aria-label={`Edit list ${list?.name}`}
                     >
                       [edit]
                     </button>

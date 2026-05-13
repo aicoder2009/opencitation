@@ -322,6 +322,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     <button
                       onClick={() => setIsEditing(true)}
                       className="ml-2 text-wiki-link text-sm font-normal hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                      aria-label={`Edit project ${project?.name}`}
                     >
                       [edit]
                     </button>
@@ -462,12 +463,14 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                         <button
                           onClick={() => router.push(`/lists/${list.id}`)}
                           className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                          aria-label={`View list ${list.name}`}
                         >
                           [view]
                         </button>
                         <button
                           onClick={() => handleRemoveFromProject(list.id)}
                           className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                          aria-label={`Remove list ${list.name} from project`}
                         >
                           [remove]
                         </button>
