@@ -378,6 +378,7 @@ export default function ProjectsPage() {
                             onClick={() => handleSaveEdit(project.id)}
                             disabled={isSavingEdit || !editName.trim()}
                             className="text-wiki-link hover:underline disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                            aria-label={`Save edits to project ${project.name}`}
                           >
                             {isSavingEdit ? "[saving...]" : "[save]"}
                           </button>
@@ -385,6 +386,7 @@ export default function ProjectsPage() {
                             onClick={cancelEditing}
                             disabled={isSavingEdit}
                             className="text-wiki-text-muted hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                            aria-label="Cancel editing"
                           >
                             [cancel]
                           </button>
@@ -394,18 +396,21 @@ export default function ProjectsPage() {
                           <button
                             onClick={() => router.push(`/projects/${project.id}`)}
                             className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                            aria-label={`View project ${project.name}`}
                           >
                             [view]
                           </button>
                           <button
                             onClick={() => startEditing(project)}
                             className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                            aria-label={`Edit project ${project.name}`}
                           >
                             [edit]
                           </button>
                           <button
                             onClick={() => handleDeleteProject(project.id, project.name)}
                             className="text-wiki-link hover:underline ml-auto focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                            aria-label={`Delete project ${project.name}`}
                           >
                             [delete]
                           </button>

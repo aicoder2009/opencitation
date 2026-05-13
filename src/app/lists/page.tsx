@@ -323,12 +323,14 @@ export default function ListsPage() {
                         <button
                           onClick={() => router.push(`/lists/${list.id}`)}
                           className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                          aria-label={`View list ${list.name}`}
                         >
                           [view]
                         </button>
                         <button
                           onClick={() => handleDeleteList(list.id, list.name)}
                           className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                          aria-label={`Delete list ${list.name}`}
                         >
                           [delete]
                         </button>
