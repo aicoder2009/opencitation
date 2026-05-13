@@ -35,7 +35,10 @@ export async function POST(
 
   try {
     if (shareLink.type === "list") {
-      const originalList = await findListById(shareLink.targetId);
+      const [originalList, citations] = await Promise.all([
+        findListById(shareLink.targetId),
+        getListCitations(shareLink.targetId)
+      ]);
       if (!originalList) {
         return NextResponse.json(
           { success: false, error: "Original list not found" },
@@ -43,7 +46,6 @@ export async function POST(
         );
       }
 
-      const citations = await getListCitations(shareLink.targetId);
       const newList = await createList(userId, originalList.name, undefined, originalList.description);
 
       const newCitations = await Promise.all(
@@ -73,7 +75,10 @@ export async function POST(
     }
 
     if (shareLink.type === "project") {
-      const originalProject = await findProjectById(shareLink.targetId);
+      const [originalProject, originalLists] = await Promise.all([
+        findProjectById(shareLink.targetId),
+        getProjectLists(shareLink.userId, shareLink.targetId)
+      ]);
       if (!originalProject) {
         return NextResponse.json(
           { success: false, error: "Original project not found" },
@@ -81,7 +86,6 @@ export async function POST(
         );
       }
 
-      const originalLists = await getProjectLists(originalProject.userId, shareLink.targetId);
       const newProject = await createProject(userId, originalProject.name, originalProject.description);
 
       await Promise.all(
