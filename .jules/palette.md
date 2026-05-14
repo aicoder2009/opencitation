@@ -1,0 +1,3 @@
+## 2024-05-14 - Accessible Collapsible Content
+**Learning:** When conditionally mounting/unmounting React elements controlled by an ARIA button (e.g., collapsible content), it is important to conditionally set the button's `aria-controls` to `undefined` when the target is unmounted. Additionally, generic visual text like "[hide]" or "[show]" lacks context for screen readers; they should use context-aware `aria-label`s like "Show [Title]".
+**Action:** Use React's `useId` to reliably link `aria-controls` to DOM IDs without collision risk, conditionally clear `aria-controls` when the child component unmounts, and add descriptive `aria-label`s replacing generic toggle text.
