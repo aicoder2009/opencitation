@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessible Conditionally Mounted Collapsible Content
+**Learning:** When conditionally mounting React elements controlled by an ARIA button (e.g., collapsible content or dropdowns), screen readers may attempt to read from a missing DOM ID if the element is not present.
+**Action:** Conditionally set the button's `aria-controls` to `undefined` when the target content is unmounted (e.g., `aria-controls={isOpen ? contentId : undefined}`). Also, remember to generate the `contentId` with React's `useId()` hook to avoid ID collisions, and use `aria-expanded` and clear `aria-label`s on generic/icon toggle buttons.
