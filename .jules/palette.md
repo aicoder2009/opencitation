@@ -1,0 +1,3 @@
+## 2024-05-16 - Contextual ARIA attributes for Generic Toggle Buttons
+**Learning:** Generic visual toggle buttons like `[hide]` / `[show]` present accessibility challenges because their visual text alone doesn't describe the target. Simply changing the text is insufficient. Furthermore, screen readers can stumble if `aria-controls` points to an unmounted DOM ID when content is hidden.
+**Action:** Always provide context by combining dynamic generic text with a descriptive `aria-label` (e.g., `"Hide [Title]"`). Ensure `aria-expanded` reflects state, and conditionally remove `aria-controls` (set to `undefined`) when the target element is unmounted from the DOM to avoid ID reference errors.
