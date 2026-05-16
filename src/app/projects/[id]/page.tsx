@@ -355,7 +355,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
           {/* Add List Form */}
           {showAddList && (
             <div className="mb-6 p-4 border border-wiki-border-light bg-wiki-offwhite">
-              <h3 className="font-bold text-base mb-3">Add List to Project</h3>
+              <h2 className="font-bold text-base mb-3">Add List to Project</h2>
 
               {/* Create new list */}
               <div className="mb-4">
@@ -435,9 +435,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-wiki-border-light">
-                  <th className="text-left py-2 px-2 font-semibold">Name</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Created</th>
-                  <th className="text-right py-2 px-2 font-semibold">Actions</th>
+                  <th scope="col" className="text-left py-2 px-2 font-semibold">Name</th>
+                  <th scope="col" className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Created</th>
+                  <th scope="col" className="text-right py-2 px-2 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>

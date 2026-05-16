@@ -196,7 +196,7 @@ export default function ListsPage() {
           {/* Create List Form */}
           {showCreateForm && (
             <div className="mb-6 p-4 border border-wiki-border-light bg-wiki-offwhite">
-              <h3 className="font-bold text-base mb-3">Create New List</h3>
+              <h2 className="font-bold text-base mb-3">Create New List</h2>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Name</label>
@@ -261,6 +261,7 @@ export default function ListsPage() {
                   <button
                     type="button"
                     onClick={() => setFactoid(pickFactoid())}
+                    aria-label="Show another citation fact"
                     className="mt-2 text-xs text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   >
                     [another fact]
@@ -272,10 +273,10 @@ export default function ListsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-wiki-border-light">
-                  <th className="text-left py-2 px-2 font-semibold">Name</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Created</th>
-                  <th className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Updated</th>
-                  <th className="text-right py-2 px-2 font-semibold">Actions</th>
+                  <th scope="col" className="text-left py-2 px-2 font-semibold">Name</th>
+                  <th scope="col" className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Created</th>
+                  <th scope="col" className="text-left py-2 px-2 font-semibold hidden sm:table-cell">Updated</th>
+                  <th scope="col" className="text-right py-2 px-2 font-semibold">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -339,7 +340,7 @@ export default function ListsPage() {
 
           {/* Quick Actions */}
           <div className="mt-8 pt-6 border-t border-wiki-border-light">
-            <h3 className="font-bold text-base mb-3">Quick Actions</h3>
+            <h2 className="font-bold text-base mb-3">Quick Actions</h2>
             <div className="flex flex-wrap gap-3">
               <WikiButton onClick={() => router.push("/cite")}>
                 Create New Citation

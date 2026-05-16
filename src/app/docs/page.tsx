@@ -133,8 +133,8 @@ export default function DocsIndex() {
         <table className="w-full border-collapse text-sm mb-3">
           <thead>
             <tr className="bg-wiki-tab-bg">
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium">Identifier</th>
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium">Example</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Identifier</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Example</th>
             </tr>
           </thead>
           <tbody>
@@ -171,9 +171,9 @@ export default function DocsIndex() {
         <table className="w-full border-collapse text-sm mb-3">
           <thead>
             <tr className="bg-wiki-tab-bg">
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium">Style</th>
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium">Common in</th>
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium">In-text</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Style</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Common in</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">In-text</th>
             </tr>
           </thead>
           <tbody>
@@ -233,9 +233,9 @@ export default function DocsIndex() {
         <table className="w-full border-collapse text-sm mb-3">
           <thead>
             <tr className="bg-wiki-tab-bg">
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium w-28">Key</th>
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium">Action</th>
-              <th className="border border-wiki-border px-3 py-1 text-left font-medium w-20">Scope</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium w-28">Key</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Action</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium w-20">Scope</th>
             </tr>
           </thead>
           <tbody>

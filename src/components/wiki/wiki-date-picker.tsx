@@ -94,6 +94,8 @@ export function WikiDatePicker({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="dialog"
         className="w-full text-left px-2 py-1.5 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text
           focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
       >
@@ -105,6 +107,8 @@ export function WikiDatePicker({
 
       {open && (
         <div
+          role="dialog"
+          aria-label="Date picker"
           className="absolute z-30 top-full left-0 mt-1 bg-wiki-white border border-wiki-border-light shadow-md"
           style={{ width: 252 }}
         >
@@ -172,6 +176,8 @@ export function WikiDatePicker({
                     type="button"
                     onClick={() => !isFuture && selectDay(day)}
                     disabled={isFuture}
+                    aria-label={`${MONTHS[viewMonth - 1]} ${day}, ${viewYear}${isSelected ? " (selected)" : ""}${isTodayCell ? " (today)" : ""}`}
+                    aria-pressed={!!isSelected}
                     className={`w-8 h-8 text-sm flex items-center justify-center transition-colors
                       focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
                       ${isFuture

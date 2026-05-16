@@ -2167,7 +2167,7 @@ function CitePageContent() {
           >
             <div className="min-w-0">
           {activeTab === "quick-add" && (
-            <div>
+            <div role="tabpanel" id="tabpanel-quick-add" aria-label="Quick Add">
               <h2 className="text-lg font-semibold mb-4">Quick Add</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Enter a URL, DOI, or ISBN to automatically extract citation information.
@@ -2223,7 +2223,7 @@ function CitePageContent() {
           )}
 
           {activeTab === "research-lookup" && (
-            <div>
+            <div role="tabpanel" id="tabpanel-research-lookup" aria-label="Academic Research">
               <h2 className="text-lg font-semibold mb-4">Academic Research</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste a PubMed ID, arXiv ID, or Wikipedia article — we detect which database to query. Use the buttons below to override detection.
@@ -2289,7 +2289,7 @@ function CitePageContent() {
           )}
 
           {activeTab === "paste-bibtex" && (
-            <div>
+            <div role="tabpanel" id="tabpanel-paste-bibtex" aria-label="Import BibTeX">
               <h2 className="text-lg font-semibold mb-4">Import BibTeX</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste a BibTeX entry or upload a <code>.bib</code> file (e.g. from Google Scholar, Zotero, or the ACL Anthology). We detect source types, parse authors, editors, pages, and more.
@@ -2388,7 +2388,7 @@ function CitePageContent() {
           )}
 
           {activeTab === "manual" && (
-            <div>
+            <div role="tabpanel" id="tabpanel-manual" aria-label="Manual Entry">
               <h2 className="text-lg font-semibold mb-4">Manual Entry</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Select a source type and enter the citation details manually.
@@ -2506,7 +2506,7 @@ function CitePageContent() {
           )}
 
           {activeTab === "bulk-import" && (
-            <div>
+            <div role="tabpanel" id="tabpanel-bulk-import" aria-label="Bulk Import">
               <h2 className="text-lg font-semibold mb-4">Bulk Import</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste multiple URLs, DOIs, or ISBNs (one per line) to import them all at once.

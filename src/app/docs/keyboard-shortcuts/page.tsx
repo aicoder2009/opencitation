@@ -55,8 +55,8 @@ function ShortcutTable({ shortcuts }: { shortcuts: typeof SHORTCUTS }) {
     <table className="w-full border-collapse text-sm mb-4">
       <thead>
         <tr className="bg-wiki-tab-bg">
-          <th className="border border-wiki-border px-3 py-1 text-left font-medium w-32">Key</th>
-          <th className="border border-wiki-border px-3 py-1 text-left font-medium">Action</th>
+          <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium w-32">Key</th>
+          <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Action</th>
         </tr>
       </thead>
       <tbody>

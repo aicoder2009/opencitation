@@ -103,9 +103,9 @@ export default async function ChangelogPage() {
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="bg-wiki-tab-bg">
-              <th className="border border-wiki-border px-3 py-1.5 text-left font-medium w-32">Date</th>
-              <th className="border border-wiki-border px-3 py-1.5 text-left font-medium">Change</th>
-              <th className="border border-wiki-border px-3 py-1.5 text-left font-medium w-20">Commit</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1.5 text-left font-medium w-32">Date</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1.5 text-left font-medium">Change</th>
+              <th scope="col" className="border border-wiki-border px-3 py-1.5 text-left font-medium w-20">Commit</th>
             </tr>
           </thead>
           <tbody>

@@ -47,8 +47,8 @@ export default function SourceTypes() {
           <table className="w-full border-collapse text-sm mb-2">
             <thead>
               <tr className="bg-wiki-tab-bg">
-                <th className="border border-wiki-border px-3 py-1 text-left font-medium">Type</th>
-                <th className="border border-wiki-border px-3 py-1 text-left font-medium">Description</th>
+                <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Type</th>
+                <th scope="col" className="border border-wiki-border px-3 py-1 text-left font-medium">Description</th>
               </tr>
             </thead>
             <tbody>
