@@ -1433,9 +1433,11 @@ function CitePageContent() {
             placeholder="Title of work"
             className="w-full"
             required
+            aria-invalid={!!titleError}
+            aria-describedby={titleError ? "cite-title-error" : undefined}
           />
           {titleError && (
-            <p className="mt-1 text-xs text-wiki-text">{titleError}</p>
+            <p id="cite-title-error" role="alert" className="mt-1 text-xs text-wiki-text">{titleError}</p>
           )}
         </div>
         <div>
@@ -2166,8 +2168,9 @@ function CitePageContent() {
             }
           >
             <div className="min-w-0">
+          <div role="tabpanel" id="tabpanel-quick-add" aria-label="Quick Add" hidden={activeTab !== "quick-add"}>
           {activeTab === "quick-add" && (
-            <div role="tabpanel" id="tabpanel-quick-add" aria-label="Quick Add">
+            <div>
               <h2 className="text-lg font-semibold mb-4">Quick Add</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Enter a URL, DOI, or ISBN to automatically extract citation information.
@@ -2221,9 +2224,11 @@ function CitePageContent() {
               </div>
             </div>
           )}
+          </div>
 
+          <div role="tabpanel" id="tabpanel-research-lookup" aria-label="Academic Research" hidden={activeTab !== "research-lookup"}>
           {activeTab === "research-lookup" && (
-            <div role="tabpanel" id="tabpanel-research-lookup" aria-label="Academic Research">
+            <div>
               <h2 className="text-lg font-semibold mb-4">Academic Research</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste a PubMed ID, arXiv ID, or Wikipedia article — we detect which database to query. Use the buttons below to override detection.
@@ -2287,9 +2292,11 @@ function CitePageContent() {
               </div>
             </div>
           )}
+          </div>
 
+          <div role="tabpanel" id="tabpanel-paste-bibtex" aria-label="Import BibTeX" hidden={activeTab !== "paste-bibtex"}>
           {activeTab === "paste-bibtex" && (
-            <div role="tabpanel" id="tabpanel-paste-bibtex" aria-label="Import BibTeX">
+            <div>
               <h2 className="text-lg font-semibold mb-4">Import BibTeX</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste a BibTeX entry or upload a <code>.bib</code> file (e.g. from Google Scholar, Zotero, or the ACL Anthology). We detect source types, parse authors, editors, pages, and more.
@@ -2386,9 +2393,11 @@ function CitePageContent() {
               </div>
             </div>
           )}
+          </div>
 
+          <div role="tabpanel" id="tabpanel-manual" aria-label="Manual Entry" hidden={activeTab !== "manual"}>
           {activeTab === "manual" && (
-            <div role="tabpanel" id="tabpanel-manual" aria-label="Manual Entry">
+            <div>
               <h2 className="text-lg font-semibold mb-4">Manual Entry</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Select a source type and enter the citation details manually.
@@ -2504,9 +2513,11 @@ function CitePageContent() {
               </div>
             </div>
           )}
+          </div>
 
+          <div role="tabpanel" id="tabpanel-bulk-import" aria-label="Bulk Import" hidden={activeTab !== "bulk-import"}>
           {activeTab === "bulk-import" && (
-            <div role="tabpanel" id="tabpanel-bulk-import" aria-label="Bulk Import">
+            <div>
               <h2 className="text-lg font-semibold mb-4">Bulk Import</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
                 Paste multiple URLs, DOIs, or ISBNs (one per line) to import them all at once.
@@ -2621,6 +2632,7 @@ https://another-site.com/paper"
               </div>
             </div>
           )}
+          </div>
             </div>
 
             {/* Generated Citation Preview — sticky on lg+, stacks under the form on smaller screens. */}
@@ -2708,11 +2720,13 @@ https://another-site.com/paper"
                             onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
                             placeholder="e.g., Research Paper, History Essay..."
                             className="w-full"
+                            aria-invalid={!!newListNameError}
+                            aria-describedby={newListNameError ? "new-list-name-first-error" : undefined}
                             onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
                             autoFocus
                           />
                           {newListNameError && (
-                            <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+                            <p id="new-list-name-first-error" role="alert" className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
                           )}
                         </div>
                         {error && <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>}
@@ -2751,6 +2765,8 @@ https://another-site.com/paper"
                               onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
                               placeholder="New list name..."
                               aria-label="New list name"
+                              aria-invalid={!!newListNameError}
+                              aria-describedby={newListNameError ? "new-list-name-inline-error" : undefined}
                               className="flex-1"
                               onKeyDown={(e) => e.key === "Enter" && createListAndAddCitation()}
                             />
@@ -2763,7 +2779,7 @@ https://another-site.com/paper"
                             </WikiButton>
                           </div>
                           {newListNameError && (
-                            <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+                            <p id="new-list-name-inline-error" role="alert" className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
                           )}
                         </div>
                       </div>

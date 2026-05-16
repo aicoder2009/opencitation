@@ -1152,12 +1152,14 @@ export default function ListDetailPage({
                     value={editName}
                     onChange={(e) => { setEditName(e.target.value); setEditNameError(null); }}
                     className="text-2xl font-bold w-full"
+                    aria-invalid={!!editNameError}
+                    aria-describedby={editNameError ? "edit-list-name-error" : undefined}
                     onKeyDown={(e) => e.key === "Enter" && handleUpdateName()}
                     placeholder="List name"
                     autoFocus
                   />
                   {editNameError && (
-                    <p className="text-xs text-wiki-text">{editNameError}</p>
+                    <p id="edit-list-name-error" role="alert" className="text-xs text-wiki-text">{editNameError}</p>
                   )}
                   <textarea
                     aria-label="List description"

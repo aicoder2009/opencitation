@@ -294,10 +294,12 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                       value={editName}
                       onChange={(e) => { setEditName(e.target.value); setEditNameError(null); }}
                       className="w-full max-w-md"
+                      aria-invalid={!!editNameError}
+                      aria-describedby={editNameError ? "edit-project-name-error" : undefined}
                       autoFocus
                     />
                     {editNameError && (
-                      <p className="mt-1 text-xs text-wiki-text">{editNameError}</p>
+                      <p id="edit-project-name-error" role="alert" className="mt-1 text-xs text-wiki-text">{editNameError}</p>
                     )}
                   </div>
                   <div>
@@ -367,6 +369,9 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                     onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
                     placeholder="Enter list name..."
                     className="flex-1"
+                    aria-invalid={!!newListNameError}
+                    aria-describedby={newListNameError ? "add-list-name-error" : undefined}
+                    aria-label="New list name"
                     onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
                     disabled={isCreating}
                   />
@@ -379,7 +384,7 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
                   </WikiButton>
                 </div>
                 {newListNameError && (
-                  <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+                  <p id="add-list-name-error" role="alert" className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
                 )}
               </div>
 

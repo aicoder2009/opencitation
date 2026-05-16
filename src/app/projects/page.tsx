@@ -242,11 +242,13 @@ export default function ProjectsPage() {
                     onChange={(e) => { setNewProjectName(e.target.value); setNameError(null); }}
                     placeholder="Enter project name..."
                     className="w-full"
+                    aria-invalid={!!nameError}
+                    aria-describedby={nameError ? "new-project-name-error" : undefined}
                     onKeyDown={(e) => e.key === "Enter" && handleCreateProject()}
                     disabled={isCreating}
                   />
                   {nameError && (
-                    <p className="mt-1 text-xs text-wiki-text">{nameError}</p>
+                    <p id="new-project-name-error" role="alert" className="mt-1 text-xs text-wiki-text">{nameError}</p>
                   )}
                 </div>
                 <div>
@@ -325,10 +327,12 @@ export default function ProjectsPage() {
                               className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                               placeholder="Project name"
                               disabled={isSavingEdit}
+                              aria-invalid={!!editNameError}
+                              aria-describedby={editNameError ? "edit-project-name-error" : undefined}
                               autoFocus
                             />
                             {editNameError && (
-                              <p className="mt-1 text-xs text-wiki-text">{editNameError}</p>
+                              <p id="edit-project-name-error" role="alert" className="mt-1 text-xs text-wiki-text">{editNameError}</p>
                             )}
                           </div>
                           <div>

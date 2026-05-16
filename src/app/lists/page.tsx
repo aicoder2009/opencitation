@@ -206,11 +206,13 @@ export default function ListsPage() {
                     onChange={(e) => { setNewListName(e.target.value); setNameError(null); }}
                     placeholder="Enter list name..."
                     className="w-full"
+                    aria-invalid={!!nameError}
+                    aria-describedby={nameError ? "new-list-name-error" : undefined}
                     onKeyDown={(e) => e.key === "Enter" && handleCreateList()}
                     disabled={isCreating}
                   />
                   {nameError && (
-                    <p className="mt-1 text-xs text-wiki-text">{nameError}</p>
+                    <p id="new-list-name-error" role="alert" className="mt-1 text-xs text-wiki-text">{nameError}</p>
                   )}
                 </div>
                 <div>

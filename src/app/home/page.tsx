@@ -254,6 +254,8 @@ export default function Dashboard() {
                 className="flex-1 text-sm px-2 py-1 border border-wiki-border-light bg-wiki-white text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 placeholder="List name…"
                 value={newListName}
+                aria-invalid={!!newListNameError}
+                aria-describedby={newListNameError ? "home-new-list-error" : undefined}
                 onChange={(e) => { setNewListName(e.target.value); setNewListNameError(null); }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleCreateList();
@@ -273,7 +275,7 @@ export default function Dashboard() {
               </WikiButton>
             </div>
             {newListNameError && (
-              <p className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
+              <p id="home-new-list-error" role="alert" className="mt-1 text-xs text-wiki-text">{newListNameError}</p>
             )}
           </div>
         )}
