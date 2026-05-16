@@ -1346,6 +1346,7 @@ function CitePageContent() {
                       onChange={(e) => updateAuthor(index, "lastName", e.target.value)}
                       placeholder="World Health Organization"
                       className="w-full"
+                      aria-label={`Organization name for author ${index + 1}`}
                     />
                   </div>
                   <button
@@ -1371,6 +1372,7 @@ function CitePageContent() {
                       onChange={(e) => updateAuthor(index, "firstName", e.target.value)}
                       placeholder="John"
                       className="w-full"
+                      aria-label={`First name for author ${index + 1}`}
                     />
                   </div>
                   <div>
@@ -1383,6 +1385,7 @@ function CitePageContent() {
                       onChange={(e) => updateAuthor(index, "middleName", e.target.value)}
                       placeholder="M."
                       className="w-full"
+                      aria-label={`Middle name or initial for author ${index + 1}`}
                     />
                   </div>
                   <div>
@@ -1395,6 +1398,7 @@ function CitePageContent() {
                       onChange={(e) => updateAuthor(index, "lastName", e.target.value)}
                       placeholder="Smith"
                       className="w-full"
+                      aria-label={`Last name for author ${index + 1}`}
                     />
                   </div>
                   <button
@@ -1420,8 +1424,9 @@ function CitePageContent() {
           </button>
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Title *</label>
+          <label htmlFor="cite-title" className="block text-sm font-medium mb-1">Title *</label>
           <input
+            id="cite-title"
             type="text"
             value={formData.title}
             onChange={(e) => { updateFormData("title", e.target.value); setTitleError(null); }}
@@ -1434,8 +1439,9 @@ function CitePageContent() {
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Subtitle</label>
+          <label htmlFor="cite-subtitle" className="block text-sm font-medium mb-1">Subtitle</label>
           <input
+            id="cite-subtitle"
             type="text"
             value={formData.subtitle}
             onChange={(e) => updateFormData("subtitle", e.target.value)}
@@ -1447,8 +1453,9 @@ function CitePageContent() {
           <label className="block text-sm font-medium mb-1">Publication Date</label>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs text-wiki-text-muted mb-1">Year</label>
+              <label htmlFor="pub-year" className="block text-xs text-wiki-text-muted mb-1">Year</label>
               <input
+                id="pub-year"
                 type="text"
                 value={formData.year}
                 onChange={(e) => updateFormData("year", e.target.value)}
@@ -1479,8 +1486,9 @@ function CitePageContent() {
               />
             </div>
             <div>
-              <label className="block text-xs text-wiki-text-muted mb-1">Day</label>
+              <label htmlFor="pub-day" className="block text-xs text-wiki-text-muted mb-1">Day</label>
               <input
+                id="pub-day"
                 type="text"
                 value={formData.day}
                 onChange={(e) => updateFormData("day", e.target.value)}
@@ -1514,6 +1522,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("publisher", e.target.value)}
                 placeholder="Publisher name"
                 className="w-full"
+                aria-label="Publisher"
               />
             </div>
             {selectedAccessType === "web" && (
@@ -1525,6 +1534,7 @@ function CitePageContent() {
                   onChange={(e) => updateFormData("url", e.target.value)}
                   placeholder="https://example.com"
                   className="w-full"
+                  aria-label="URL"
                 />
               </div>
             )}
@@ -1536,6 +1546,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("doi", e.target.value)}
                 placeholder="10.1000/xyz123"
                 className="w-full"
+                aria-label="DOI"
               />
             </div>
           </>
@@ -1553,6 +1564,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("journalTitle", e.target.value)}
                 placeholder="Journal of Example Studies"
                 className="w-full"
+                aria-label="Journal Title"
               />
             </div>
             <div className="grid grid-cols-3 gap-4">
@@ -1564,6 +1576,7 @@ function CitePageContent() {
                   onChange={(e) => updateFormData("volume", e.target.value)}
                   placeholder="12"
                   className="w-full"
+                  aria-label="Volume"
                 />
               </div>
               <div>
@@ -1574,6 +1587,7 @@ function CitePageContent() {
                   onChange={(e) => updateFormData("issue", e.target.value)}
                   placeholder="3"
                   className="w-full"
+                  aria-label="Issue"
                 />
               </div>
               <div>
@@ -1584,6 +1598,7 @@ function CitePageContent() {
                   onChange={(e) => updateFormData("pages", e.target.value)}
                   placeholder="123-145"
                   className="w-full"
+                  aria-label="Pages"
                 />
               </div>
             </div>
@@ -1595,6 +1610,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("doi", e.target.value)}
                 placeholder="10.1000/xyz123"
                 className="w-full"
+                aria-label="DOI"
               />
             </div>
           </>
@@ -1618,6 +1634,7 @@ function CitePageContent() {
                 placeholder={selectedSourceType === "website" ? "Example.com" :
                             selectedSourceType === "blog" ? "The Example Blog" : "The Example Times"}
                 className="w-full"
+                aria-label={selectedSourceType === "website" ? "Site Name" : selectedSourceType === "blog" ? "Blog Name" : "Newspaper Title"}
               />
             </div>
             <div>
@@ -1628,6 +1645,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("url", e.target.value)}
                 placeholder="https://example.com/article"
                 className="w-full"
+                aria-label="URL"
               />
             </div>
           </>
@@ -1645,6 +1663,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("channelName", e.target.value)}
                 placeholder="Example Channel"
                 className="w-full"
+                aria-label="Channel Name"
               />
             </div>
             <div>
@@ -1655,6 +1674,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("platform", e.target.value)}
                 placeholder="YouTube, Vimeo, etc."
                 className="w-full"
+                aria-label="Platform"
               />
             </div>
             <div>
@@ -1665,6 +1685,7 @@ function CitePageContent() {
                 onChange={(e) => updateFormData("url", e.target.value)}
                 placeholder="https://youtube.com/watch?v=..."
                 className="w-full"
+                aria-label="URL"
               />
             </div>
           </>
@@ -1676,15 +1697,15 @@ function CitePageContent() {
             {commonFields}
             <div>
               <label className="block text-sm font-medium mb-1">Album</label>
-              <input type="text" value={formData.album} onChange={(e) => updateFormData("album", e.target.value)} placeholder="Album title" className="w-full" />
+              <input type="text" value={formData.album} onChange={(e) => updateFormData("album", e.target.value)} placeholder="Album title" className="w-full" aria-label="Album" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Label</label>
-              <input type="text" value={formData.label} onChange={(e) => updateFormData("label", e.target.value)} placeholder="Record label" className="w-full" />
+              <input type="text" value={formData.label} onChange={(e) => updateFormData("label", e.target.value)} placeholder="Record label" className="w-full" aria-label="Label" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">URL</label>
-              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://open.spotify.com/track/..." className="w-full" />
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://open.spotify.com/track/..." className="w-full" aria-label="URL" />
             </div>
           </>
         );
@@ -1695,11 +1716,11 @@ function CitePageContent() {
             {commonFields}
             <div>
               <label className="block text-sm font-medium mb-1">Label</label>
-              <input type="text" value={formData.label} onChange={(e) => updateFormData("label", e.target.value)} placeholder="Record label" className="w-full" />
+              <input type="text" value={formData.label} onChange={(e) => updateFormData("label", e.target.value)} placeholder="Record label" className="w-full" aria-label="Label" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">URL</label>
-              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://open.spotify.com/album/..." className="w-full" />
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://open.spotify.com/album/..." className="w-full" aria-label="URL" />
             </div>
           </>
         );
@@ -1710,11 +1731,11 @@ function CitePageContent() {
             {commonFields}
             <div>
               <label className="block text-sm font-medium mb-1">Show Name *</label>
-              <input type="text" value={formData.showName} onChange={(e) => updateFormData("showName", e.target.value)} placeholder="Podcast show name" className="w-full" required />
+              <input type="text" value={formData.showName} onChange={(e) => updateFormData("showName", e.target.value)} placeholder="Podcast show name" className="w-full" required aria-label="Show Name" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">URL</label>
-              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" />
+              <input type="url" value={formData.url} onChange={(e) => updateFormData("url", e.target.value)} placeholder="https://..." className="w-full" aria-label="URL" />
             </div>
           </>
         );
@@ -1726,16 +1747,16 @@ function CitePageContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Studio</label>
-                <input type="text" value={formData.studio} onChange={(e) => updateFormData("studio", e.target.value)} placeholder="Development studio" className="w-full" />
+                <input type="text" value={formData.studio} onChange={(e) => updateFormData("studio", e.target.value)} placeholder="Development studio" className="w-full" aria-label="Studio" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Platform</label>
-                <input type="text" value={formData.platform} onChange={(e) => updateFormData("platform", e.target.value)} placeholder="PC, PS5, Switch, etc." className="w-full" />
+                <input type="text" value={formData.platform} onChange={(e) => updateFormData("platform", e.target.value)} placeholder="PC, PS5, Switch, etc." className="w-full" aria-label="Platform" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Version</label>
-              <input type="text" value={formData.version} onChange={(e) => updateFormData("version", e.target.value)} placeholder="1.0.0" className="w-full" />
+              <input type="text" value={formData.version} onChange={(e) => updateFormData("version", e.target.value)} placeholder="1.0.0" className="w-full" aria-label="Version" />
             </div>
           </>
         );
@@ -1747,16 +1768,16 @@ function CitePageContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1">Medium</label>
-                <input type="text" value={formData.medium} onChange={(e) => updateFormData("medium", e.target.value)} placeholder="Oil on canvas, sculpture..." className="w-full" />
+                <input type="text" value={formData.medium} onChange={(e) => updateFormData("medium", e.target.value)} placeholder="Oil on canvas, sculpture..." className="w-full" aria-label="Medium" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Museum / Collection</label>
-                <input type="text" value={formData.museum} onChange={(e) => updateFormData("museum", e.target.value)} placeholder="MoMA, Louvre..." className="w-full" />
+                <input type="text" value={formData.museum} onChange={(e) => updateFormData("museum", e.target.value)} placeholder="MoMA, Louvre..." className="w-full" aria-label="Museum or Collection" />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">City</label>
-              <input type="text" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} placeholder="New York, Paris..." className="w-full" />
+              <input type="text" value={formData.city} onChange={(e) => updateFormData("city", e.target.value)} placeholder="New York, Paris..." className="w-full" aria-label="City" />
             </div>
           </>
         );
@@ -1767,7 +1788,7 @@ function CitePageContent() {
             {commonFields}
             <div>
               <label className="block text-sm font-medium mb-1">Institution *</label>
-              <input type="text" value={formData.institution} onChange={(e) => updateFormData("institution", e.target.value)} placeholder="University name" className="w-full" required />
+              <input type="text" value={formData.institution} onChange={(e) => updateFormData("institution", e.target.value)} placeholder="University name" className="w-full" required aria-label="Institution" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

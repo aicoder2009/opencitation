@@ -71,15 +71,19 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
     setDocsOpen(false);
   }, [pathname]);
 
+  const handleDocsKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape" || e.key === "Esc") setDocsOpen(false);
+  };
+
   // Shared between SignedIn and SignedOut desktop nav
   const desktopGithubLink = (
     <a
       href={GITHUB_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-1.5 px-2 py-1 border border-wiki-border-light bg-wiki-offwhite hover:bg-wiki-tab-bg text-wiki-text text-xs"
+      className="inline-flex items-center gap-1.5 px-2 py-1 border border-wiki-border-light bg-wiki-offwhite hover:bg-wiki-tab-bg text-wiki-text text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
     >
-      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+      <svg aria-hidden className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
         <path d={githubIconPath} />
       </svg>
       GitHub
@@ -107,6 +111,14 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
 
   return (
     <div className="min-h-screen bg-wiki-white">
+      {/* Skip navigation — WCAG 2.4.1 */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-wiki-white focus:border focus:border-wiki-border focus:text-wiki-link focus:text-sm"
+      >
+        Skip to main content
+      </a>
+
       {/* Header */}
       <header className="border-b border-wiki-border bg-wiki-white">
         <div className="max-w-[960px] mx-auto px-4 py-3 flex items-center justify-between">
@@ -133,10 +145,13 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <div ref={docsRef} className="relative">
                 <button
                   onClick={() => setDocsOpen((o) => !o)}
+                  onKeyDown={handleDocsKeyDown}
+                  aria-haspopup="true"
+                  aria-expanded={docsOpen}
                   className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Docs
-                  <svg className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
+                  <svg aria-hidden className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
                     <path strokeLinecap="round" strokeLinejoin="round" d={docsOpen ? "M2 8l4-4 4 4" : "M2 4l4 4 4-4"} />
                   </svg>
                 </button>
@@ -177,10 +192,13 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               <div ref={docsRef} className="relative">
                 <button
                   onClick={() => setDocsOpen((o) => !o)}
+                  onKeyDown={handleDocsKeyDown}
+                  aria-haspopup="true"
+                  aria-expanded={docsOpen}
                   className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Docs
-                  <svg className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
+                  <svg aria-hidden className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
                     <path strokeLinecap="round" strokeLinejoin="round" d={docsOpen ? "M2 8l4-4 4 4" : "M2 4l4 4 4-4"} />
                   </svg>
                 </button>
@@ -342,7 +360,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-[960px] mx-auto px-4 py-6">{children}</main>
+      <main id="main-content" className="max-w-[960px] mx-auto px-4 py-6">{children}</main>
 
       {/* Footer */}
       {!hideFooter && (

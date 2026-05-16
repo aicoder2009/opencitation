@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -16,6 +16,8 @@ interface RecentCitation {
 }
 
 const RECENT_CITATIONS_KEY = "opencitation_recent";
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 
 export default function LandingPage() {
   const router = useRouter();
@@ -136,6 +138,64 @@ export default function LandingPage() {
     setReportMode("choice");
     setSubmitResult(null);
   };
+
+  const privacyDialogRef = useRef<HTMLDivElement>(null);
+  const termsDialogRef = useRef<HTMLDivElement>(null);
+  const reportDialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  const handleFocusTrap = (e: React.KeyboardEvent, ref: React.RefObject<HTMLDivElement | null>) => {
+    if (e.key !== "Tab") return;
+    const focusable = Array.from(ref.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+
+  useEffect(() => {
+    if (showPrivacy) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      setTimeout(() => { privacyDialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE)[0]?.focus(); }, 30);
+    } else {
+      previousFocusRef.current?.focus();
+    }
+  }, [showPrivacy]);
+
+  useEffect(() => {
+    if (showTerms) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      setTimeout(() => { termsDialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE)[0]?.focus(); }, 30);
+    } else {
+      previousFocusRef.current?.focus();
+    }
+  }, [showTerms]);
+
+  useEffect(() => {
+    if (showReportIssue) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      setTimeout(() => { reportDialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE)[0]?.focus(); }, 30);
+    } else {
+      previousFocusRef.current?.focus();
+    }
+  }, [showReportIssue]);
+
+  useEffect(() => {
+    if (!showPrivacy && !showTerms && !showReportIssue) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      if (showPrivacy) setShowPrivacy(false);
+      else if (showTerms) setShowTerms(false);
+      else { setShowReportIssue(false); setReportMode("choice"); setSubmitResult(null); }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [showPrivacy, showTerms, showReportIssue]);
 
   return (
     <WikiLayout hideFooter>
@@ -284,6 +344,7 @@ export default function LandingPage() {
               <input
                 type="text"
                 placeholder="https://example.com or 10.1000/xyz or 978-0-123456-78-9"
+                aria-label="URL, DOI, or ISBN"
                 className="flex-1"
                 value={quickAddInput}
                 onChange={(e) => setQuickAddInput(e.target.value)}
@@ -311,7 +372,7 @@ export default function LandingPage() {
                 <h2 className="text-xl font-bold">Recent Citations</h2>
                 <button
                   onClick={clearRecentCitations}
-                  className="text-sm text-wiki-text-muted hover:text-wiki-link"
+                  className="text-sm text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Clear history
                 </button>
@@ -381,9 +442,9 @@ export default function LandingPage() {
               <div>
                 <h4 className="font-bold mb-2">Product</h4>
                 <ul className="space-y-1 text-wiki-text-muted">
-                  <li><Link href="/cite" className="hover:text-wiki-link">Cite</Link></li>
-                  <li><Link href="/lists" className="hover:text-wiki-link">Lists</Link></li>
-                  <li><Link href="/projects" className="hover:text-wiki-link">Projects</Link></li>
+                  <li><Link href="/cite" className="text-wiki-link hover:underline">Cite</Link></li>
+                  <li><Link href="/lists" className="text-wiki-link hover:underline">Lists</Link></li>
+                  <li><Link href="/projects" className="text-wiki-link hover:underline">Projects</Link></li>
                 </ul>
               </div>
 
@@ -391,10 +452,10 @@ export default function LandingPage() {
               <div>
                 <h4 className="font-bold mb-2">Resources</h4>
                 <ul className="space-y-1 text-wiki-text-muted">
-                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki" target="_blank" className="hover:text-wiki-link">Documentation</Link></li>
-                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/API-Reference" target="_blank" className="hover:text-wiki-link">API Reference</Link></li>
-                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/FAQ" target="_blank" className="hover:text-wiki-link">FAQ</Link></li>
-                  <li><Link href="/embed" className="hover:text-wiki-link">Embed Badge</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki" target="_blank" className="text-wiki-link hover:underline">Documentation</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/API-Reference" target="_blank" className="text-wiki-link hover:underline">API Reference</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/FAQ" target="_blank" className="text-wiki-link hover:underline">FAQ</Link></li>
+                  <li><Link href="/embed" className="text-wiki-link hover:underline">Embed Badge</Link></li>
                 </ul>
               </div>
 
@@ -402,9 +463,9 @@ export default function LandingPage() {
               <div>
                 <h4 className="font-bold mb-2">Community</h4>
                 <ul className="space-y-1 text-wiki-text-muted">
-                  <li><Link href="https://github.com/aicoder2009/opencitation" target="_blank" className="hover:text-wiki-link">GitHub</Link></li>
-                  <li><Link href="https://github.com/aicoder2009/opencitation/releases" target="_blank" className="hover:text-wiki-link">Changelog</Link></li>
-                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/Contributing" target="_blank" className="hover:text-wiki-link">Contributing</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation" target="_blank" className="text-wiki-link hover:underline">GitHub</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/releases" target="_blank" className="text-wiki-link hover:underline">Changelog</Link></li>
+                  <li><Link href="https://github.com/aicoder2009/opencitation/wiki/Contributing" target="_blank" className="text-wiki-link hover:underline">Contributing</Link></li>
                 </ul>
               </div>
 
@@ -437,14 +498,12 @@ export default function LandingPage() {
 
       {/* Privacy Policy Modal */}
       {showPrivacy && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)} role="dialog" aria-modal="true" aria-label="Privacy Policy">
-          <div className="bg-wiki-white border border-wiki-border-light shadow-lg max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowPrivacy(false)}>
+          <div ref={privacyDialogRef} role="dialog" aria-modal="true" aria-labelledby="privacy-heading" onKeyDown={(e) => handleFocusTrap(e, privacyDialogRef)} className="bg-wiki-white border border-wiki-border-light shadow-lg max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
-                <h2 className="text-xl font-bold">Privacy Policy</h2>
-                <p className="text-xs text-wiki-text-muted flex items-center gap-1">
-                  <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
-                </p>
+                <h2 id="privacy-heading" className="text-xl font-bold">Privacy Policy</h2>
+                <p className="text-xs text-wiki-text-muted">Scroll to read all sections</p>
               </div>
               <button onClick={() => setShowPrivacy(false)} className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text" aria-label="Close">[close]</button>
             </div>
@@ -499,14 +558,12 @@ export default function LandingPage() {
 
       {/* Terms of Service Modal */}
       {showTerms && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)} role="dialog" aria-modal="true" aria-label="Terms of Service">
-          <div className="bg-wiki-white border border-wiki-border-light shadow-lg max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowTerms(false)}>
+          <div ref={termsDialogRef} role="dialog" aria-modal="true" aria-labelledby="terms-heading" onKeyDown={(e) => handleFocusTrap(e, termsDialogRef)} className="bg-wiki-white border border-wiki-border-light shadow-lg max-w-2xl h-[70vh] flex flex-col relative" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
-                <h2 className="text-xl font-bold">Terms of Service</h2>
-                <p className="text-xs text-wiki-text-muted flex items-center gap-1">
-                  <span className="animate-bounce inline-block">↓</span> Scroll to read all sections
-                </p>
+                <h2 id="terms-heading" className="text-xl font-bold">Terms of Service</h2>
+                <p className="text-xs text-wiki-text-muted">Scroll to read all sections</p>
               </div>
               <button onClick={() => setShowTerms(false)} className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text" aria-label="Close">[close]</button>
             </div>
@@ -568,11 +625,11 @@ export default function LandingPage() {
 
       {/* Report Issue Modal */}
       {showReportIssue && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeReportModal} role="dialog" aria-modal="true" aria-label="Report an Issue">
-          <div className="bg-wiki-white border border-wiki-border-light shadow-lg max-w-lg w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={closeReportModal}>
+          <div ref={reportDialogRef} role="dialog" aria-modal="true" aria-labelledby="report-heading" onKeyDown={(e) => handleFocusTrap(e, reportDialogRef)} className="bg-wiki-white border border-wiki-border-light shadow-lg max-w-lg w-full max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <div className="border-b border-wiki-border-light p-4 flex justify-between items-center bg-wiki-white shrink-0">
               <div>
-                <h2 className="text-xl font-bold">Report an Issue</h2>
+                <h2 id="report-heading" className="text-xl font-bold">Report an Issue</h2>
                 <p className="text-xs text-wiki-text-muted">Help us improve OpenCitation</p>
               </div>
               <button onClick={closeReportModal} className="text-wiki-text-muted hover:text-wiki-text text-sm focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text" aria-label="Close">[close]</button>
@@ -622,8 +679,9 @@ export default function LandingPage() {
                   </button>
 
                   <div>
-                    <label className="block text-sm font-bold mb-1">Issue Type</label>
+                    <label htmlFor="issue-type" className="block text-sm font-bold mb-1">Issue Type</label>
                     <select
+                      id="issue-type"
                       value={issueType}
                       onChange={(e) => setIssueType(e.target.value)}
                       className="w-full border border-wiki-border-light p-2 text-sm bg-wiki-white"
@@ -637,8 +695,9 @@ export default function LandingPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold mb-1">Title <span className="text-wiki-text-muted">*</span></label>
+                    <label htmlFor="issue-title" className="block text-sm font-bold mb-1">Title <span className="text-wiki-text-muted">*</span></label>
                     <input
+                      id="issue-title"
                       type="text"
                       value={issueTitle}
                       onChange={(e) => setIssueTitle(e.target.value)}
@@ -649,8 +708,9 @@ export default function LandingPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold mb-1">Description <span className="text-wiki-text-muted">*</span></label>
+                    <label htmlFor="issue-description" className="block text-sm font-bold mb-1">Description <span className="text-wiki-text-muted">*</span></label>
                     <textarea
+                      id="issue-description"
                       value={issueDescription}
                       onChange={(e) => setIssueDescription(e.target.value)}
                       placeholder="Please describe the issue in detail. Include steps to reproduce if reporting a bug."
@@ -661,8 +721,9 @@ export default function LandingPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold mb-1">Email <span className="text-wiki-text-muted font-normal">(optional)</span></label>
+                    <label htmlFor="issue-email" className="block text-sm font-bold mb-1">Email <span className="text-wiki-text-muted font-normal">(optional)</span></label>
                     <input
+                      id="issue-email"
                       type="email"
                       value={issueEmail}
                       onChange={(e) => setIssueEmail(e.target.value)}

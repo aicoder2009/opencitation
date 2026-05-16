@@ -59,16 +59,18 @@ export default function EmbedPage() {
 
         {/* URL Input */}
         <div className="border border-wiki-border-light bg-wiki-white p-6 mb-6">
-          <h2 className="font-bold mb-4">Your Page URL (Optional)</h2>
+          <h2 className="font-bold mb-4" id="page-url-label">Your Page URL (Optional)</h2>
           <p className="text-wiki-text-muted text-sm mb-3">
             Enter your page URL to pre-fill the citation form when visitors click the badge.
           </p>
           <input
+            id="page-url"
             type="url"
             value={pageUrl}
             onChange={(e) => setPageUrl(e.target.value)}
             placeholder="https://example.com/your-article"
-            className="w-full border border-wiki-border-light p-2 text-base focus:border-wiki-link focus:outline-none"
+            aria-labelledby="page-url-label"
+            className="w-full border border-wiki-border-light p-2 text-base"
           />
         </div>
 

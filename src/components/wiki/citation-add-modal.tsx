@@ -50,6 +50,8 @@ function detectEndpoint(raw: string): { endpoint: string; body: object } | null 
   return null;
 }
 
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function CitationAddModal({
   isOpen,
   onClose,
@@ -58,6 +60,9 @@ export function CitationAddModal({
   onCitationAdded,
 }: CitationAddModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const headingId = `modal-heading-${listId}`;
   const [input, setInput] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
   const [addMore, setAddMore] = useState(false);
@@ -71,11 +76,13 @@ export function CitationAddModal({
   const [showSuccess, setShowSuccess] = useState(false);
   const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Auto-focus input when modal opens
+  // Focus management: save previous focus, move into dialog on open, restore on close
   useEffect(() => {
     if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
       setTimeout(() => inputRef.current?.focus(), 50);
     } else {
+      previousFocusRef.current?.focus();
       // Reset everything on close
       setInput("");
       setCitationFields(null);
@@ -193,21 +200,40 @@ export function CitationAddModal({
     }
   };
 
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Add Citation"
     >
-      <div className="bg-wiki-white border border-wiki-border-light w-full max-w-xl mx-4 shadow-lg max-h-[90vh] flex flex-col">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        onKeyDown={handleFocusTrap}
+        className="bg-wiki-white border border-wiki-border-light w-full max-w-xl mx-4 shadow-lg max-h-[90vh] flex flex-col"
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-wiki-border-light">
           <div>
-            <h2 className="font-bold text-base">Add Citation</h2>
+            <h2 id={headingId} className="font-bold text-base">Add Citation</h2>
             <p className="text-xs text-wiki-text-muted mt-0.5">
               to &ldquo;{listName}&rdquo;
               {addMore && addedCount > 0 && (

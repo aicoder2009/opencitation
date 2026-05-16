@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export interface WikiSelectOption {
   value: string;
@@ -13,6 +13,10 @@ interface WikiSelectProps {
   options: WikiSelectOption[];
   placeholder?: string;
   className?: string;
+  /** Accessible label for the trigger button (required when no visible label is associated). */
+  "aria-label"?: string;
+  /** ID of an external element that labels this select. */
+  "aria-labelledby"?: string;
 }
 
 export function WikiSelect({
@@ -21,42 +25,104 @@ export function WikiSelect({
   options,
   placeholder = "Select…",
   className = "",
+  "aria-label": ariaLabel,
+  "aria-labelledby": ariaLabelledBy,
 }: WikiSelectProps) {
   const [open, setOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const listboxId = useId();
 
   const selected = options.find((o) => o.value === value) ?? null;
+  const selectedIndex = options.findIndex((o) => o.value === value);
 
+  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setFocusedIndex(-1);
       }
     };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
     document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
+    return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
+
+  // Focus the active/first option when menu opens
+  useEffect(() => {
+    if (open) {
+      const idx = selectedIndex >= 0 ? selectedIndex : 0;
+      setFocusedIndex(idx);
+    }
+  }, [open, selectedIndex]);
+
+  // Move DOM focus as keyboard selection changes
+  useEffect(() => {
+    if (open && focusedIndex >= 0) {
+      optionRefs.current[focusedIndex]?.focus();
+    }
+  }, [open, focusedIndex]);
+
+  const close = () => {
+    setOpen(false);
+    setFocusedIndex(-1);
+    triggerRef.current?.focus();
+  };
 
   const select = (v: string) => {
     onChange(v);
-    setOpen(false);
+    close();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpen(true);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setOpen(true);
+    } else if (e.key === "Escape") {
+      close();
+    }
+  };
+
+  const handleOptionKeyDown = (e: React.KeyboardEvent, index: number, optValue: string) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedIndex((index + 1) % options.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedIndex((index - 1 + options.length) % options.length);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setFocusedIndex(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setFocusedIndex(options.length - 1);
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      select(optValue);
+    } else if (e.key === "Escape" || e.key === "Tab") {
+      e.key === "Escape" && e.preventDefault();
+      close();
+    }
   };
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => (open ? setOpen(false) : setOpen(true))}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={handleTriggerKeyDown}
         aria-haspopup="listbox"
         aria-expanded={open}
+        aria-controls={listboxId}
+        aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         className="w-full flex items-center justify-between text-left px-3 py-2 text-sm
           border border-wiki-border-light bg-wiki-white transition-colors
           hover:bg-wiki-tab-bg
@@ -70,19 +136,25 @@ export function WikiSelect({
 
       {open && (
         <div
+          id={listboxId}
           role="listbox"
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
           className="absolute z-20 top-full left-0 right-0 mt-0.5 bg-wiki-white border border-wiki-border-light shadow-md overflow-y-auto"
           style={{ maxHeight: 240 }}
         >
-          {options.map((opt) => {
+          {options.map((opt, index) => {
             const active = value === opt.value;
             return (
               <button
                 key={opt.value}
+                ref={(el) => { optionRefs.current[index] = el; }}
                 type="button"
                 role="option"
                 aria-selected={active}
+                tabIndex={focusedIndex === index ? 0 : -1}
                 onClick={() => select(opt.value)}
+                onKeyDown={(e) => handleOptionKeyDown(e, index, opt.value)}
                 className={`flex items-center justify-between w-full text-left px-3 py-1.5 text-sm transition-colors
                   focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text
                   ${active

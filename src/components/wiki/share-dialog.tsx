@@ -27,6 +27,8 @@ interface ShareListEntry {
   expiresAt?: string;
 }
 
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function ShareDialog({
   isOpen,
   onClose,
@@ -42,6 +44,9 @@ export function ShareDialog({
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const linkRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const headingId = `share-dialog-heading-${targetId}`;
 
   const fetchActiveShare = useCallback(async () => {
     setIsLoading(true);
@@ -80,6 +85,20 @@ export function ShareDialog({
     setError(null);
     fetchActiveShare();
   }, [isOpen, fetchActiveShare]);
+
+  // Focus management: save previous focus, move into dialog on open, restore on close
+  useEffect(() => {
+    if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      // Small defer so dialog has rendered before we grab focusable elements
+      setTimeout(() => {
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE);
+        focusable?.[0]?.focus();
+      }, 30);
+    } else {
+      previousFocusRef.current?.focus();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -159,6 +178,21 @@ export function ShareDialog({
     }
   };
 
+  const handleFocusTrap = (e: React.KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const focusable = Array.from(
+      dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []
+    );
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  };
+
   if (!isOpen) return null;
 
   const heading = type === "list" ? "Share this list" : "Share this project";
@@ -167,17 +201,19 @@ export function ShareDialog({
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label={heading}
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        onKeyDown={handleFocusTrap}
         className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-wiki-border-light flex justify-between items-start">
           <div>
-            <h3 className="font-bold text-base">{heading}</h3>
+            <h3 id={headingId} className="font-bold text-base">{heading}</h3>
             {targetName && (
               <p className="text-wiki-text-muted text-xs mt-0.5 break-all">
                 {targetName}
@@ -215,12 +251,13 @@ export function ShareDialog({
           {!isLoading && activeShare && (
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium mb-1">
+                <label htmlFor={`share-link-${targetId}`} className="block text-xs font-medium mb-1">
                   Public link
                 </label>
                 <div className="flex gap-2">
                   <input
                     ref={linkRef}
+                    id={`share-link-${targetId}`}
                     type="text"
                     readOnly
                     value={activeShare.url}
