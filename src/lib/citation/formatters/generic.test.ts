@@ -421,3 +421,47 @@ describe('formatGeneric', () => {
     });
   });
 });
+
+// ── Organization-name author period ───────────────────────────────────────────
+// formatGeneric pushes authorText bare; APA/MLA/Chicago need a trailing period
+// before the date/title. Harvard format omits it (Author (Year) pattern).
+
+describe('formatGeneric – organization-name author period', () => {
+  const orgSong: SongFields = {
+    sourceType: 'song',
+    accessType: 'web',
+    title: 'Yesterday',
+    performers: [{ lastName: 'The Beatles', isOrganization: true }],
+    publicationDate: { year: 1965 },
+  };
+
+  it('APA: org performer gets period before date', () => {
+    const { text } = formatGeneric(orgSong, 'apa');
+    expect(text).toContain('The Beatles. (1965)');
+  });
+
+  it('MLA: org performer gets period before title', () => {
+    const { text } = formatGeneric(orgSong, 'mla');
+    // "The Beatles." must appear and precede the title
+    expect(text).toContain('The Beatles.');
+    const dotIdx = text.indexOf('The Beatles.') + 'The Beatles.'.length;
+    const titleIdx = text.indexOf('Yesterday');
+    expect(dotIdx).toBeLessThan(titleIdx);
+  });
+
+  it('Chicago: org performer gets period before title', () => {
+    const { text } = formatGeneric(orgSong, 'chicago');
+    expect(text).toContain('The Beatles.');
+    const dotIdx = text.indexOf('The Beatles.') + 'The Beatles.'.length;
+    const titleIdx = text.indexOf('Yesterday');
+    expect(dotIdx).toBeLessThan(titleIdx);
+  });
+
+  it('Harvard: org performer has NO period (author-year pattern)', () => {
+    const { text } = formatGeneric(orgSong, 'harvard');
+    // Harvard: "The Beatles 1965 Yesterday [Song]." — no separating period
+    expect(text).toContain('The Beatles');
+    expect(text).toContain('1965');
+    expect(text).not.toMatch(/The Beatles\. 1965/);
+  });
+});

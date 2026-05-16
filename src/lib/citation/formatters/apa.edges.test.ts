@@ -9,6 +9,9 @@ import type {
   JournalFields,
   WebsiteFields,
   VideoFields,
+  BlogFields,
+  NewspaperFields,
+  MiscellaneousFields,
 } from '@/types/citation';
 
 function a(lastName: string, firstName?: string) {
@@ -374,5 +377,119 @@ describe('APA Website – author and siteName combos', () => {
     const { text } = formatAPA({ ...base });
     // Starts with the date
     expect(text.trim()).toMatch(/^\(/);
+  });
+});
+
+// ── Organization-name author period ───────────────────────────────────────────
+// APA 7 requires a period after the author block before the date parenthetical.
+// Organization names and bare-last-name authors don't end with "." on their own,
+// so each formatter must append one: "World Health Organization. (2020)."
+
+describe('APA – organization-name author period', () => {
+  it('book: org author gets period before date', () => {
+    const fields: BookFields = {
+      sourceType: 'book',
+      accessType: 'print',
+      title: 'Health Report',
+      authors: [{ lastName: 'World Health Organization', isOrganization: true }],
+      publicationDate: { year: 2020 },
+    };
+    expect(formatAPA(fields).text).toContain('World Health Organization. (2020)');
+  });
+
+  it('journal: org author gets period before date', () => {
+    const fields: JournalFields = {
+      sourceType: 'journal',
+      accessType: 'web',
+      title: 'Study Results',
+      authors: [{ lastName: 'CDC', isOrganization: true }],
+      journalTitle: 'Test Journal',
+      publicationDate: { year: 2021 },
+    };
+    expect(formatAPA(fields).text).toContain('CDC. (2021)');
+  });
+
+  it('website: org author gets period before date', () => {
+    const fields: WebsiteFields = {
+      sourceType: 'website',
+      accessType: 'web',
+      title: 'Home Page',
+      authors: [{ lastName: 'UNICEF', isOrganization: true }],
+      url: 'https://unicef.org',
+      publicationDate: { year: 2022 },
+    };
+    expect(formatAPA(fields).text).toContain('UNICEF. (2022)');
+  });
+
+  it('website: siteName used as author gets period before date', () => {
+    const fields: WebsiteFields = {
+      sourceType: 'website',
+      accessType: 'web',
+      title: 'Home Page',
+      siteName: 'Example Site',
+      url: 'https://example.com',
+      publicationDate: { year: 2022 },
+    };
+    expect(formatAPA(fields).text).toContain('Example Site. (2022)');
+  });
+
+  it('blog: org author gets period before date', () => {
+    const fields: BlogFields = {
+      sourceType: 'blog',
+      accessType: 'web',
+      title: 'Policy Update',
+      authors: [{ lastName: 'Government Agency', isOrganization: true }],
+      blogName: 'Official Blog',
+      url: 'https://example.gov',
+      publicationDate: { year: 2023 },
+    };
+    expect(formatAPA(fields).text).toContain('Government Agency. (2023)');
+  });
+
+  it('newspaper: org author gets period before date', () => {
+    const fields: NewspaperFields = {
+      sourceType: 'newspaper',
+      accessType: 'web',
+      title: 'Breaking News',
+      authors: [{ lastName: 'Staff Reporter', isOrganization: true }],
+      newspaperTitle: 'Daily Times',
+      publicationDate: { year: 2022 },
+    };
+    expect(formatAPA(fields).text).toContain('Staff Reporter. (2022)');
+  });
+
+  it('image: org author gets period before date', () => {
+    const fields: ImageFields = {
+      sourceType: 'image',
+      accessType: 'web',
+      title: 'Collection Photo',
+      authors: [{ lastName: 'MoMA Archive', isOrganization: true }],
+      publicationDate: { year: 2019 },
+    };
+    expect(formatAPA(fields).text).toContain('MoMA Archive. (2019)');
+  });
+
+  it('miscellaneous: org author gets period before date', () => {
+    const fields: MiscellaneousFields = {
+      sourceType: 'miscellaneous',
+      accessType: 'web',
+      title: 'Annual Report',
+      authors: [{ lastName: 'Company Name', isOrganization: true }],
+      publicationDate: { year: 2021 },
+    };
+    expect(formatAPA(fields).text).toContain('Company Name. (2021)');
+  });
+
+  it('video: org author without channelName gets period before date', () => {
+    const fields: VideoFields = {
+      sourceType: 'video',
+      accessType: 'web',
+      title: 'Tutorial',
+      authors: [{ lastName: 'NASA', isOrganization: true }],
+      platform: 'YouTube',
+      url: 'https://youtu.be/example',
+      uploadDate: { year: 2023 },
+    };
+    expect(formatAPA(fields).text).toContain('NASA. (2023)');
   });
 });

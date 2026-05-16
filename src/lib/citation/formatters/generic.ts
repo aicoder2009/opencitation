@@ -294,8 +294,14 @@ export function formatGeneric(
   const credits = creditsForStyle(fields);
   const authorText = styleAuthors(credits, style);
   if (authorText) {
-    parts.push(authorText);
-    htmlParts.push(escapeHtml(authorText));
+    // Harvard uses "Author (Year)" — no period between author and date.
+    // APA, MLA, and Chicago all require a sentence-closing period after the author block.
+    const authorWithPeriod =
+      style !== 'harvard' && !authorText.endsWith('.')
+        ? `${authorText}.`
+        : authorText;
+    parts.push(authorWithPeriod);
+    htmlParts.push(escapeHtml(authorWithPeriod));
   }
 
   const date = styleDate(fields.publicationDate, style);

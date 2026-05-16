@@ -91,8 +91,9 @@ function formatBook(fields: BookFields): FormattedCitation {
   // Authors — or editors in author position when no authors (e.g. edited volumes)
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   } else if (fields.editors && fields.editors.length > 0) {
     const editorStr = `${formatAuthorsAPA(fields.editors)} (${fields.editors.length === 1 ? 'Ed.' : 'Eds.'})`;
     parts.push(`${editorStr}.`);
@@ -152,8 +153,9 @@ function formatJournal(fields: JournalFields): FormattedCitation {
   // Authors
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   }
 
   // Date
@@ -228,12 +230,14 @@ function formatWebsite(fields: WebsiteFields): FormattedCitation {
   // Authors
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   } else if (fields.siteName) {
     // Use site name as author if no authors
-    parts.push(fields.siteName);
-    htmlParts.push(escapeHtml(fields.siteName));
+    const sn = fields.siteName.endsWith('.') ? fields.siteName : `${fields.siteName}.`;
+    parts.push(sn);
+    htmlParts.push(escapeHtml(sn));
   }
 
   // Date
@@ -281,8 +285,9 @@ function formatBlog(fields: BlogFields): FormattedCitation {
   // Authors
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   }
 
   // Date
@@ -326,8 +331,9 @@ function formatNewspaper(fields: NewspaperFields): FormattedCitation {
   // Authors
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   }
 
   // Date
@@ -378,6 +384,8 @@ function formatVideo(fields: VideoFields): FormattedCitation {
     let authorStr = authors;
     if (fields.channelName && authors !== fields.channelName) {
       authorStr = `${authorStr} [${fields.channelName}].`;
+    } else if (!authorStr.endsWith('.')) {
+      authorStr = `${authorStr}.`;
     }
     parts.push(authorStr);
     htmlParts.push(escapeHtml(authorStr));
@@ -429,8 +437,9 @@ function formatImage(fields: ImageFields): FormattedCitation {
   // Authors/artists
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   }
 
   // Date
@@ -637,8 +646,9 @@ function formatMiscellaneous(fields: MiscellaneousFields): FormattedCitation {
   // Authors
   const authors = formatAuthorsAPA(fields.authors || []);
   if (authors) {
-    parts.push(authors);
-    htmlParts.push(escapeHtml(authors));
+    const a = authors.endsWith('.') ? authors : `${authors}.`;
+    parts.push(a);
+    htmlParts.push(escapeHtml(a));
   }
 
   // Date
