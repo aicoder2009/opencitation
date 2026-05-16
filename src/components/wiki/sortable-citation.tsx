@@ -231,6 +231,7 @@ export function SortableCitation({
                 onChange={(e) => setEditFields({ ...editFields, title: e.target.value })}
                 className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                 placeholder="Title"
+                aria-label="Citation title"
               />
             </div>
             <div className="space-y-1">
@@ -258,6 +259,7 @@ export function SortableCitation({
                     onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
                     className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                     placeholder="World Health Organization"
+                    aria-label="Organization name"
                   />
                 </div>
               ) : (
@@ -270,6 +272,7 @@ export function SortableCitation({
                       onChange={(e) => setEditFields({ ...editFields, authorFirst: e.target.value })}
                       className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                       placeholder="First"
+                      aria-label="First name"
                     />
                   </div>
                   <div>
@@ -280,6 +283,7 @@ export function SortableCitation({
                       onChange={(e) => setEditFields({ ...editFields, authorMiddle: e.target.value })}
                       className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                       placeholder="M."
+                      aria-label="Middle name or initial"
                     />
                   </div>
                   <div>
@@ -290,6 +294,7 @@ export function SortableCitation({
                       onChange={(e) => setEditFields({ ...editFields, authorLast: e.target.value })}
                       className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                       placeholder="Last"
+                      aria-label="Last name"
                     />
                   </div>
                 </div>
@@ -304,6 +309,7 @@ export function SortableCitation({
                   onChange={(e) => setEditFields({ ...editFields, year: e.target.value })}
                   className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                   placeholder="2024"
+                  aria-label="Publication year"
                 />
               </div>
               <div>
@@ -314,6 +320,7 @@ export function SortableCitation({
                   onChange={(e) => setEditFields({ ...editFields, url: e.target.value })}
                   className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                   placeholder="https://..."
+                  aria-label="URL"
                 />
               </div>
             </div>
@@ -400,6 +407,7 @@ export function SortableCitation({
                   rows={4}
                   className="w-full px-2 py-1 text-sm border border-wiki-border-light"
                   placeholder="Summarize this source, capture an argument, or note why it matters..."
+                  aria-label="Notes (annotation or summary)"
                   autoFocus
                 />
                 <div className="flex gap-2">
@@ -477,6 +485,7 @@ export function SortableCitation({
                       rows={2}
                       className="flex-1 px-2 py-1 text-sm border border-wiki-border-light"
                       placeholder='"A direct quotation from the source..."'
+                      aria-label={`Quote ${i + 1} text`}
                     />
                     <input
                       type="text"
@@ -488,6 +497,7 @@ export function SortableCitation({
                       }}
                       className="w-20 px-2 py-1 text-sm border border-wiki-border-light"
                       placeholder="p. 42"
+                      aria-label={`Quote ${i + 1} page number`}
                     />
                     <button
                       onClick={() =>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   SHORTCUTS,
   formatShortcutKey,
@@ -11,8 +11,12 @@ interface ShortcutHelpProps {
   scope?: Shortcut["scope"];
 }
 
+const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
@@ -41,6 +45,15 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
+  useEffect(() => {
+    if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      setTimeout(() => { dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE)[0]?.focus(); }, 30);
+    } else {
+      previousFocusRef.current?.focus();
+    }
+  }, [isOpen]);
+
   // Filter shortcuts by current scope
   const relevantShortcuts = SHORTCUTS.filter(
     (s) => s.scope === scope || s.scope === "global"
@@ -58,16 +71,25 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
       onClick={() => setIsOpen(false)}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Keyboard Shortcuts"
     >
       <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="shortcut-help-heading"
+        onKeyDown={(e) => {
+          if (e.key !== "Tab") return;
+          const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+          if (!focusable.length) return;
+          const first = focusable[0]; const last = focusable[focusable.length - 1];
+          if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+          else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+        }}
         className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
-          <h3 className="font-bold text-base">Keyboard Shortcuts</h3>
+          <h3 id="shortcut-help-heading" className="font-bold text-base">Keyboard Shortcuts</h3>
           <button
             onClick={() => setIsOpen(false)}
             className="text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
