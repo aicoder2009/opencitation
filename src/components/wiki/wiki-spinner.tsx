@@ -1,13 +1,12 @@
 export function WikiSpinner() {
   return (
-    <div className="flex items-center justify-center py-8">
+    <div className="flex items-center justify-center py-8" role="status" aria-label="Loading">
       <svg
+        aria-hidden="true"
         className="w-5 h-5 animate-spin text-wiki-text-muted"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
         viewBox="0 0 24 24"
-        aria-label="Loading"
-        role="img"
       >
         <circle
           className="opacity-25"

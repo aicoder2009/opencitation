@@ -2689,7 +2689,7 @@ https://another-site.com/paper"
           {/* Add to List Modal */}
           {showListModal && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => { setShowListModal(false); setNewListName(""); setNewListNameError(null); }}>
-              <div role="dialog" aria-modal="true" aria-labelledby="add-to-list-heading" className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+              <div role="dialog" aria-modal="true" aria-labelledby="add-to-list-heading" className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") { setShowListModal(false); setNewListName(""); setNewListNameError(null); } }}>
                 <div className="p-4 border-b border-wiki-border-light flex justify-between items-center">
                   <h3 id="add-to-list-heading" className="font-bold text-base">Add to List</h3>
                   <button
@@ -2793,7 +2793,7 @@ https://another-site.com/paper"
           {/* Duplicate Warning Modal */}
           {showDuplicateWarning && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={cancelDuplicateWarning}>
-              <div role="dialog" aria-modal="true" aria-labelledby="duplicate-warning-heading" className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg" onClick={(e) => e.stopPropagation()}>
+              <div role="dialog" aria-modal="true" aria-labelledby="duplicate-warning-heading" className="bg-wiki-white border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") cancelDuplicateWarning(); }}>
                 <div className="p-4 border-b border-wiki-border-light">
                   <h3 id="duplicate-warning-heading" className="font-bold text-base text-wiki-text">Possible Duplicate</h3>
                 </div>

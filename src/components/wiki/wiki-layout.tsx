@@ -98,11 +98,11 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDark ? (
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <svg aria-hidden="true" className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d={sunIconPath} clipRule="evenodd" />
         </svg>
       ) : (
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <svg aria-hidden="true" className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path d={moonIconPath} />
         </svg>
       )}
@@ -146,12 +146,12 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 <button
                   onClick={() => setDocsOpen((o) => !o)}
                   onKeyDown={handleDocsKeyDown}
-                  aria-haspopup="true"
+                  aria-haspopup="menu"
                   aria-expanded={docsOpen}
                   className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Docs
-                  <svg aria-hidden className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
+                  <svg aria-hidden="true" className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
                     <path strokeLinecap="round" strokeLinejoin="round" d={docsOpen ? "M2 8l4-4 4 4" : "M2 4l4 4 4-4"} />
                   </svg>
                 </button>
@@ -193,12 +193,12 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 <button
                   onClick={() => setDocsOpen((o) => !o)}
                   onKeyDown={handleDocsKeyDown}
-                  aria-haspopup="true"
+                  aria-haspopup="menu"
                   aria-expanded={docsOpen}
                   className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Docs
-                  <svg aria-hidden className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
+                  <svg aria-hidden="true" className="w-3 h-3 mt-px" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 12 12">
                     <path strokeLinecap="round" strokeLinejoin="round" d={docsOpen ? "M2 8l4-4 4 4" : "M2 4l4 4 4-4"} />
                   </svg>
                 </button>
@@ -231,6 +231,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               aria-label="Toggle menu"
             >
               <svg
+                aria-hidden="true"
                 className="w-6 h-6"
                 fill="none"
                 stroke="currentColor"
@@ -327,7 +328,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 className="inline-flex items-center gap-1.5 py-1 text-wiki-text hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d={githubIconPath} />
                 </svg>
                 GitHub
@@ -339,14 +340,14 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                 >
                   {isDark ? (
                     <>
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg aria-hidden="true" className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d={sunIconPath} clipRule="evenodd" />
                       </svg>
                       Light Mode
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <svg aria-hidden="true" className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path d={moonIconPath} />
                       </svg>
                       Dark Mode
