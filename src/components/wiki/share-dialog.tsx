@@ -58,6 +58,8 @@ export function ShareDialog({
   const [showCreator, setShowCreator] = useState(false);
   const [qrSvgs, setQrSvgs] = useState<Record<string, string>>({});
   const [expandedQrCode, setExpandedQrCode] = useState<string | null>(null);
+  const [expandedEmbedCode, setExpandedEmbedCode] = useState<string | null>(null);
+  const [copiedEmbedCode, setCopiedEmbedCode] = useState<string | null>(null);
   const [slugMode, setSlugMode] = useState<SlugMode>("auto");
   const [customSlug, setCustomSlug] = useState("");
   const [sharePassword, setSharePassword] = useState("");
@@ -204,6 +206,21 @@ export function ShareDialog({
       setCopiedCode(share.code);
     } catch {
       linkRef.current?.select();
+    }
+  };
+
+  const embedSnippet = (share: ActiveShare) => {
+    const url = `${share.url.replace(/\/share\//, "/share/")}/embed`;
+    return `<iframe src="${url}" width="100%" height="400" frameborder="0" style="border:1px solid #cccccc"></iframe>`;
+  };
+
+  const copyEmbedCode = async (share: ActiveShare) => {
+    try {
+      await navigator.clipboard.writeText(embedSnippet(share));
+      setCopiedEmbedCode(share.code);
+      setTimeout(() => setCopiedEmbedCode((c) => (c === share.code ? null : c)), 2000);
+    } catch {
+      // ignore
     }
   };
 
@@ -389,6 +406,17 @@ export function ShareDialog({
                           {expandedQrCode === share.code ? "Hide QR" : "Show QR"}
                         </button>
                         <button
+                          onClick={() =>
+                            setExpandedEmbedCode((c) =>
+                              c === share.code ? null : share.code,
+                            )
+                          }
+                          aria-expanded={expandedEmbedCode === share.code}
+                          className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                        >
+                          {expandedEmbedCode === share.code ? "Hide embed code" : "Embed"}
+                        </button>
+                        <button
                           onClick={() => setConfirmRevokeCode(share.code)}
                           className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                         >
@@ -437,6 +465,23 @@ export function ShareDialog({
                       >
                         Download QR (SVG)
                       </a>
+                    </div>
+                  )}
+
+                  {expandedEmbedCode === share.code && (
+                    <div className="mt-3 space-y-2">
+                      <pre className="bg-wiki-offwhite border border-wiki-border-light p-2 overflow-x-auto text-xs font-mono whitespace-pre-wrap">
+                        {embedSnippet(share)}
+                      </pre>
+                      <div className="flex items-center gap-3">
+                        <WikiButton onClick={() => copyEmbedCode(share)}>
+                          {copiedEmbedCode === share.code ? "Copied" : "Copy embed code"}
+                        </WikiButton>
+                        <span className="text-xs text-wiki-text-muted">
+                          Tip: append <code>?theme=dark</code> or{" "}
+                          <code>?numbered=1</code> to the src.
+                        </span>
+                      </div>
                     </div>
                   )}
                 </li>
