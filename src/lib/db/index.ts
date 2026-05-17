@@ -38,6 +38,7 @@ export const {getShareLink} = db;
 export const {deleteShareLink} = db;
 export const {listUserShares} = db;
 export const {deleteSharesForTarget} = db;
+export const {recordShareView} = db;
 
 // ============ HELPERS ============
 export const {findListById} = db;

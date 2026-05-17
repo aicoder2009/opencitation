@@ -48,6 +48,9 @@ export async function GET() {
         createdAt: share.createdAt,
         expiresAt: share.expiresAt,
         hasPassword: !!share.passwordHash,
+        maxViews: share.maxViews ?? null,
+        viewCount: share.viewCount ?? 0,
+        lastViewedAt: share.lastViewedAt ?? null,
         url: `${base}/share/${buildShareSegment(share.code, share.slug)}`,
       };
     });
@@ -75,12 +78,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, targetId, expiresInDays, slug: rawSlug, password } = body as {
+    const { type, targetId, expiresInDays, slug: rawSlug, password, maxViews } = body as {
       type: "list" | "project";
       targetId: string;
       expiresInDays?: number;
       slug?: string;
       password?: string;
+      maxViews?: number;
     };
 
     if (!type || !targetId) {
@@ -118,8 +122,11 @@ export async function POST(request: NextRequest) {
 
     const slug = rawSlug ? slugify(rawSlug) || undefined : undefined;
     const passwordHash = password && password.length > 0 ? hashSharePassword(password) : undefined;
+    const cap = maxViews && Number.isFinite(maxViews) && maxViews > 0
+      ? Math.floor(maxViews)
+      : undefined;
 
-    const shareLink = await createShareLink(userId, type, targetId, expiresInDays, slug, passwordHash);
+    const shareLink = await createShareLink(userId, type, targetId, expiresInDays, slug, passwordHash, cap);
 
     const posthog = getPostHogClient();
     posthog.capture({
@@ -131,6 +138,8 @@ export async function POST(request: NextRequest) {
         expires_in_days: expiresInDays ?? null,
         has_slug: !!slug,
         has_password: !!passwordHash,
+        has_view_limit: !!cap,
+        max_views: cap ?? null,
       },
     });
 

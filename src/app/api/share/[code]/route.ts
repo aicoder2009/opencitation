@@ -7,6 +7,7 @@ import {
   findListById,
   findProjectById,
   getUserLists,
+  recordShareView,
 } from "@/lib/db";
 import { parseShareSegment } from "@/lib/share-utils";
 import { verifySharePassword } from "@/lib/share-password";
@@ -48,6 +49,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           { status: 401 },
         );
       }
+    }
+
+    // Increment view counter (atomic, cap-aware). If the cap just got
+    // exhausted by a concurrent request we treat as 404.
+    const newCount = await recordShareView(shareLink.code);
+    if (newCount === null) {
+      return NextResponse.json(
+        { success: false, error: "Share link not found or expired" },
+        { status: 404 },
+      );
     }
 
     const shareMeta = {

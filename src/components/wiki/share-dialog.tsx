@@ -21,6 +21,9 @@ interface ActiveShare {
   url: string;
   expiresAt?: string;
   hasPassword?: boolean;
+  maxViews?: number | null;
+  viewCount?: number;
+  lastViewedAt?: string | null;
 }
 
 interface ShareListEntry {
@@ -30,6 +33,9 @@ interface ShareListEntry {
   url?: string;
   expiresAt?: string;
   hasPassword?: boolean;
+  maxViews?: number | null;
+  viewCount?: number;
+  lastViewedAt?: string | null;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -51,6 +57,7 @@ export function ShareDialog({
   const [slugMode, setSlugMode] = useState<SlugMode>("auto");
   const [customSlug, setCustomSlug] = useState("");
   const [sharePassword, setSharePassword] = useState("");
+  const [maxViewsInput, setMaxViewsInput] = useState("");
   const linkRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -91,6 +98,9 @@ export function ShareDialog({
           url: match.url || `${window.location.origin}/share/${match.code}`,
           expiresAt: match.expiresAt,
           hasPassword: match.hasPassword,
+          maxViews: match.maxViews,
+          viewCount: match.viewCount,
+          lastViewedAt: match.lastViewedAt,
         });
       } else {
         setActiveShare(null);
@@ -148,6 +158,7 @@ export function ShareDialog({
           targetId,
           slug: effectiveSlug,
           password: sharePassword || undefined,
+          maxViews: maxViewsInput ? Number.parseInt(maxViewsInput, 10) : undefined,
         }),
       });
       const result = await response.json();
@@ -164,8 +175,12 @@ export function ShareDialog({
         url,
         expiresAt: result.data.expiresAt,
         hasPassword: !!result.data.hasPassword,
+        maxViews: result.data.maxViews ?? null,
+        viewCount: result.data.viewCount ?? 0,
+        lastViewedAt: result.data.lastViewedAt ?? null,
       });
       setSharePassword("");
+      setMaxViewsInput("");
       try {
         await navigator.clipboard.writeText(url);
         setCopySuccess(true);
@@ -309,12 +324,29 @@ export function ShareDialog({
                     Email
                   </a>
                 </div>
-                {(activeShare.expiresAt || activeShare.hasPassword) && (
+                {(activeShare.expiresAt || activeShare.hasPassword || activeShare.maxViews) && (
                   <p className="text-wiki-text-muted text-xs mt-1">
                     {activeShare.hasPassword && <>[locked] Password-protected</>}
-                    {activeShare.hasPassword && activeShare.expiresAt && " · "}
+                    {activeShare.hasPassword && (activeShare.expiresAt || activeShare.maxViews) && " · "}
                     {activeShare.expiresAt && (
                       <>Expires {new Date(activeShare.expiresAt).toLocaleDateString()}</>
+                    )}
+                    {activeShare.expiresAt && activeShare.maxViews && " · "}
+                    {activeShare.maxViews && (
+                      <>{activeShare.viewCount ?? 0} of {activeShare.maxViews} views used</>
+                    )}
+                  </p>
+                )}
+                {!activeShare.maxViews && (activeShare.viewCount ?? 0) > 0 && (
+                  <p className="text-wiki-text-muted text-xs mt-0.5">
+                    Viewed {activeShare.viewCount}{" "}
+                    {activeShare.viewCount === 1 ? "time" : "times"}
+                    {activeShare.lastViewedAt && (
+                      <>
+                        {" "}
+                        · last on{" "}
+                        {new Date(activeShare.lastViewedAt).toLocaleDateString()}
+                      </>
                     )}
                   </p>
                 )}
@@ -442,6 +474,25 @@ export function ShareDialog({
                 />
                 <p className="text-xs text-wiki-text-muted mt-1">
                   Recipients will need this password to view the link.
+                </p>
+              </div>
+
+              <div>
+                <label htmlFor={`share-max-views-${targetId}`} className="block text-xs font-medium mb-1">
+                  View limit <span className="text-wiki-text-muted">(optional)</span>
+                </label>
+                <input
+                  id={`share-max-views-${targetId}`}
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={maxViewsInput}
+                  onChange={(e) => setMaxViewsInput(e.target.value)}
+                  placeholder="Unlimited"
+                  className="w-full text-xs"
+                />
+                <p className="text-xs text-wiki-text-muted mt-1">
+                  Link auto-revokes once this many views have happened.
                 </p>
               </div>
 

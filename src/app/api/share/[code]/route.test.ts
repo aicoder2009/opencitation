@@ -15,6 +15,7 @@ vi.mock("@/lib/db", () => ({
   findListById: vi.fn(),
   findProjectById: vi.fn(),
   getUserLists: vi.fn(),
+  recordShareView: vi.fn(),
 }));
 
 import { auth } from "@clerk/nextjs/server";
@@ -25,6 +26,7 @@ import {
   findListById,
   findProjectById,
   getUserLists,
+  recordShareView,
 } from "@/lib/db";
 
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
@@ -34,12 +36,14 @@ const mockGetListCitations = getListCitations as unknown as ReturnType<typeof vi
 const mockFindListById = findListById as unknown as ReturnType<typeof vi.fn>;
 const mockFindProjectById = findProjectById as unknown as ReturnType<typeof vi.fn>;
 const mockGetUserLists = getUserLists as unknown as ReturnType<typeof vi.fn>;
+const mockRecordShareView = recordShareView as unknown as ReturnType<typeof vi.fn>;
 
 const createParams = (code: string) => ({ params: Promise.resolve({ code }) });
 
 describe("Share Code API - /api/share/[code]", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRecordShareView.mockResolvedValue(1);
   });
 
   describe("GET /api/share/[code]", () => {

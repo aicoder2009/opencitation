@@ -72,6 +72,9 @@ export interface ShareLink {
   createdAt: string;
   expiresAt?: string;
   passwordHash?: string;
+  maxViews?: number;
+  viewCount?: number;
+  lastViewedAt?: string;
 }
 
 // Generate unique IDs
@@ -317,6 +320,7 @@ export async function createShareLink(
   expiresInDays?: number,
   slug?: string,
   passwordHash?: string,
+  maxViews?: number,
 ): Promise<ShareLink> {
   const code = generateShareCode();
   const now = new Date();
@@ -332,6 +336,8 @@ export async function createShareLink(
     createdAt: now.toISOString(),
     expiresAt,
     passwordHash: passwordHash || undefined,
+    maxViews: maxViews && maxViews > 0 ? maxViews : undefined,
+    viewCount: 0,
   };
   store.shareLinks.set(code, shareLink);
   return shareLink;
@@ -341,7 +347,27 @@ export async function getShareLink(code: string): Promise<ShareLink | null> {
   const shareLink = store.shareLinks.get(code);
   if (!shareLink) return null;
   if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) return null;
+  if (
+    shareLink.maxViews !== undefined &&
+    (shareLink.viewCount ?? 0) >= shareLink.maxViews
+  ) {
+    return null;
+  }
   return shareLink;
+}
+
+export async function recordShareView(code: string): Promise<number | null> {
+  const shareLink = store.shareLinks.get(code);
+  if (!shareLink) return null;
+  if (
+    shareLink.maxViews !== undefined &&
+    (shareLink.viewCount ?? 0) >= shareLink.maxViews
+  ) {
+    return null;
+  }
+  shareLink.viewCount = (shareLink.viewCount ?? 0) + 1;
+  shareLink.lastViewedAt = new Date().toISOString();
+  return shareLink.viewCount;
 }
 
 export async function deleteShareLink(code: string): Promise<void> {

@@ -121,6 +121,9 @@ export interface ShareLink {
   createdAt: string;
   expiresAt?: string;
   passwordHash?: string;
+  maxViews?: number;
+  viewCount?: number;
+  lastViewedAt?: string;
 }
 
 // ============ LISTS ============
@@ -727,6 +730,7 @@ export async function createShareLink(
   expiresInDays?: number,
   slug?: string,
   passwordHash?: string,
+  maxViews?: number,
 ): Promise<ShareLink> {
   const code = generateShareCode();
   const now = new Date();
@@ -742,6 +746,8 @@ export async function createShareLink(
     createdAt: now.toISOString(),
     expiresAt,
     passwordHash: passwordHash || undefined,
+    maxViews: maxViews && maxViews > 0 ? maxViews : undefined,
+    viewCount: 0,
   };
 
   await docClient.send(
@@ -777,15 +783,28 @@ export async function getShareLink(code: string): Promise<ShareLink | null> {
 
   const shareLink: ShareLink = {
     code: result.Item.code,
+    slug: result.Item.slug,
     userId: result.Item.userId,
     type: result.Item.type,
     targetId: result.Item.targetId,
     createdAt: result.Item.createdAt,
     expiresAt: result.Item.expiresAt,
+    passwordHash: result.Item.passwordHash,
+    maxViews: result.Item.maxViews,
+    viewCount: result.Item.viewCount,
+    lastViewedAt: result.Item.lastViewedAt,
   };
 
   // Check if expired
   if (shareLink.expiresAt && new Date(shareLink.expiresAt) < new Date()) {
+    return null;
+  }
+
+  // Treat exhausted view-cap as not-found.
+  if (
+    shareLink.maxViews !== undefined &&
+    (shareLink.viewCount ?? 0) >= shareLink.maxViews
+  ) {
     return null;
   }
 
@@ -821,17 +840,54 @@ export async function listUserShares(userId: string): Promise<ShareLink[]> {
   const shares = (result.Items || [])
     .map((item) => ({
       code: item.code as string,
+      slug: item.slug as string | undefined,
       userId: item.userId as string,
       type: item.type as "list" | "project",
       targetId: item.targetId as string,
       createdAt: item.createdAt as string,
       expiresAt: item.expiresAt as string | undefined,
+      passwordHash: item.passwordHash as string | undefined,
+      maxViews: item.maxViews as number | undefined,
+      viewCount: item.viewCount as number | undefined,
+      lastViewedAt: item.lastViewedAt as string | undefined,
     }))
-    .filter((s) => !s.expiresAt || new Date(s.expiresAt) >= now);
+    .filter((s) => !s.expiresAt || new Date(s.expiresAt) >= now)
+    .filter((s) => s.maxViews === undefined || (s.viewCount ?? 0) < s.maxViews);
 
   return shares.sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+}
+
+// Atomically increment view counter and record the view timestamp. Returns
+// the new view count, or null if the share no longer exists or the cap was
+// already exhausted at the time of the conditional update.
+export async function recordShareView(code: string): Promise<number | null> {
+  try {
+    const result = await docClient.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: {
+          PK: keys.share(code),
+          SK: PREFIXES.META,
+        },
+        UpdateExpression:
+          "ADD viewCount :one SET lastViewedAt = :now",
+        ConditionExpression:
+          "attribute_exists(PK) AND (attribute_not_exists(maxViews) OR viewCount < maxViews)",
+        ExpressionAttributeValues: {
+          ":one": 1,
+          ":now": new Date().toISOString(),
+        },
+        ReturnValues: "ALL_NEW",
+      })
+    );
+    return (result.Attributes?.viewCount as number) ?? null;
+  } catch (err) {
+    const errName = (err as { name?: string }).name;
+    if (errName === "ConditionalCheckFailedException") return null;
+    throw err;
+  }
 }
 
 export async function deleteSharesForTarget(
