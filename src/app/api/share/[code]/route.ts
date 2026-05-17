@@ -11,10 +11,14 @@ import {
 } from "@/lib/db";
 import { parseShareSegment } from "@/lib/share-utils";
 import { verifySharePassword } from "@/lib/share-password";
+import { checkRateLimit, clientKey } from "@/lib/rate-limit";
 
 interface RouteParams {
   params: Promise<{ code: string }>;
 }
+
+// Rate-limit: 30 burst, refill 1 token/sec ⇒ ~60 req/min steady state.
+const READ_RATE = { capacity: 30, refillRatePerMs: 1 / 1000 };
 
 // GET /api/share/[code] - Get shared content (public, no auth required).
 // Accepts both /share/<code> and /share/<slug>--<code>.
@@ -24,6 +28,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { code: segment } = await params;
     const { code } = parseShareSegment(segment);
+
+    // Rate-limit by (client IP, code). Per-code bucketing prevents one
+    // hot share from starving others from the same IP (e.g. a classroom
+    // NAT).
+    const rl = checkRateLimit(`share-get:${clientKey(request)}:${code}`, READ_RATE);
+    if (!rl.ok) {
+      return NextResponse.json(
+        { success: false, error: "Too many requests" },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rl.retryAfter),
+          },
+        },
+      );
+    }
 
     const shareLink = await getShareLink(code);
 
