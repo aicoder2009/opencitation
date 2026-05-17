@@ -11,6 +11,7 @@ import {
   addCitation,
   reorderCitations,
 } from "@/lib/db";
+import { parseShareSegment } from "@/lib/share-utils";
 
 export async function POST(
   _req: Request,
@@ -24,7 +25,8 @@ export async function POST(
     );
   }
 
-  const { code } = await params;
+  const { code: segment } = await params;
+  const { code } = parseShareSegment(segment);
   const shareLink = await getShareLink(code);
   if (!shareLink) {
     return NextResponse.json(

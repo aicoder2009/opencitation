@@ -65,6 +65,7 @@ export interface Citation {
 
 export interface ShareLink {
   code: string;
+  slug?: string;
   userId: string;
   type: "list" | "project";
   targetId: string;
@@ -312,7 +313,8 @@ export async function createShareLink(
   userId: string,
   type: "list" | "project",
   targetId: string,
-  expiresInDays?: number
+  expiresInDays?: number,
+  slug?: string,
 ): Promise<ShareLink> {
   const code = generateShareCode();
   const now = new Date();
@@ -321,6 +323,7 @@ export async function createShareLink(
     : undefined;
   const shareLink: ShareLink = {
     code,
+    slug: slug || undefined,
     userId,
     type,
     targetId,

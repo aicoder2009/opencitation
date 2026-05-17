@@ -7,6 +7,7 @@ import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
 import { WikiButton } from "@/components/wiki/wiki-button";
 import { WikiCollapsible } from "@/components/wiki/wiki-collapsible";
 import { toRTF } from "@/lib/citation/exporters";
+import { parseShareSegment } from "@/lib/share-utils";
 import DOMPurify from "isomorphic-dompurify";
 import posthog from "posthog-js";
 
@@ -76,7 +77,8 @@ interface SaveResult {
 }
 
 export default function SharePage({ params }: { params: Promise<{ code: string }> }) {
-  const { code } = use(params);
+  const { code: segment } = use(params);
+  const { code } = parseShareSegment(segment);
   const { isLoaded: isAuthLoaded, isSignedIn } = useUser();
   const [data, setData] = useState<SharedData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -351,7 +353,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                   )
                 ) : (
                   <a
-                    href={`/sign-up?redirect_url=/share/${code}`}
+                    href={`/sign-up?redirect_url=/share/${segment}`}
                     className="text-wiki-link hover:underline text-sm"
                   >
                     Create a free account to save a copy
@@ -506,7 +508,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                 )
               ) : (
                 <a
-                  href={`/sign-up?redirect_url=/share/${code}`}
+                  href={`/sign-up?redirect_url=/share/${segment}`}
                   className="text-wiki-link hover:underline text-sm"
                 >
                   Create a free account to save a copy

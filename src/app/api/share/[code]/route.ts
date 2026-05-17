@@ -8,15 +8,18 @@ import {
   findProjectById,
   getUserLists,
 } from "@/lib/db";
+import { parseShareSegment } from "@/lib/share-utils";
 
 interface RouteParams {
   params: Promise<{ code: string }>;
 }
 
-// GET /api/share/[code] - Get shared content (public, no auth required)
+// GET /api/share/[code] - Get shared content (public, no auth required).
+// Accepts both /share/<code> and /share/<slug>--<code>.
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const { code } = await params;
+    const { code: segment } = await params;
+    const { code } = parseShareSegment(segment);
 
     const shareLink = await getShareLink(code);
 
@@ -134,7 +137,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { userId } = await auth();
-    const { code } = await params;
+    const { code: segment } = await params;
+    const { code } = parseShareSegment(segment);
 
     if (!userId) {
       return NextResponse.json(

@@ -9,6 +9,7 @@ import {
   listUserShares,
 } from "@/lib/db";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { buildShareSegment, slugify } from "@/lib/share-utils";
 
 // GET /api/share - List active share links owned by the current user
 export async function GET() {
@@ -39,12 +40,13 @@ export async function GET() {
           : projectById.get(share.targetId);
       return {
         code: share.code,
+        slug: share.slug ?? null,
         type: share.type,
         targetId: share.targetId,
         targetName: target?.name ?? null,
         createdAt: share.createdAt,
         expiresAt: share.expiresAt,
-        url: `${base}/share/${share.code}`,
+        url: `${base}/share/${buildShareSegment(share.code, share.slug)}`,
       };
     });
 
@@ -71,10 +73,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, targetId, expiresInDays } = body as {
+    const { type, targetId, expiresInDays, slug: rawSlug } = body as {
       type: "list" | "project";
       targetId: string;
       expiresInDays?: number;
+      slug?: string;
     };
 
     if (!type || !targetId) {
@@ -110,7 +113,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const shareLink = await createShareLink(userId, type, targetId, expiresInDays);
+    const slug = rawSlug ? slugify(rawSlug) || undefined : undefined;
+
+    const shareLink = await createShareLink(userId, type, targetId, expiresInDays, slug);
 
     const posthog = getPostHogClient();
     posthog.capture({
@@ -120,6 +125,7 @@ export async function POST(request: NextRequest) {
         share_type: type,
         has_expiry: !!expiresInDays,
         expires_in_days: expiresInDays ?? null,
+        has_slug: !!slug,
       },
     });
 
@@ -127,7 +133,7 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         ...shareLink,
-        url: `${process.env.NEXT_PUBLIC_BASE_URL || ""}/share/${shareLink.code}`,
+        url: `${process.env.NEXT_PUBLIC_BASE_URL || ""}/share/${buildShareSegment(shareLink.code, shareLink.slug)}`,
       },
     });
   } catch (error) {

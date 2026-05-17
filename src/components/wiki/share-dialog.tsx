@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { WikiButton } from "./wiki-button";
 import { WikiNotice } from "./wiki-notice";
 import { WikiSpinner } from "./wiki-spinner";
+import { slugify } from "@/lib/share-utils";
+
+type SlugMode = "auto" | "custom" | "random";
 
 interface ShareDialogProps {
   isOpen: boolean;
@@ -43,10 +46,27 @@ export function ShareDialog({
   const [copySuccess, setCopySuccess] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [slugMode, setSlugMode] = useState<SlugMode>("auto");
+  const [customSlug, setCustomSlug] = useState("");
   const linkRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const headingId = `share-dialog-heading-${targetId}`;
+  const slugModeId = `share-slug-mode-${targetId}`;
+
+  const effectiveSlug = useMemo(() => {
+    if (slugMode === "random") return undefined;
+    if (slugMode === "custom") return slugify(customSlug) || undefined;
+    return slugify(targetName ?? "") || undefined;
+  }, [slugMode, customSlug, targetName]);
+
+  const urlPreview = useMemo(() => {
+    const origin = typeof window === "undefined" ? "" : window.location.origin;
+    const codePlaceholder = "xxxxxxxxxxxx";
+    return effectiveSlug
+      ? `${origin}/share/${effectiveSlug}--${codePlaceholder}`
+      : `${origin}/share/${codePlaceholder}`;
+  }, [effectiveSlug]);
 
   const fetchActiveShare = useCallback(async () => {
     setIsLoading(true);
@@ -119,14 +139,17 @@ export function ShareDialog({
       const response = await fetch("/api/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, targetId }),
+        body: JSON.stringify({ type, targetId, slug: effectiveSlug }),
       });
       const result = await response.json();
       if (!result.success) {
         setError(result.error || "Failed to create share link");
         return;
       }
-      const url = `${window.location.origin}/share/${result.data.code}`;
+      const segment = result.data.slug
+        ? `${result.data.slug}--${result.data.code}`
+        : result.data.code;
+      const url = `${window.location.origin}/share/${segment}`;
       setActiveShare({
         code: result.data.code,
         url,
@@ -318,6 +341,78 @@ export function ShareDialog({
                 No share link yet. Create one to let anyone view this{" "}
                 {type === "list" ? "list" : "project"} via a public URL.
               </p>
+
+              <fieldset className="border border-wiki-border-light p-3">
+                <legend className="px-1 text-xs font-medium">URL style</legend>
+                <div className="space-y-1.5">
+                  <label className="flex items-start gap-2 text-xs cursor-pointer">
+                    <input
+                      type="radio"
+                      name={slugModeId}
+                      value="auto"
+                      checked={slugMode === "auto"}
+                      onChange={() => setSlugMode("auto")}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      <span className="font-medium">From {type} name</span>
+                      <span className="block text-wiki-text-muted">
+                        slug derived from &ldquo;{targetName || "untitled"}&rdquo;
+                      </span>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2 text-xs cursor-pointer">
+                    <input
+                      type="radio"
+                      name={slugModeId}
+                      value="custom"
+                      checked={slugMode === "custom"}
+                      onChange={() => setSlugMode("custom")}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      <span className="font-medium">Custom slug</span>
+                      <span className="block text-wiki-text-muted">
+                        type your own (letters, numbers, and dashes)
+                      </span>
+                    </span>
+                  </label>
+                  {slugMode === "custom" && (
+                    <input
+                      type="text"
+                      value={customSlug}
+                      onChange={(e) => setCustomSlug(e.target.value)}
+                      placeholder="my-thesis-bibliography"
+                      aria-label="Custom slug"
+                      className="w-full text-xs ml-6"
+                      style={{ width: "calc(100% - 1.5rem)" }}
+                    />
+                  )}
+                  <label className="flex items-start gap-2 text-xs cursor-pointer">
+                    <input
+                      type="radio"
+                      name={slugModeId}
+                      value="random"
+                      checked={slugMode === "random"}
+                      onChange={() => setSlugMode("random")}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      <span className="font-medium">Random only</span>
+                      <span className="block text-wiki-text-muted">
+                        unguessable code, no friendly slug
+                      </span>
+                    </span>
+                  </label>
+                </div>
+                <p
+                  className="mt-3 pt-2 border-t border-wiki-border-light text-xs text-wiki-text-muted break-all font-mono"
+                  aria-live="polite"
+                >
+                  {urlPreview}
+                </p>
+              </fieldset>
+
               <WikiButton
                 variant="primary"
                 onClick={handleCreate}
