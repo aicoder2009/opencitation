@@ -23,7 +23,7 @@ describe("slugify", () => {
   });
 
   it("truncates to 60 chars and trims trailing dash", () => {
-    const long = "a".repeat(70) + " " + "b".repeat(10);
+    const long = `${"a".repeat(70)} ${"b".repeat(10)}`;
     const out = slugify(long);
     expect(out.length).toBeLessThanOrEqual(60);
     expect(out.endsWith("-")).toBe(false);

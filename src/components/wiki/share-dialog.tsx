@@ -20,6 +20,7 @@ interface ActiveShare {
   code: string;
   url: string;
   expiresAt?: string;
+  hasPassword?: boolean;
 }
 
 interface ShareListEntry {
@@ -28,6 +29,7 @@ interface ShareListEntry {
   targetId: string;
   url?: string;
   expiresAt?: string;
+  hasPassword?: boolean;
 }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -48,6 +50,7 @@ export function ShareDialog({
   const [error, setError] = useState<string | null>(null);
   const [slugMode, setSlugMode] = useState<SlugMode>("auto");
   const [customSlug, setCustomSlug] = useState("");
+  const [sharePassword, setSharePassword] = useState("");
   const linkRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -87,6 +90,7 @@ export function ShareDialog({
           code: match.code,
           url: match.url || `${window.location.origin}/share/${match.code}`,
           expiresAt: match.expiresAt,
+          hasPassword: match.hasPassword,
         });
       } else {
         setActiveShare(null);
@@ -139,7 +143,12 @@ export function ShareDialog({
       const response = await fetch("/api/share", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, targetId, slug: effectiveSlug }),
+        body: JSON.stringify({
+          type,
+          targetId,
+          slug: effectiveSlug,
+          password: sharePassword || undefined,
+        }),
       });
       const result = await response.json();
       if (!result.success) {
@@ -154,7 +163,9 @@ export function ShareDialog({
         code: result.data.code,
         url,
         expiresAt: result.data.expiresAt,
+        hasPassword: !!result.data.hasPassword,
       });
+      setSharePassword("");
       try {
         await navigator.clipboard.writeText(url);
         setCopySuccess(true);
@@ -298,10 +309,13 @@ export function ShareDialog({
                     Email
                   </a>
                 </div>
-                {activeShare.expiresAt && (
+                {(activeShare.expiresAt || activeShare.hasPassword) && (
                   <p className="text-wiki-text-muted text-xs mt-1">
-                    Expires{" "}
-                    {new Date(activeShare.expiresAt).toLocaleDateString()}
+                    {activeShare.hasPassword && <>[locked] Password-protected</>}
+                    {activeShare.hasPassword && activeShare.expiresAt && " · "}
+                    {activeShare.expiresAt && (
+                      <>Expires {new Date(activeShare.expiresAt).toLocaleDateString()}</>
+                    )}
                   </p>
                 )}
               </div>
@@ -412,6 +426,24 @@ export function ShareDialog({
                   {urlPreview}
                 </p>
               </fieldset>
+
+              <div>
+                <label htmlFor={`share-password-${targetId}`} className="block text-xs font-medium mb-1">
+                  Password <span className="text-wiki-text-muted">(optional)</span>
+                </label>
+                <input
+                  id={`share-password-${targetId}`}
+                  type="password"
+                  value={sharePassword}
+                  onChange={(e) => setSharePassword(e.target.value)}
+                  placeholder="Leave blank for no password"
+                  className="w-full text-xs"
+                  autoComplete="new-password"
+                />
+                <p className="text-xs text-wiki-text-muted mt-1">
+                  Recipients will need this password to view the link.
+                </p>
+              </div>
 
               <WikiButton
                 variant="primary"

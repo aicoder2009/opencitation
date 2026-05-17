@@ -12,9 +12,10 @@ import {
   reorderCitations,
 } from "@/lib/db";
 import { parseShareSegment } from "@/lib/share-utils";
+import { verifySharePassword } from "@/lib/share-password";
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { userId } = await auth();
@@ -33,6 +34,16 @@ export async function POST(
       { success: false, error: "Share link not found or expired" },
       { status: 404 }
     );
+  }
+
+  if (shareLink.passwordHash) {
+    const candidate = req.headers.get("x-share-password");
+    if (!candidate || !verifySharePassword(candidate, shareLink.passwordHash)) {
+      return NextResponse.json(
+        { success: false, error: "Password required", requiresPassword: true },
+        { status: 401 },
+      );
+    }
   }
 
   try {

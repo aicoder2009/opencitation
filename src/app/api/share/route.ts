@@ -10,6 +10,7 @@ import {
 } from "@/lib/db";
 import { getPostHogClient } from "@/lib/posthog-server";
 import { buildShareSegment, slugify } from "@/lib/share-utils";
+import { hashSharePassword } from "@/lib/share-password";
 
 // GET /api/share - List active share links owned by the current user
 export async function GET() {
@@ -46,6 +47,7 @@ export async function GET() {
         targetName: target?.name ?? null,
         createdAt: share.createdAt,
         expiresAt: share.expiresAt,
+        hasPassword: !!share.passwordHash,
         url: `${base}/share/${buildShareSegment(share.code, share.slug)}`,
       };
     });
@@ -73,11 +75,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { type, targetId, expiresInDays, slug: rawSlug } = body as {
+    const { type, targetId, expiresInDays, slug: rawSlug, password } = body as {
       type: "list" | "project";
       targetId: string;
       expiresInDays?: number;
       slug?: string;
+      password?: string;
     };
 
     if (!type || !targetId) {
@@ -114,8 +117,9 @@ export async function POST(request: NextRequest) {
     }
 
     const slug = rawSlug ? slugify(rawSlug) || undefined : undefined;
+    const passwordHash = password && password.length > 0 ? hashSharePassword(password) : undefined;
 
-    const shareLink = await createShareLink(userId, type, targetId, expiresInDays, slug);
+    const shareLink = await createShareLink(userId, type, targetId, expiresInDays, slug, passwordHash);
 
     const posthog = getPostHogClient();
     posthog.capture({
@@ -126,13 +130,17 @@ export async function POST(request: NextRequest) {
         has_expiry: !!expiresInDays,
         expires_in_days: expiresInDays ?? null,
         has_slug: !!slug,
+        has_password: !!passwordHash,
       },
     });
 
+    // Never leak the passwordHash to the client.
+    const { passwordHash: _omit, ...safeShare } = shareLink;
     return NextResponse.json({
       success: true,
       data: {
-        ...shareLink,
+        ...safeShare,
+        hasPassword: !!shareLink.passwordHash,
         url: `${process.env.NEXT_PUBLIC_BASE_URL || ""}/share/${buildShareSegment(shareLink.code, shareLink.slug)}`,
       },
     });

@@ -9,6 +9,7 @@ import {
   getUserLists,
 } from "@/lib/db";
 import { parseShareSegment } from "@/lib/share-utils";
+import { verifySharePassword } from "@/lib/share-password";
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -16,6 +17,8 @@ interface RouteParams {
 
 // GET /api/share/[code] - Get shared content (public, no auth required).
 // Accepts both /share/<code> and /share/<slug>--<code>.
+// If the share is password-protected, requires the password via the
+// "x-share-password" header.
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { code: segment } = await params;
@@ -30,9 +33,27 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Password gate. We respond with 401 + requiresPassword so the client
+    // can render the password form without leaking whether the password
+    // is wrong vs. missing.
+    if (shareLink.passwordHash) {
+      const candidate = request.headers.get("x-share-password");
+      if (!candidate || !verifySharePassword(candidate, shareLink.passwordHash)) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Password required",
+            requiresPassword: true,
+          },
+          { status: 401 },
+        );
+      }
+    }
+
     const shareMeta = {
       createdAt: shareLink.createdAt,
       expiresAt: shareLink.expiresAt,
+      hasPassword: !!shareLink.passwordHash,
     };
 
     if (shareLink.type === "list") {

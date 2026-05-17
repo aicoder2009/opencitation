@@ -71,6 +71,7 @@ export interface ShareLink {
   targetId: string;
   createdAt: string;
   expiresAt?: string;
+  passwordHash?: string;
 }
 
 // Generate unique IDs
@@ -315,6 +316,7 @@ export async function createShareLink(
   targetId: string,
   expiresInDays?: number,
   slug?: string,
+  passwordHash?: string,
 ): Promise<ShareLink> {
   const code = generateShareCode();
   const now = new Date();
@@ -329,6 +331,7 @@ export async function createShareLink(
     targetId,
     createdAt: now.toISOString(),
     expiresAt,
+    passwordHash: passwordHash || undefined,
   };
   store.shareLinks.set(code, shareLink);
   return shareLink;

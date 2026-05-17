@@ -150,7 +150,7 @@ describe("Share API - /api/share", () => {
       expect(data.data.code).toBe("abc123xy");
       expect(data.data.type).toBe("list");
       expect(data.data.url).toContain("/share/abc123xy");
-      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "list", "list-123", undefined, undefined);
+      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "list", "list-123", undefined, undefined, undefined);
     });
 
     it("should create share link for project", async () => {
@@ -174,7 +174,7 @@ describe("Share API - /api/share", () => {
       expect(data.success).toBe(true);
       expect(data.data.code).toBe("xyz789ab");
       expect(data.data.type).toBe("project");
-      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "project", "project-123", undefined, undefined);
+      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "project", "project-123", undefined, undefined, undefined);
     });
 
     it("should create share link with expiry", async () => {
@@ -197,7 +197,7 @@ describe("Share API - /api/share", () => {
 
       expect(data.success).toBe(true);
       expect(data.data.expiresAt).toBe("2024-01-08");
-      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "list", "list-123", 7, undefined);
+      expect(mockCreateShareLink).toHaveBeenCalledWith("user-123", "list", "list-123", 7, undefined, undefined);
     });
 
     it("should handle database errors", async () => {

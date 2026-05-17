@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useUser } from "@clerk/nextjs";
 import { WikiLayout } from "@/components/wiki/wiki-layout";
 import { WikiBreadcrumbs } from "@/components/wiki/wiki-breadcrumbs";
@@ -87,45 +87,63 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
   const [isSaving, setIsSaving] = useState(false);
   const [saveResult, setSaveResult] = useState<SaveResult | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [requiresPassword, setRequiresPassword] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [unlockedPassword, setUnlockedPassword] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+
+  const fetchSharedContent = useCallback(async (password?: string) => {
+    setIsLoading(true);
+    try {
+      const headers: HeadersInit = password ? { "x-share-password": password } : {};
+      const response = await fetch(`/api/share/${code}`, { headers });
+      const result = await response.json();
+
+      if (result.success) {
+        setData(result.data);
+        setError(null);
+        setRequiresPassword(false);
+        if (password) setUnlockedPassword(password);
+        const d = result.data as SharedData;
+        posthog.capture("share_page_viewed", {
+          share_type: d.type,
+          citation_count: d.type === "list"
+            ? (d.citations?.length ?? 0)
+            : (d.lists?.reduce((s, l) => s + l.citations.length, 0) ?? 0),
+          list_count: d.type === "project" ? (d.lists?.length ?? 0) : 1,
+          had_password: !!password,
+        });
+        return true;
+      }
+      if (response.status === 401 && result.requiresPassword) {
+        setRequiresPassword(true);
+        if (password) setPasswordError("Incorrect password");
+        return false;
+      }
+      setError(result.error || "Share link not found or expired");
+      return false;
+    } catch (err) {
+      console.error("Error fetching shared content:", err);
+      setError("Failed to load shared content");
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [code]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const fetchSharedContent = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/share/${code}`);
-        const result = await response.json();
-
-        if (cancelled) return;
-
-        if (result.success) {
-          setData(result.data);
-          setError(null);
-          const d = result.data as SharedData;
-          posthog.capture("share_page_viewed", {
-            share_type: d.type,
-            citation_count: d.type === "list"
-              ? (d.citations?.length ?? 0)
-              : (d.lists?.reduce((s, l) => s + l.citations.length, 0) ?? 0),
-            list_count: d.type === "project" ? (d.lists?.length ?? 0) : 1,
-          });
-        } else {
-          setError(result.error || "Share link not found or expired");
-        }
-      } catch (err) {
-        console.error("Error fetching shared content:", err);
-        if (!cancelled) setError("Failed to load shared content");
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
-    };
-
     fetchSharedContent();
-    return () => {
-      cancelled = true;
-    };
-  }, [code]);
+  }, [fetchSharedContent]);
+
+  const handleUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordInput) return;
+    setIsUnlocking(true);
+    setPasswordError(null);
+    await fetchSharedContent(passwordInput);
+    setIsUnlocking(false);
+  };
 
   const flashCopy = (message: string) => {
     setCopyFeedback(message);
@@ -186,7 +204,13 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
     setIsSaving(true);
     setSaveError(null);
     try {
-      const response = await fetch(`/api/share/${code}/clone`, { method: "POST" });
+      const headers: HeadersInit = unlockedPassword
+        ? { "x-share-password": unlockedPassword }
+        : {};
+      const response = await fetch(`/api/share/${code}/clone`, {
+        method: "POST",
+        headers,
+      });
       const result = await response.json();
       if (result.success) {
         setSaveResult(result.data);
@@ -212,6 +236,51 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
         />
         <div className="flex items-center justify-center py-12">
           <span className="text-sm text-wiki-text-muted">Loading…</span>
+        </div>
+      </WikiLayout>
+    );
+  }
+
+  if (requiresPassword && !data) {
+    return (
+      <WikiLayout>
+        <WikiBreadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Locked share" },
+          ]}
+        />
+        <div className="mt-6 max-w-md mx-auto p-6 border border-wiki-border-light bg-wiki-white">
+          <h1 className="text-lg font-bold mb-2">Password required</h1>
+          <p className="text-sm text-wiki-text-muted mb-4">
+            This share is password-protected. Enter the password to view its
+            contents.
+          </p>
+          <form onSubmit={handleUnlock} className="space-y-3">
+            <div>
+              <label htmlFor="share-password" className="block text-xs font-medium mb-1">
+                Password
+              </label>
+              <input
+                id="share-password"
+                type="password"
+                value={passwordInput}
+                onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(null); }}
+                aria-invalid={!!passwordError}
+                aria-describedby={passwordError ? "share-password-error" : undefined}
+                autoFocus
+                className="w-full"
+              />
+              {passwordError && (
+                <p id="share-password-error" role="alert" className="mt-1 text-xs text-wiki-text">
+                  {passwordError}
+                </p>
+              )}
+            </div>
+            <WikiButton variant="primary" disabled={!passwordInput || isUnlocking}>
+              {isUnlocking ? "Unlocking…" : "Unlock"}
+            </WikiButton>
+          </form>
         </div>
       </WikiLayout>
     );
