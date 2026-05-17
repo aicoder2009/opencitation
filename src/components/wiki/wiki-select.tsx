@@ -51,20 +51,17 @@ export function WikiSelect({
     return () => document.removeEventListener("mousedown", onDown);
   }, [open]);
 
-  // Focus the active/first option when menu opens
-  useEffect(() => {
-    if (open) {
-      const idx = selectedIndex >= 0 ? selectedIndex : 0;
-      setFocusedIndex(idx);
-    }
-  }, [open, selectedIndex]);
-
   // Move DOM focus as keyboard selection changes
   useEffect(() => {
     if (open && focusedIndex >= 0) {
       optionRefs.current[focusedIndex]?.focus();
     }
   }, [open, focusedIndex]);
+
+  const openMenu = () => {
+    setOpen(true);
+    setFocusedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+  };
 
   const close = () => {
     setOpen(false);
@@ -80,10 +77,10 @@ export function WikiSelect({
   const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      setOpen(true);
+      openMenu();
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setOpen(true);
+      openMenu();
     } else if (e.key === "Escape") {
       close();
     }
@@ -106,7 +103,7 @@ export function WikiSelect({
       e.preventDefault();
       select(optValue);
     } else if (e.key === "Escape" || e.key === "Tab") {
-      e.key === "Escape" && e.preventDefault();
+      if (e.key === "Escape") e.preventDefault();
       close();
     }
   };
@@ -116,7 +113,14 @@ export function WikiSelect({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (open) {
+            setOpen(false);
+            setFocusedIndex(-1);
+          } else {
+            openMenu();
+          }
+        }}
         onKeyDown={handleTriggerKeyDown}
         aria-haspopup="listbox"
         aria-expanded={open}

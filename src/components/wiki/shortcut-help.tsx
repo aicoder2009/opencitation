@@ -82,8 +82,12 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
           const focusable = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
           if (!focusable.length) return;
           const first = focusable[0]; const last = focusable[focusable.length - 1];
-          if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
-          else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+          if (e.shiftKey) {
+            if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+          } else if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
         }}
         className="bg-wiki-white dark:bg-wiki-offwhite border border-wiki-border-light max-w-xl w-full mx-4 shadow-lg"
         onClick={(e) => e.stopPropagation()}

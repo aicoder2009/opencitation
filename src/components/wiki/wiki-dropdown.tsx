@@ -35,19 +35,17 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
     return () => document.removeEventListener("mousedown", onMouseDown);
   }, [open]);
 
-  // Focus first item when menu opens
-  useEffect(() => {
-    if (open) {
-      setFocusedIndex(0);
-    }
-  }, [open]);
-
   // Move DOM focus when focusedIndex changes
   useEffect(() => {
     if (open && focusedIndex >= 0) {
       itemRefs.current[focusedIndex]?.focus();
     }
   }, [open, focusedIndex]);
+
+  const openMenu = () => {
+    setOpen(true);
+    setFocusedIndex(0);
+  };
 
   const close = () => {
     setOpen(false);
@@ -58,7 +56,7 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
   const handleTriggerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      if (!disabled) setOpen(true);
+      if (!disabled) openMenu();
     } else if (e.key === "Escape") {
       close();
     }
@@ -87,7 +85,15 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={() => {
+          if (disabled) return;
+          if (open) {
+            setOpen(false);
+            setFocusedIndex(-1);
+          } else {
+            openMenu();
+          }
+        }}
         onKeyDown={handleTriggerKeyDown}
         aria-haspopup="menu"
         aria-expanded={open}

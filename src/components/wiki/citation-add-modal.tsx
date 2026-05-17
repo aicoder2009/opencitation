@@ -210,8 +210,9 @@ export function CitationAddModal({
     const last = focusable[focusable.length - 1];
     if (e.shiftKey) {
       if (document.activeElement === first) { e.preventDefault(); last.focus(); }
-    } else {
-      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+    } else if (document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
     }
   };
 
