@@ -73,6 +73,7 @@ interface SortableCitationProps {
   isSelectMode?: boolean;
   isChecked?: boolean;
   onCheckToggle?: () => void;
+  onShare?: (citationId: string) => void;
 }
 
 export function SortableCitation({
@@ -97,6 +98,7 @@ export function SortableCitation({
   isSelectMode = false,
   isChecked = false,
   onCheckToggle,
+  onShare,
 }: SortableCitationProps) {
   const [internalIsEditing, setInternalIsEditing] = useState(false);
   const isEditingMode = internalIsEditing || externalIsEditing;
@@ -384,6 +386,14 @@ export function SortableCitation({
               >
                 [edit]
               </button>
+              {onShare && (
+                <button
+                  onClick={() => onShare(citation.id)}
+                  className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                >
+                  [share]
+                </button>
+              )}
               <button
                 onClick={() => onDelete(citation.id)}
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"

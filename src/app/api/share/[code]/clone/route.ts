@@ -4,8 +4,10 @@ import {
   getShareLink,
   findListById,
   findProjectById,
+  getCitation,
   getListCitations,
   getProjectLists,
+  getUserLists,
   createList,
   createProject,
   addCitation,
@@ -47,6 +49,54 @@ export async function POST(
   }
 
   try {
+    if (shareLink.type === "citation") {
+      const [originListId, citationId] = shareLink.targetId.split(":");
+      if (!originListId || !citationId) {
+        return NextResponse.json(
+          { success: false, error: "Malformed citation share" },
+          { status: 410 },
+        );
+      }
+      const citation = await getCitation(originListId, citationId);
+      if (!citation) {
+        return NextResponse.json(
+          { success: false, error: "Original citation not found" },
+          { status: 404 },
+        );
+      }
+      // Append into the caller's "Saved citations" bucket (create if absent).
+      const myLists = await getUserLists(userId);
+      let bucket = myLists.find((l) => l.name === "Saved citations");
+      if (!bucket) {
+        bucket = await createList(
+          userId,
+          "Saved citations",
+          undefined,
+          "Citations saved from shared links.",
+        );
+      }
+      const cloned = await addCitation(
+        bucket.id,
+        citation.fields,
+        citation.style,
+        citation.formattedText,
+        citation.formattedHtml,
+        citation.tags,
+        citation.notes,
+        citation.quotes,
+        citation.readingStatus,
+      );
+      return NextResponse.json({
+        success: true,
+        data: {
+          type: "citation",
+          id: cloned.id,
+          listId: bucket.id,
+          listName: bucket.name,
+        },
+      });
+    }
+
     if (shareLink.type === "list") {
       const [originalList, citations] = await Promise.all([
         findListById(shareLink.targetId),

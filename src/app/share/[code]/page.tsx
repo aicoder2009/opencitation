@@ -31,7 +31,7 @@ interface ShareMeta {
 }
 
 interface SharedData {
-  type: "list" | "project";
+  type: "list" | "project" | "citation";
   id: string;
   name: string;
   description?: string;
@@ -335,13 +335,13 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
 
   const shareFooter = formatShareFooter(data.share);
 
-  if (data.type === "list") {
+  if (data.type === "list" || data.type === "citation") {
     return (
       <WikiLayout>
         <WikiBreadcrumbs
           items={[
             { label: "Home", href: "/" },
-            { label: "Shared List" },
+            { label: data.type === "citation" ? "Shared Citation" : "Shared List" },
           ]}
         />
 
@@ -364,7 +364,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
             <div className="flex items-start justify-between mb-6">
               <div>
                 <div className="text-xs text-wiki-text-muted uppercase tracking-wide mb-1">
-                  Shared List
+                  {data.type === "citation" ? "Shared Citation" : "Shared List"}
                 </div>
                 <h1 className="text-2xl font-bold mb-1">{data.name}</h1>
                 <p className="text-wiki-text-muted text-sm">

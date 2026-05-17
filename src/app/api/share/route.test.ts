@@ -95,7 +95,7 @@ describe("Share API - /api/share", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBe("Type must be 'list' or 'project'");
+      expect(data.error).toBe("Type must be 'list', 'project', or 'citation'");
     });
 
     it("should return 404 if list not found", async () => {

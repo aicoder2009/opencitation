@@ -4,6 +4,7 @@ import {
   getShareLink,
   deleteShareLink,
   getListCitations,
+  getCitation,
   findListById,
   findProjectById,
   getUserLists,
@@ -96,6 +97,70 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       expiresAt: shareLink.expiresAt,
       hasPassword: !!shareLink.passwordHash,
     };
+
+    if (shareLink.type === "citation") {
+      const [listId, citationId] = shareLink.targetId.split(":");
+      if (!listId || !citationId) {
+        return NextResponse.json(
+          { success: false, error: "Malformed citation share" },
+          { status: 410 },
+        );
+      }
+      const citation = await getCitation(listId, citationId);
+      if (!citation) {
+        return NextResponse.json(
+          { success: false, error: "The shared citation is no longer available." },
+          { status: 410 },
+        );
+      }
+      const etag = computeEtag([
+        "citation",
+        shareLink.code,
+        citation.id,
+        citation.style,
+        citation.formattedText?.length,
+        citation.createdAt,
+      ]);
+      if (request.headers.get("if-none-match") === etag) {
+        return new NextResponse(null, {
+          status: 304,
+          headers: {
+            ETag: etag,
+            "Cache-Control": "public, max-age=60, must-revalidate",
+          },
+        });
+      }
+      // Surface citation shares with the same shape as a single-item
+      // list so the public renderer doesn't need a third branch — but
+      // keep type:"citation" for analytics.
+      const titleField = (citation.fields as { title?: string } | undefined)?.title;
+      return NextResponse.json(
+        {
+          success: true,
+          data: {
+            type: "citation",
+            id: citation.id,
+            name: titleField || "Shared citation",
+            share: shareMeta,
+            citations: [
+              {
+                id: citation.id,
+                style: citation.style,
+                formattedText: citation.formattedText,
+                formattedHtml: citation.formattedHtml,
+                createdAt: citation.createdAt,
+              },
+            ],
+          },
+        },
+        {
+          headers: {
+            "Cache-Control": "public, max-age=60, must-revalidate",
+            ETag: etag,
+          },
+        },
+      );
+    }
 
     if (shareLink.type === "list") {
       // Fetch list details and citations concurrently to avoid waterfall

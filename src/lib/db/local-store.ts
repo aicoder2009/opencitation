@@ -63,11 +63,15 @@ export interface Citation {
   updatedAt: string;
 }
 
+export type ShareTargetType = "list" | "project" | "citation";
+
 export interface ShareLink {
   code: string;
   slug?: string;
   userId: string;
-  type: "list" | "project";
+  type: ShareTargetType;
+  // For "list" and "project", this is the entity id.
+  // For "citation", this is "<listId>:<citationId>".
   targetId: string;
   createdAt: string;
   expiresAt?: string;
@@ -315,7 +319,7 @@ export async function reorderCitations(listId: string, citationIds: string[]): P
 
 export async function createShareLink(
   userId: string,
-  type: "list" | "project",
+  type: ShareTargetType,
   targetId: string,
   expiresInDays?: number,
   slug?: string,

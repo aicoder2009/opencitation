@@ -119,6 +119,7 @@ export default function ListDetailPage({
   const [editDescription, setEditDescription] = useState("");
   const [editNameError, setEditNameError] = useState<string | null>(null);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [citationShareCode, setCitationShareCode] = useState<string | null>(null);
   const [showCiteModal, setShowCiteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
@@ -1591,6 +1592,7 @@ export default function ListDetailPage({
                       isSelectMode={isSelectMode}
                       isChecked={selectedCitationIds.has(citation.id)}
                       onCheckToggle={() => toggleCitationSelect(citation.id)}
+                      onShare={(id) => setCitationShareCode(id)}
                     />
                   ))}
                 </div>
@@ -1613,6 +1615,19 @@ export default function ListDetailPage({
         type="list"
         targetId={listId}
         targetName={list?.name}
+      />
+
+      <ShareDialog
+        isOpen={citationShareCode !== null}
+        onClose={() => setCitationShareCode(null)}
+        type="citation"
+        targetId={citationShareCode ? `${listId}:${citationShareCode}` : ""}
+        targetName={
+          citationShareCode
+            ? (citations.find((c) => c.id === citationShareCode)?.fields as { title?: string } | undefined)?.title
+              ?? "Single citation"
+            : undefined
+        }
       />
 
       <CitationAddModal

@@ -12,9 +12,16 @@ type SlugMode = "auto" | "custom" | "random";
 interface ShareDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  type: "list" | "project";
+  // For "citation", targetId must be "<listId>:<citationId>".
+  type: "list" | "project" | "citation";
   targetId: string;
   targetName?: string;
+}
+
+function targetNoun(type: "list" | "project" | "citation"): string {
+  if (type === "list") return "list";
+  if (type === "project") return "project";
+  return "citation";
 }
 
 interface ActiveShare {
@@ -283,7 +290,7 @@ export function ShareDialog({
 
   if (!isOpen) return null;
 
-  const heading = type === "list" ? "Share this list" : "Share this project";
+  const heading = `Share this ${targetNoun(type)}`;
 
   return (
     <div
@@ -325,7 +332,7 @@ export function ShareDialog({
             <p className="text-wiki-text-muted text-xs leading-relaxed">
               No account needed. Share the link with anyone — classmates,
               co-authors, reviewers — and they&apos;ll see the{" "}
-              {type === "list" ? "list" : "project"} in read-only mode. Revoke
+              {targetNoun(type)} in read-only mode. Revoke
               the link below at any time to cut off access.
             </p>
           </div>
@@ -363,7 +370,7 @@ export function ShareDialog({
                       {copiedCode === share.code ? "Copied" : "Copy"}
                     </WikiButton>
                     <a
-                      href={`mailto:?subject=${encodeURIComponent(`${targetName || (type === "list" ? "Citation list" : "Citation project")} — OpenCitation`)}&body=${encodeURIComponent(`I wanted to share this ${type === "list" ? "citation list" : "citation project"} with you:\n\n${share.url}`)}`}
+                      href={`mailto:?subject=${encodeURIComponent(`${targetName || `Citation ${targetNoun(type)}`} — OpenCitation`)}&body=${encodeURIComponent(`I wanted to share this citation ${targetNoun(type)} with you:\n\n${share.url}`)}`}
                       className="inline-flex items-center px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                     >
                       Email
@@ -527,7 +534,7 @@ export function ShareDialog({
                       className="mt-0.5"
                     />
                     <span>
-                      <span className="font-medium">From {type} name</span>
+                      <span className="font-medium">From {targetNoun(type)} name</span>
                       <span className="block text-wiki-text-muted">
                         slug derived from &ldquo;{targetName || "untitled"}&rdquo;
                       </span>

@@ -4,6 +4,7 @@ import {
   createShareLink,
   getList,
   getProject,
+  getCitation,
   getUserLists,
   getUserProjects,
   listUserShares,
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { type, targetId, expiresInDays, slug: rawSlug, password, maxViews } = body as {
-      type: "list" | "project";
+      type: "list" | "project" | "citation";
       targetId: string;
       expiresInDays?: number;
       slug?: string;
@@ -94,9 +95,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (type !== "list" && type !== "project") {
+    if (type !== "list" && type !== "project" && type !== "citation") {
       return NextResponse.json(
-        { success: false, error: "Type must be 'list' or 'project'" },
+        { success: false, error: "Type must be 'list', 'project', or 'citation'" },
         { status: 400 }
       );
     }
@@ -110,11 +111,35 @@ export async function POST(request: NextRequest) {
           { status: 404 }
         );
       }
-    } else {
+    } else if (type === "project") {
       const project = await getProject(userId, targetId);
       if (!project) {
         return NextResponse.json(
           { success: false, error: "Project not found" },
+          { status: 404 }
+        );
+      }
+    } else {
+      // citation: targetId is "<listId>:<citationId>"
+      const [listId, citationId] = targetId.split(":");
+      if (!listId || !citationId) {
+        return NextResponse.json(
+          { success: false, error: "Citation target must be '<listId>:<citationId>'" },
+          { status: 400 }
+        );
+      }
+      // Verify the user owns the parent list, and the citation exists.
+      const list = await getList(userId, listId);
+      if (!list) {
+        return NextResponse.json(
+          { success: false, error: "List not found" },
+          { status: 404 }
+        );
+      }
+      const citation = await getCitation(listId, citationId);
+      if (!citation) {
+        return NextResponse.json(
+          { success: false, error: "Citation not found" },
           { status: 404 }
         );
       }
