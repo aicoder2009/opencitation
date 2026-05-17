@@ -23,7 +23,8 @@ export function WikiCollapsible({
         <button
           onClick={() => setIsOpen(!isOpen)}
           aria-expanded={isOpen}
-          aria-controls={panelId}
+          aria-controls={isOpen ? panelId : undefined}
+          aria-label={`${isOpen ? "Hide" : "Show"} ${title}`}
           className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
         >
           [{isOpen ? "hide" : "show"}]
