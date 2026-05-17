@@ -47,13 +47,14 @@ export function ShareDialog({
   targetId,
   targetName,
 }: ShareDialogProps) {
-  const [activeShare, setActiveShare] = useState<ActiveShare | null>(null);
+  const [activeShares, setActiveShares] = useState<ActiveShare[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [isRevoking, setIsRevoking] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
-  const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const [revokingCode, setRevokingCode] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [confirmRevokeCode, setConfirmRevokeCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCreator, setShowCreator] = useState(false);
   const [slugMode, setSlugMode] = useState<SlugMode>("auto");
   const [customSlug, setCustomSlug] = useState("");
   const [sharePassword, setSharePassword] = useState("");
@@ -78,35 +79,33 @@ export function ShareDialog({
       : `${origin}/share/${codePlaceholder}`;
   }, [effectiveSlug]);
 
-  const fetchActiveShare = useCallback(async () => {
+  const fetchActiveShares = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const response = await fetch("/api/share");
       const result = await response.json();
       if (!result.success) {
-        setActiveShare(null);
-        setError(result.error || "Could not load existing share link.");
+        setActiveShares([]);
+        setError(result.error || "Could not load existing share links.");
         return;
       }
-      const match = (result.data as ShareListEntry[]).find(
-        (s) => s.type === type && s.targetId === targetId
-      );
-      if (match) {
-        setActiveShare({
-          code: match.code,
-          url: match.url || `${window.location.origin}/share/${match.code}`,
-          expiresAt: match.expiresAt,
-          hasPassword: match.hasPassword,
-          maxViews: match.maxViews,
-          viewCount: match.viewCount,
-          lastViewedAt: match.lastViewedAt,
-        });
-      } else {
-        setActiveShare(null);
-      }
+      const matches = (result.data as ShareListEntry[])
+        .filter((s) => s.type === type && s.targetId === targetId)
+        .map<ActiveShare>((s) => ({
+          code: s.code,
+          url: s.url || `${window.location.origin}/share/${s.code}`,
+          expiresAt: s.expiresAt,
+          hasPassword: s.hasPassword,
+          maxViews: s.maxViews,
+          viewCount: s.viewCount,
+          lastViewedAt: s.lastViewedAt,
+        }));
+      setActiveShares(matches);
+      // Auto-open creator if there's nothing yet.
+      setShowCreator(matches.length === 0);
     } catch {
-      setError("Could not load existing share link.");
+      setError("Could not load existing share links.");
     } finally {
       setIsLoading(false);
     }
@@ -114,11 +113,11 @@ export function ShareDialog({
 
   useEffect(() => {
     if (!isOpen) return;
-    setCopySuccess(false);
-    setConfirmRevoke(false);
+    setCopiedCode(null);
+    setConfirmRevokeCode(null);
     setError(null);
-    fetchActiveShare();
-  }, [isOpen, fetchActiveShare]);
+    fetchActiveShares();
+  }, [isOpen, fetchActiveShares]);
 
   // Focus management: save previous focus, move into dialog on open, restore on close
   useEffect(() => {
@@ -170,7 +169,7 @@ export function ShareDialog({
         ? `${result.data.slug}--${result.data.code}`
         : result.data.code;
       const url = `${window.location.origin}/share/${segment}`;
-      setActiveShare({
+      const created: ActiveShare = {
         code: result.data.code,
         url,
         expiresAt: result.data.expiresAt,
@@ -178,12 +177,14 @@ export function ShareDialog({
         maxViews: result.data.maxViews ?? null,
         viewCount: result.data.viewCount ?? 0,
         lastViewedAt: result.data.lastViewedAt ?? null,
-      });
+      };
+      setActiveShares((prev) => [created, ...prev]);
       setSharePassword("");
       setMaxViewsInput("");
+      setShowCreator(false);
       try {
         await navigator.clipboard.writeText(url);
-        setCopySuccess(true);
+        setCopiedCode(created.code);
       } catch {
         // Clipboard blocked; user can copy manually.
       }
@@ -194,36 +195,32 @@ export function ShareDialog({
     }
   };
 
-  const handleCopy = async () => {
-    if (!activeShare) return;
+  const handleCopy = async (share: ActiveShare) => {
     try {
-      await navigator.clipboard.writeText(activeShare.url);
-      setCopySuccess(true);
+      await navigator.clipboard.writeText(share.url);
+      setCopiedCode(share.code);
     } catch {
       linkRef.current?.select();
     }
   };
 
-  const handleRevoke = async () => {
-    if (!activeShare) return;
-    setIsRevoking(true);
+  const handleRevoke = async (code: string) => {
+    setRevokingCode(code);
     setError(null);
     try {
-      const response = await fetch(`/api/share/${activeShare.code}`, {
-        method: "DELETE",
-      });
+      const response = await fetch(`/api/share/${code}`, { method: "DELETE" });
       const result = await response.json();
       if (!result.success) {
         setError(result.error || "Failed to revoke share link");
         return;
       }
-      setActiveShare(null);
-      setCopySuccess(false);
-      setConfirmRevoke(false);
+      setActiveShares((prev) => prev.filter((s) => s.code !== code));
+      setConfirmRevokeCode(null);
+      if (copiedCode === code) setCopiedCode(null);
     } catch {
       setError("Failed to revoke share link");
     } finally {
-      setIsRevoking(false);
+      setRevokingCode(null);
     }
   };
 
@@ -298,95 +295,125 @@ export function ShareDialog({
 
           {isLoading && <WikiSpinner />}
 
-          {!isLoading && activeShare && (
-            <div className="space-y-3">
-              <div>
-                <label htmlFor={`share-link-${targetId}`} className="block text-xs font-medium mb-1">
-                  Public link
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    ref={linkRef}
-                    id={`share-link-${targetId}`}
-                    type="text"
-                    readOnly
-                    value={activeShare.url}
-                    onFocus={(e) => e.currentTarget.select()}
-                    className="flex-1 text-xs"
-                  />
-                  <WikiButton onClick={handleCopy}>
-                    {copySuccess ? "Copied" : "Copy"}
-                  </WikiButton>
-                  <a
-                    href={`mailto:?subject=${encodeURIComponent(`${targetName || (type === "list" ? "Citation list" : "Citation project")} — OpenCitation`)}&body=${encodeURIComponent(`I wanted to share this ${type === "list" ? "citation list" : "citation project"} with you:\n\n${activeShare.url}`)}`}
-                    className="inline-flex items-center px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                  >
-                    Email
-                  </a>
-                </div>
-                {(activeShare.expiresAt || activeShare.hasPassword || activeShare.maxViews) && (
-                  <p className="text-wiki-text-muted text-xs mt-1">
-                    {activeShare.hasPassword && <>[locked] Password-protected</>}
-                    {activeShare.hasPassword && (activeShare.expiresAt || activeShare.maxViews) && " · "}
-                    {activeShare.expiresAt && (
-                      <>Expires {new Date(activeShare.expiresAt).toLocaleDateString()}</>
-                    )}
-                    {activeShare.expiresAt && activeShare.maxViews && " · "}
-                    {activeShare.maxViews && (
-                      <>{activeShare.viewCount ?? 0} of {activeShare.maxViews} views used</>
-                    )}
-                  </p>
-                )}
-                {!activeShare.maxViews && (activeShare.viewCount ?? 0) > 0 && (
-                  <p className="text-wiki-text-muted text-xs mt-0.5">
-                    Viewed {activeShare.viewCount}{" "}
-                    {activeShare.viewCount === 1 ? "time" : "times"}
-                    {activeShare.lastViewedAt && (
-                      <>
-                        {" "}
-                        · last on{" "}
-                        {new Date(activeShare.lastViewedAt).toLocaleDateString()}
-                      </>
-                    )}
-                  </p>
-                )}
-              </div>
-
-              {confirmRevoke ? (
-                <div className="p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-xs text-wiki-text">
-                  <p className="mb-2">
-                    Revoke this link? Anyone with the URL will lose access
-                    immediately.
-                  </p>
-                  <div className="flex gap-2">
-                    <WikiButton onClick={handleRevoke} disabled={isRevoking}>
-                      {isRevoking ? "Revoking…" : "Yes, revoke"}
-                    </WikiButton>
-                    <WikiButton
-                      onClick={() => setConfirmRevoke(false)}
-                      disabled={isRevoking}
-                    >
-                      Cancel
-                    </WikiButton>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setConfirmRevoke(true)}
-                  className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+          {!isLoading && activeShares.length > 0 && (
+            <ul className="space-y-3">
+              {activeShares.map((share, idx) => (
+                <li
+                  key={share.code}
+                  className="border border-wiki-border-light p-3 bg-wiki-white"
                 >
-                  Revoke link
-                </button>
-              )}
-            </div>
+                  <label
+                    htmlFor={`share-link-${targetId}-${share.code}`}
+                    className="block text-xs font-medium mb-1"
+                  >
+                    Public link {activeShares.length > 1 && <span className="text-wiki-text-muted">#{idx + 1}</span>}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      ref={idx === 0 ? linkRef : undefined}
+                      id={`share-link-${targetId}-${share.code}`}
+                      type="text"
+                      readOnly
+                      value={share.url}
+                      onFocus={(e) => e.currentTarget.select()}
+                      className="flex-1 text-xs"
+                    />
+                    <WikiButton onClick={() => handleCopy(share)}>
+                      {copiedCode === share.code ? "Copied" : "Copy"}
+                    </WikiButton>
+                    <a
+                      href={`mailto:?subject=${encodeURIComponent(`${targetName || (type === "list" ? "Citation list" : "Citation project")} — OpenCitation`)}&body=${encodeURIComponent(`I wanted to share this ${type === "list" ? "citation list" : "citation project"} with you:\n\n${share.url}`)}`}
+                      className="inline-flex items-center px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg transition-colors focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                    >
+                      Email
+                    </a>
+                  </div>
+                  {(share.expiresAt || share.hasPassword || share.maxViews) && (
+                    <p className="text-wiki-text-muted text-xs mt-1">
+                      {share.hasPassword && <>[locked] Password-protected</>}
+                      {share.hasPassword && (share.expiresAt || share.maxViews) && " · "}
+                      {share.expiresAt && (
+                        <>Expires {new Date(share.expiresAt).toLocaleDateString()}</>
+                      )}
+                      {share.expiresAt && share.maxViews && " · "}
+                      {share.maxViews && (
+                        <>{share.viewCount ?? 0} of {share.maxViews} views used</>
+                      )}
+                    </p>
+                  )}
+                  {!share.maxViews && (share.viewCount ?? 0) > 0 && (
+                    <p className="text-wiki-text-muted text-xs mt-0.5">
+                      Viewed {share.viewCount}{" "}
+                      {share.viewCount === 1 ? "time" : "times"}
+                      {share.lastViewedAt && (
+                        <>
+                          {" · last on "}
+                          {new Date(share.lastViewedAt).toLocaleDateString()}
+                        </>
+                      )}
+                    </p>
+                  )}
+
+                  <div className="mt-2">
+                    {confirmRevokeCode === share.code ? (
+                      <div className="p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-xs text-wiki-text">
+                        <p className="mb-2">
+                          Revoke this link? Anyone with the URL will lose access
+                          immediately.
+                        </p>
+                        <div className="flex gap-2">
+                          <WikiButton
+                            onClick={() => handleRevoke(share.code)}
+                            disabled={revokingCode === share.code}
+                          >
+                            {revokingCode === share.code ? "Revoking…" : "Yes, revoke"}
+                          </WikiButton>
+                          <WikiButton
+                            onClick={() => setConfirmRevokeCode(null)}
+                            disabled={revokingCode === share.code}
+                          >
+                            Cancel
+                          </WikiButton>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmRevokeCode(share.code)}
+                        className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                      >
+                        Revoke link
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
 
-          {!isLoading && !activeShare && (
-            <div className="space-y-3">
-              <p className="text-wiki-text-muted">
-                No share link yet. Create one to let anyone view this{" "}
-                {type === "list" ? "list" : "project"} via a public URL.
-              </p>
+          {!isLoading && !showCreator && (
+            <button
+              onClick={() => setShowCreator(true)}
+              className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+            >
+              + Create {activeShares.length > 0 ? "another" : "a"} share link
+            </button>
+          )}
+
+          {!isLoading && showCreator && (
+            <div className="space-y-3 border-t border-wiki-border-light pt-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium">
+                  {activeShares.length > 0 ? "Create another share link" : "Create a share link"}
+                </p>
+                {activeShares.length > 0 && (
+                  <button
+                    onClick={() => setShowCreator(false)}
+                    className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  >
+                    [cancel]
+                  </button>
+                )}
+              </div>
 
               <fieldset className="border border-wiki-border-light p-3">
                 <legend className="px-1 text-xs font-medium">URL style</legend>
