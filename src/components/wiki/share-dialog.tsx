@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import QRCode from "qrcode";
 import { WikiButton } from "./wiki-button";
 import { WikiNotice } from "./wiki-notice";
 import { WikiSpinner } from "./wiki-spinner";
@@ -55,6 +56,8 @@ export function ShareDialog({
   const [confirmRevokeCode, setConfirmRevokeCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showCreator, setShowCreator] = useState(false);
+  const [qrSvgs, setQrSvgs] = useState<Record<string, string>>({});
+  const [expandedQrCode, setExpandedQrCode] = useState<string | null>(null);
   const [slugMode, setSlugMode] = useState<SlugMode>("auto");
   const [customSlug, setCustomSlug] = useState("");
   const [sharePassword, setSharePassword] = useState("");
@@ -201,6 +204,27 @@ export function ShareDialog({
       setCopiedCode(share.code);
     } catch {
       linkRef.current?.select();
+    }
+  };
+
+  const toggleQr = async (share: ActiveShare) => {
+    if (expandedQrCode === share.code) {
+      setExpandedQrCode(null);
+      return;
+    }
+    setExpandedQrCode(share.code);
+    if (!qrSvgs[share.code]) {
+      try {
+        const svg = await QRCode.toString(share.url, {
+          type: "svg",
+          margin: 0,
+          color: { dark: "#202122", light: "#ffffff" },
+          errorCorrectionLevel: "M",
+        });
+        setQrSvgs((prev) => ({ ...prev, [share.code]: svg }));
+      } catch {
+        // Generation failure: leave svgs entry absent; user can retry.
+      }
     }
   };
 
@@ -354,9 +378,26 @@ export function ShareDialog({
                     </p>
                   )}
 
-                  <div className="mt-2">
-                    {confirmRevokeCode === share.code ? (
-                      <div className="p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-xs text-wiki-text">
+                  <div className="mt-2 flex items-center gap-3">
+                    {confirmRevokeCode === share.code ? null : (
+                      <>
+                        <button
+                          onClick={() => toggleQr(share)}
+                          aria-expanded={expandedQrCode === share.code}
+                          className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                        >
+                          {expandedQrCode === share.code ? "Hide QR" : "Show QR"}
+                        </button>
+                        <button
+                          onClick={() => setConfirmRevokeCode(share.code)}
+                          className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                        >
+                          Revoke link
+                        </button>
+                      </>
+                    )}
+                    {confirmRevokeCode === share.code && (
+                      <div className="w-full p-3 bg-wiki-offwhite border-l-4 border-l-wiki-border border border-wiki-border-light text-xs text-wiki-text">
                         <p className="mb-2">
                           Revoke this link? Anyone with the URL will lose access
                           immediately.
@@ -376,15 +417,28 @@ export function ShareDialog({
                           </WikiButton>
                         </div>
                       </div>
-                    ) : (
-                      <button
-                        onClick={() => setConfirmRevokeCode(share.code)}
-                        className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                      >
-                        Revoke link
-                      </button>
                     )}
                   </div>
+
+                  {expandedQrCode === share.code && qrSvgs[share.code] && (
+                    <div className="mt-3 flex flex-col items-start gap-2">
+                      <div
+                        className="border border-wiki-border-light bg-wiki-white p-2"
+                        style={{ width: 160, height: 160 }}
+                        // qrcode lib returns a self-contained SVG that we
+                        // inline. The string never contains user-controlled
+                        // data — it's the URL we just composed.
+                        dangerouslySetInnerHTML={{ __html: qrSvgs[share.code] }}
+                      />
+                      <a
+                        href={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrSvgs[share.code])}`}
+                        download={`${share.code}.svg`}
+                        className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                      >
+                        Download QR (SVG)
+                      </a>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
