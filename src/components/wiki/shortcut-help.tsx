@@ -134,7 +134,7 @@ export function ShortcutHelp({ scope = "global" }: ShortcutHelpProps) {
 
           <div className="mt-4 pt-3 border-t border-wiki-border-light">
             <p className="text-xs text-wiki-text-muted text-center">
-              Press <kbd className="px-1 py-0.5 bg-wiki-tab-bg border border-wiki-border-light text-xs">?</kbd> to toggle this help
+              Press <kbd>?</kbd> to toggle this help
             </p>
           </div>
         </div>
@@ -147,9 +147,7 @@ function ShortcutRow({ shortcut }: { shortcut: Shortcut }) {
   return (
     <div className="flex justify-between items-center py-1">
       <span className="text-sm">{shortcut.description}</span>
-      <kbd className="px-2 py-0.5 bg-wiki-tab-bg border border-wiki-border-light text-xs font-mono">
-        {formatShortcutKey(shortcut)}
-      </kbd>
+      <kbd>{formatShortcutKey(shortcut)}</kbd>
     </div>
   );
 }

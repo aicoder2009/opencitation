@@ -135,6 +135,7 @@ select {
   padding: 12px;
   background: var(--color-wiki-white);
   color: var(--color-wiki-text);
+  caret-color: var(--color-wiki-link);
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -181,6 +182,100 @@ select:focus:not(:focus-visible) {
 
 .citation-text a:hover {
   text-decoration: underline;
+}
+
+/* Hanging-indent utility — works-cited style */
+.hanging-indent {
+  padding-left: 2em;
+  text-indent: -2em;
+}
+
+/* In-text citation style — for (Smith, 2024) style references */
+.in-text-citation {
+  font-style: italic;
+  color: var(--color-wiki-text-muted);
+}
+
+/* kbd — keyboard keys look like physical keys */
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  background: var(--color-wiki-tab-bg);
+  color: var(--color-wiki-text);
+  border: 1px solid var(--color-wiki-border-light);
+  border-bottom-width: 2px;
+  box-shadow: inset 0 -1px 0 var(--color-wiki-border-light);
+  white-space: nowrap;
+}
+
+/* abbr — dotted underline + help cursor */
+abbr[title] {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+  cursor: help;
+}
+
+/* mark — yellow highlight, dark-mode-aware via current text color */
+mark {
+  background: #fef6e7;
+  color: var(--color-wiki-text);
+  padding: 0 0.15em;
+}
+.dark mark {
+  background: #5a4a1a;
+}
+
+/* hr — Wikipedia-style thin separator */
+hr {
+  border: 0;
+  border-top: 1px solid var(--color-wiki-border-light);
+  margin: 1.5em 0;
+}
+
+/* details/summary — wiki-style collapsible */
+details {
+  border: 1px solid var(--color-wiki-border-light);
+  background: var(--color-wiki-offwhite);
+  margin-bottom: 0.75rem;
+}
+details > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  background: var(--color-wiki-tab-bg);
+  border-bottom: 1px solid var(--color-wiki-border-light);
+  user-select: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details > summary::before {
+  content: "▸ ";
+  display: inline-block;
+  color: var(--color-wiki-text-muted);
+  transition: transform 0.15s ease;
+}
+details[open] > summary::before {
+  content: "▾ ";
+}
+details > summary + * {
+  padding: 0.75rem 1rem;
+}
+
+/* :focus-within affordance — outlines container of a focused form field */
+.focus-within-ring:focus-within {
+  outline: 1px dotted var(--color-wiki-text);
+  outline-offset: 2px;
+}
+
+/* Explicit external-link glyph (opt-in via class) */
+.external-link::after,
+a.external-link::after {
+  content: " ↗";
+  color: var(--color-wiki-text-muted);
+  font-size: 0.85em;
 }
 
 /* Clerk modal styles - match Wikipedia aesthetic */
@@ -267,6 +362,25 @@ select:focus:not(:focus-visible) {
   padding-bottom: 0.25rem;
   margin-top: 2rem;
   margin-bottom: 0.75rem;
+  scroll-margin-top: 1rem;
+  position: relative;
+}
+.docs-content h2[id]:hover::before,
+.docs-content h3[id]:hover::before {
+  content: "#";
+  position: absolute;
+  left: -1em;
+  color: var(--color-wiki-text-muted);
+  font-weight: 400;
+}
+.docs-content h3[id],
+.docs-content h2[id] {
+  scroll-margin-top: 1rem;
+}
+.docs-content a[target="_blank"]:not(.no-icon)::after {
+  content: " ↗";
+  color: var(--color-wiki-text-muted);
+  font-size: 0.85em;
 }
 .docs-content h3 {
   font-size: 1rem;
@@ -356,4 +470,64 @@ select:focus:not(:focus-visible) {
 }
 .docs-content em {
   font-style: italic;
+}
+
+/* Print stylesheet — citation-friendly output */
+@media print {
+  /* Force light palette regardless of dark mode */
+  :root,
+  .dark {
+    --color-wiki-white: #ffffff;
+    --color-wiki-offwhite: #ffffff;
+    --color-wiki-tab-bg: #ffffff;
+    --color-wiki-text: #000000;
+    --color-wiki-text-muted: #444444;
+    --color-wiki-link: #000000;
+    --color-wiki-border: #000000;
+    --color-wiki-border-light: #888888;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  /* Hide app chrome */
+  header,
+  footer,
+  nav,
+  [role="dialog"],
+  [aria-modal="true"] {
+    display: none !important;
+  }
+  /* Hide bracket-style inline action buttons (e.g. [edit], [delete], [view]) */
+  main button,
+  main a[role="button"] {
+    display: none !important;
+  }
+  /* Keep links visible but neutral */
+  a {
+    color: #000000 !important;
+    text-decoration: none !important;
+  }
+  /* Expand main content to full width */
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  /* Don't split a citation across pages */
+  .citation-text,
+  li,
+  tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  /* No drop shadows or backgrounds on cards in print */
+  .border {
+    box-shadow: none !important;
+  }
+  /* Render citation URLs after links for paper readers */
+  .citation-text a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #444444;
+  }
 }

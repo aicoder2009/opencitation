@@ -284,6 +284,16 @@ export default function ProjectsPage() {
             <WikiSpinner />
           ) : projects.length === 0 ? (
             <div className="text-center py-8">
+              <pre
+                aria-hidden="true"
+                className="inline-block font-mono text-xs leading-tight text-wiki-text-muted mb-4 select-none"
+              >
+{`    ┌──────┐
+   ┌┘      │
+   │       │
+   │       │
+   └───────┘`}
+              </pre>
               <p className="text-wiki-text-muted mb-4">
                 You don&apos;t have any projects yet.
               </p>
