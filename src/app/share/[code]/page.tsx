@@ -136,6 +136,29 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
     fetchSharedContent();
   }, [fetchSharedContent]);
 
+  // Maintain <link rel="canonical"> pointing at the slugged URL so search
+  // engines and reader-mode tools can pick the share's preferred URL.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const href = `${window.location.origin}/share/${segment}`;
+    let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    const created = !link;
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "canonical";
+      document.head.appendChild(link);
+    }
+    const prev = link.href;
+    link.href = href;
+    return () => {
+      if (created) {
+        link?.remove();
+      } else if (link) {
+        link.href = prev;
+      }
+    };
+  }, [segment]);
+
   const handleUnlock = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!passwordInput) return;
@@ -322,14 +345,21 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
           ]}
         />
 
-        {copyFeedback && (
-          <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm">
-            {copyFeedback}
-          </div>
-        )}
+        <div
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          className={
+            copyFeedback
+              ? "fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm"
+              : "sr-only"
+          }
+        >
+          {copyFeedback}
+        </div>
 
         <div className="mt-6">
-          <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
+          <article className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
               <div>
@@ -435,7 +465,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
                 </WikiButton>
               </div>
             </div>
-          </div>
+          </article>
         </div>
       </WikiLayout>
     );
@@ -454,14 +484,21 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
         ]}
       />
 
-      {copyFeedback && (
-        <div className="fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm">
-          {copyFeedback}
-        </div>
-      )}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className={
+          copyFeedback
+            ? "fixed top-4 right-4 z-50 bg-wiki-white border border-wiki-border-light px-3 py-2 text-sm"
+            : "sr-only"
+        }
+      >
+        {copyFeedback}
+      </div>
 
       <div className="mt-6">
-        <div className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
+        <article className="border border-wiki-border-light bg-wiki-white p-6 md:p-8">
           {/* Header */}
           <div className="mb-6">
             <div className="text-xs text-wiki-text-muted uppercase tracking-wide mb-1">
@@ -590,7 +627,7 @@ export default function SharePage({ params }: { params: Promise<{ code: string }
               </WikiButton>
             </div>
           </div>
-        </div>
+        </article>
       </div>
     </WikiLayout>
   );
