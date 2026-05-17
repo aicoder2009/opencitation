@@ -94,6 +94,37 @@ a:active {
   outline-offset: 2px;
 }
 
+/* Selection - match wiki-link palette */
+::selection {
+  background: var(--color-wiki-link);
+  color: var(--color-wiki-white);
+}
+
+/* Scrollbars - thin, themed to match wiki borders (Firefox) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-wiki-border-light) var(--color-wiki-offwhite);
+}
+
+/* Scrollbars - WebKit/Chromium */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-wiki-offwhite);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-wiki-border-light);
+  border: 2px solid var(--color-wiki-offwhite);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-wiki-border);
+}
+::-webkit-scrollbar-corner {
+  background: var(--color-wiki-offwhite);
+}
+
 /* Form inputs - Simple 1px borders, generous padding */
 input,
 textarea,
