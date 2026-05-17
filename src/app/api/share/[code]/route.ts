@@ -9,9 +9,19 @@ import {
   getUserLists,
   recordShareView,
 } from "@/lib/db";
+import { createHash } from "crypto";
 import { parseShareSegment } from "@/lib/share-utils";
 import { verifySharePassword } from "@/lib/share-password";
 import { checkRateLimit, clientKey } from "@/lib/rate-limit";
+
+// Compute a weak ETag from the salient fields of the response payload.
+// Cheap, deterministic, dependent on the actual rendered content rather
+// than wall-clock time.
+function computeEtag(parts: (string | number | undefined | null)[]): string {
+  const h = createHash("sha1");
+  h.update(parts.map((p) => String(p ?? "")).join(""));
+  return `W/"${h.digest("base64url").slice(0, 16)}"`;
+}
 
 interface RouteParams {
   params: Promise<{ code: string }>;
@@ -104,6 +114,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         );
       }
 
+      const etag = computeEtag([
+        "list",
+        shareLink.code,
+        listData.id,
+        listData.name,
+        citations.length,
+        citations[citations.length - 1]?.id,
+        listData.updatedAt,
+      ]);
+      if (request.headers.get("if-none-match") === etag) {
+        return new NextResponse(null, {
+          status: 304,
+          headers: {
+            ETag: etag,
+            "Cache-Control": "public, max-age=60, must-revalidate",
+          },
+        });
+      }
+
       return NextResponse.json(
         {
           success: true,
@@ -121,9 +150,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             })),
           },
         },
-        { headers: { "Cache-Control": "public, max-age=60, must-revalidate" } }
+        {
+          headers: {
+            "Cache-Control": "public, max-age=60, must-revalidate",
+            ETag: etag,
+          },
+        },
       );
-    } 
+    }
       // Project sharing - get project with all its lists and citations
       // Fetch project details and user lists concurrently by utilizing the shareLink's owner ID
       const [projectData, allLists] = await Promise.all([
@@ -161,6 +195,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         })
       );
 
+      const projectEtag = computeEtag([
+        "project",
+        shareLink.code,
+        projectData.id,
+        projectData.name,
+        projectData.updatedAt,
+        listsWithCitations.length,
+        listsWithCitations.reduce((sum, l) => sum + l.citations.length, 0),
+      ]);
+      if (request.headers.get("if-none-match") === projectEtag) {
+        return new NextResponse(null, {
+          status: 304,
+          headers: {
+            ETag: projectEtag,
+            "Cache-Control": "public, max-age=60, must-revalidate",
+          },
+        });
+      }
+
       return NextResponse.json(
         {
           success: true,
@@ -173,7 +226,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             lists: listsWithCitations,
           },
         },
-        { headers: { "Cache-Control": "public, max-age=60, must-revalidate" } }
+        {
+          headers: {
+            "Cache-Control": "public, max-age=60, must-revalidate",
+            ETag: projectEtag,
+          },
+        },
       );
     
   } catch (error) {

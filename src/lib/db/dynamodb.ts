@@ -750,6 +750,13 @@ export async function createShareLink(
     viewCount: 0,
   };
 
+  // DynamoDB TTL: epoch seconds; DynamoDB will auto-delete the record
+  // sometime after this. App-level expiry still enforces the boundary
+  // exactly; this just keeps the table clean.
+  const ttl = expiresAt
+    ? Math.floor(new Date(expiresAt).getTime() / 1000)
+    : undefined;
+
   await docClient.send(
     new PutCommand({
       TableName: TABLE_NAME,
@@ -761,6 +768,7 @@ export async function createShareLink(
         GSI1SK: keys.share(code),
         ...shareLink,
         entityType: "SHARE",
+        ...(ttl !== undefined ? { ttl } : {}),
       },
     })
   );
