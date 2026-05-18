@@ -20,16 +20,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Verify the project exists and belongs to the user
-    const project = await getProject(userId, projectId);
+    // Verify the project exists and get its lists concurrently
+    const [project, lists] = await Promise.all([
+      getProject(userId, projectId),
+      getProjectLists(userId, projectId),
+    ]);
+
     if (!project) {
       return NextResponse.json(
         { success: false, error: "Project not found" },
         { status: 404 }
       );
     }
-
-    const lists = await getProjectLists(userId, projectId);
 
     return NextResponse.json({
       success: true,
