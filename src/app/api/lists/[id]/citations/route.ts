@@ -22,15 +22,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Verify the list exists and belongs to the user
-    const list = await getList(userId, listId);
+    // Fetch list details and list citations concurrently by utilizing the userId
+    const [list, citations] = await Promise.all([
+      getList(userId, listId),
+      getListCitations(listId),
+    ]);
+
     if (!list) {
       return NextResponse.json(
         { success: false, error: "List not found" },
         { status: 404 }
       );
     }
-
-    const citations = await getListCitations(listId);
 
     return NextResponse.json({
       success: true,
