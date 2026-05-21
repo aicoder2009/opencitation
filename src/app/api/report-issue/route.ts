@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getPostHogClient } from "@/lib/posthog-server";
-import { getClientKey, rateLimit } from "@/lib/security/rate-limit";
+import { getClientKey, rateLimit, isSameOrigin } from "@/lib/security/rate-limit";
 
 const GITHUB_REPO = "aicoder2009/opencitation";
 const MAX_TITLE_LEN = 200;
@@ -11,6 +11,11 @@ const ALLOWED_ISSUE_TYPES = new Set(["bug", "feature", "feedback", "general"]);
 
 export async function POST(request: NextRequest) {
   try {
+    // Reject cross-origin POSTs to prevent CSRF attacks
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+    }
+
     // Rate limit anonymous abuse: 5 reports per IP per hour.
     const limit = rateLimit(getClientKey(request, "report-issue"), {
       limit: 5,
