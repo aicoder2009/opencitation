@@ -1,7 +1,7 @@
 # OpenCitation
 
 An open source citation manager, generator, and sharing tool. Ad-free, easy to use, with a clean Wikipedia 2005-inspired design.
-
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/aicoder2009/opencitation?utm_source=oss&utm_medium=github&utm_campaign=aicoder2009%2Fopencitation&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 ## Features
 
 - **Generate Citations** - Create properly formatted citations from URLs, DOIs, ISBNs, or manual entry
