@@ -1,0 +1,46 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# OpenCitation — CodeRabbit is the only PR-time review in CI.
+# (Vercel handles production deploys; release.yml builds desktop apps on tags.)
+language: en-US
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  path_filters:
+    - "!package-lock.json"
+    - "!**/*.lock"
+    - "!public/**"
+    - "!**/*.min.js"
+  path_instructions:
+    - path: "**/*.{ts,tsx,css}"
+      instructions: >-
+        OpenCitation follows an early-2000s Wikipedia aesthetic with a strict design system.
+        Flag these as issues:
+        - Any border-radius (buttons, inputs, cards, modals, avatars) — not allowed anywhere.
+        - Filled/solid buttons — both `default` and `primary` variants are white background
+          with a border; `primary` differs only by text-wiki-link + font-medium.
+        - Drop shadows, except on dragging cards, modals, and dropdowns.
+        - Hard-coded colors — always use a wiki-* token (wiki-link, wiki-text, wiki-border,
+          wiki-tab-bg, etc.) or a Tailwind semantic utility, never a raw hex value.
+        - New UI components placed outside src/components/wiki/ or not named Wiki*.
+        - Removal of the focus-visible dotted outline on interactive elements.
+    - path: "src/lib/citation/**"
+      instructions: >-
+        Citation engine — APA 7th, MLA 9th, Chicago 17th, Harvard across 11 source types.
+        Scrutinize formatting correctness: author/date/title ordering, punctuation, italics,
+        in-text vs full citations, and the BibTeX/RIS exporter output. Formatting changes
+        should come with matching updates to the adjacent *.test.ts file.
+    - path: "src/app/api/**"
+      instructions: >-
+        API routes. Check input validation on external lookups (URL/DOI/ISBN/PubMed/arXiv),
+        no leaked secrets or API keys, no injection in the share/badge endpoints, and that
+        writes go through the offline store rather than hitting DynamoDB directly.
+chat:
+  auto_reply: true
