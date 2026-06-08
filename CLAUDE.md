@@ -13,7 +13,7 @@ npm run dev             # Next dev server
 npm run build           # Production build
 npm run lint            # ESLint
 npm run test            # Vitest (watch mode)
-npm run test:run        # Vitest (single run, 225 tests)
+npm run test:run        # Vitest (single run, 652 tests)
 npm run electron:dev    # Electron + Next dev together
 npm run electron:build  # Package desktop app (mac/win/linux variants available)
 ```
@@ -26,7 +26,7 @@ npm run electron:build  # Package desktop app (mac/win/linux variants available)
 - **Desktop:** Electron 34 (wraps the same Next app)
 - **PWA:** Service worker + offline store + sync manager
 - **DnD:** `@dnd-kit` for reorderable citations
-- **Testing:** Vitest + Testing Library (225 tests)
+- **Testing:** Vitest + Testing Library (652 tests)
 
 ## Architecture
 

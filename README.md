@@ -35,7 +35,7 @@ Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV 
 | UI | Custom Wikipedia-style design system |
 | Auth | Clerk |
 | Database | DynamoDB (AWS SDK v3, single-table) |
-| Testing | Vitest + Testing Library (225 tests) |
+| Testing | Vitest + Testing Library (652 tests) |
 | Desktop | Electron |
 | Extension | Chrome Manifest v3 |
 
@@ -82,7 +82,7 @@ AWS_REGION=
 npm run dev        # Start dev server
 npm run build      # Production build
 npm run lint       # ESLint
-npm run test       # Run tests (225 tests)
+npm run test       # Run tests (652 tests)
 ```
 
 ## How It Works
