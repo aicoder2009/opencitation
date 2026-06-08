@@ -66,13 +66,21 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+// Clerk validates the publishable key's format while prerendering static pages
+// (e.g. /_not-found) at build time. Fall back to a non-functional demo key when
+// the env var is absent so `next build` succeeds in CI and local builds without
+// Clerk credentials. Production always supplies the real key via env.
+const publishableKey =
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+  "pk_test_ZXhhbXBsZS0wMC5jbGVyay5hY2NvdW50cy5kZXYk";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider publishableKey={publishableKey}>
       <html lang="en" suppressHydrationWarning>
         <head>
           <meta name="mobile-web-app-capable" content="yes" />
