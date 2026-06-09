@@ -14,6 +14,7 @@ import { formatAPA } from './formatters/apa';
 import { formatMLA } from './formatters/mla';
 import { formatChicago } from './formatters/chicago';
 import { formatHarvard } from './formatters/harvard';
+import { isCslStyle } from './csl/styles';
 
 /**
  * Format a citation in the specified style
@@ -153,6 +154,40 @@ export function generateInTextCitation(
       return `(${firstAuthor}, ${year})`;
   }
 }
+
+/**
+ * Format a citation in any style — the four built-ins (synchronous) or any
+ * bundled CSL style (lazy-loads the citeproc engine on demand). Prefer this
+ * over formatCitation when the style may be a CSL style id.
+ */
+export async function formatCitationAny(
+  fields: CitationFields,
+  style: string
+): Promise<FormattedCitation> {
+  if (isCslStyle(style)) {
+    const { formatCsl } = await import('./csl/engine');
+    return formatCsl(fields, style);
+  }
+  return formatCitation(fields, style as CitationStyle);
+}
+
+/**
+ * In-text citation for any style — built-ins (synchronous) or CSL styles
+ * (numeric markers like "[1]" or author-date like "(Doe 2020)").
+ */
+export async function generateInTextCitationAny(
+  fields: CitationFields,
+  style: string
+): Promise<string> {
+  if (isCslStyle(style)) {
+    const { inTextCsl } = await import('./csl/engine');
+    return inTextCsl(fields, style);
+  }
+  return generateInTextCitation(fields, style as CitationStyle);
+}
+
+// CSL style registry helpers
+export { CSL_STYLES, isCslStyle, cslStyleLabel } from './csl/styles';
 
 // Re-export types for convenience
 export type { CitationFields, CitationStyle, FormattedCitation } from '@/types/citation';

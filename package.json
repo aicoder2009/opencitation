@@ -33,6 +33,7 @@
     "@types/dompurify": "^3.0.5",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",
+    "citeproc": "^2.4.63",
     "dompurify": "^3.4.1",
     "isomorphic-dompurify": "^3.10.0",
     "marked": "^18.0.3",
