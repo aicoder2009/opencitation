@@ -6,3 +6,7 @@
 **Vulnerability:** The application was using the `marked` library to parse Markdown content into HTML (in `src/app/docs/changelog/page.tsx` and `src/lib/docs.ts`) and subsequently rendering it using `dangerouslySetInnerHTML` without proper sanitization.
 **Learning:** `marked` does not sanitize HTML by default. While this may seem safe for trusted inputs (like internal docs or GitHub releases), if malicious input manages to enter these sources, it leads directly to an XSS vulnerability.
 **Prevention:** The output of `marked` (or any markdown parser) must always be wrapped with `DOMPurify.sanitize()` (using `isomorphic-dompurify` for SSR) before being passed to `dangerouslySetInnerHTML`.
+## 2025-02-28 - [Host-header SSRF in Loopback Fetch]
+**Vulnerability:** The `src/app/api/lookup/bulk/route.ts` API endpoint performed loopback `fetch` requests (e.g., to `/api/lookup/url`) using a dynamically derived hostname (`request.nextUrl.origin`). This exposed the application to Host-header Server-Side Request Forgery (SSRF) because an attacker could manipulate the `Host` header to route the internal request to an arbitrary server.
+**Learning:** Depending on the `Host` header to construct absolute URLs for internal API calls creates an SSRF risk, as the user controls the `Host` header.
+**Prevention:** Instead of performing a loopback HTTP `fetch`, internal route handlers (like `POST` methods) should be imported and invoked directly using a synthetic `NextRequest` (e.g., `new NextRequest(new URL('http://localhost'), ...)`).
