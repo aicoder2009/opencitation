@@ -449,7 +449,7 @@ export type CitationFields =
 export interface Citation {
   id: string;
   fields: CitationFields;
-  style: CitationStyle;
+  style: string;
   formattedCitation?: string;
   createdAt: Date;
   updatedAt: Date;

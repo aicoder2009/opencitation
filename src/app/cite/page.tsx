@@ -16,7 +16,7 @@ import { WikiDatePicker, type DateValue } from "@/components/wiki/wiki-date-pick
 import { WikiSelect } from "@/components/wiki/wiki-select";
 import { TemplatePicker } from "@/components/wiki/template-picker";
 import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
-import { formatCitation, generateInTextCitation } from "@/lib/citation";
+import { formatCitationAny, generateInTextCitationAny, CSL_STYLES } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import { saveTemplate, suggestTemplateName, type CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
@@ -143,9 +143,10 @@ const ACCESS_TYPES: { value: AccessType; label: string }[] = [
   { value: "archive", label: "Archive" },
 ];
 
-const STYLE_LABELS: Record<string, string> = Object.fromEntries(
-  CITATION_STYLES.map(s => [s.value, s.label])
-);
+const STYLE_LABELS: Record<string, string> = {
+  ...Object.fromEntries(CITATION_STYLES.map((s) => [s.value, s.label])),
+  ...Object.fromEntries(CSL_STYLES.map((s) => [s.id, s.label])),
+};
 
 const SOURCE_LABELS: Record<string, string> = Object.fromEntries(
   SOURCE_TYPES.map(s => [s.value, s.label])
@@ -326,7 +327,7 @@ function CitePageContent() {
   const searchParams = useSearchParams();
   const { isSignedIn } = useUser();
   const [activeTab, setActiveTab] = useState("quick-add");
-  const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
+  const [selectedStyle, setSelectedStyle] = useState<string>("apa");
   const [selectedSourceType, setSelectedSourceType] = useState<SourceType>("website");
   const [selectedAccessType, setSelectedAccessType] = useState<AccessType>("web");
   const [quickAddInput, setQuickAddInput] = useState("");
@@ -532,7 +533,7 @@ function CitePageContent() {
         setSelectedSourceType(effectiveType);
       }
       const fields = buildCitationFields(data, effectiveType, selectedAccessType);
-      const formatted = formatCitation(fields, selectedStyle);
+      const formatted = await formatCitationAny(fields, selectedStyle);
       setCitationFields(fields);
       setGeneratedCitation(formatted);
       setAddToListSuccess(null);
@@ -562,11 +563,17 @@ function CitePageContent() {
     }
   };
 
-  const applyBibtexEntry = (entry: BibTeXParseResult) => {
+  const applyBibtexEntry = async (entry: BibTeXParseResult) => {
     const { fields } = entry;
     setSelectedSourceType(fields.sourceType);
     if (fields.accessType) setSelectedAccessType(fields.accessType);
-    const formatted = formatCitation(fields, selectedStyle);
+    let formatted;
+    try {
+      formatted = await formatCitationAny(fields, selectedStyle);
+    } catch {
+      setBibtexError("Could not format the citation in this style. Please try again.");
+      return;
+    }
     setCitationFields(fields);
     setGeneratedCitation(formatted);
     setAddToListSuccess(null);
@@ -574,7 +581,7 @@ function CitePageContent() {
     fetch("/api/stats/increment", { method: "POST" }).catch(() => {});
   };
 
-  const handleBibtexImport = () => {
+  const handleBibtexImport = async () => {
     setBibtexError(null);
     setBibtexResults([]);
     if (!bibtexInput.trim()) {
@@ -590,7 +597,7 @@ function CitePageContent() {
         return;
       }
       if (entries.length === 1) {
-        applyBibtexEntry(entries[0]);
+        await applyBibtexEntry(entries[0]);
       } else {
         setBibtexResults(entries);
       }
@@ -616,7 +623,7 @@ function CitePageContent() {
     e.target.value = "";
   };
 
-  const handleManualGenerate = () => {
+  const handleManualGenerate = async () => {
     setError(null);
     setTitleError(null);
 
@@ -626,7 +633,13 @@ function CitePageContent() {
     }
 
     const fields = buildCitationFieldsFromForm();
-    const formatted = formatCitation(fields, selectedStyle);
+    let formatted;
+    try {
+      formatted = await formatCitationAny(fields, selectedStyle);
+    } catch {
+      setError("Could not format the citation in this style. Please try again.");
+      return;
+    }
     setCitationFields(fields);
     setGeneratedCitation(formatted);
     setAddToListSuccess(null);
@@ -699,12 +712,18 @@ function CitePageContent() {
     }
   };
 
-  const handleBulkResultClick = (result: { success: boolean; data?: Record<string, unknown> }) => {
+  const handleBulkResultClick = async (result: { success: boolean; data?: Record<string, unknown> }) => {
     if (!result.success || !result.data) return;
 
     // Build citation fields and switch to result view
     const fields = buildCitationFields(result.data, selectedSourceType, selectedAccessType);
-    const formatted = formatCitation(fields, selectedStyle);
+    let formatted;
+    try {
+      formatted = await formatCitationAny(fields, selectedStyle);
+    } catch {
+      setBulkError("Could not format the citation in this style. Please try again.");
+      return;
+    }
     setCitationFields(fields);
     setGeneratedCitation(formatted);
     setAddToListSuccess(null);
@@ -770,7 +789,7 @@ function CitePageContent() {
       setSelectedSourceType(sourceType);
 
       const fields = buildCitationFields(data, sourceType, "web");
-      const formatted = formatCitation(fields, selectedStyle);
+      const formatted = await formatCitationAny(fields, selectedStyle);
       setCitationFields(fields);
       setGeneratedCitation(formatted);
       setAddToListSuccess(null);
@@ -1013,9 +1032,9 @@ function CitePageContent() {
     }
   };
 
-  const copyInTextCitation = () => {
+  const copyInTextCitation = async () => {
     if (!citationFields) return;
-    navigator.clipboard.writeText(generateInTextCitation(citationFields, selectedStyle));
+    navigator.clipboard.writeText(await generateInTextCitationAny(citationFields, selectedStyle));
     flashCopied("copy-in-text");
   };
 
@@ -1274,7 +1293,7 @@ function CitePageContent() {
     }
   };
 
-  const getStyleLabel = (value: CitationStyle) =>
+  const getStyleLabel = (value: string) =>
     STYLE_LABELS[value] || value;
 
   const getSourceLabel = (value: SourceType) =>
@@ -2145,6 +2164,24 @@ function CitePageContent() {
                 {style.label}
               </WikiButton>
             ))}
+          </div>
+          <div className="mt-3 pt-3 border-t border-wiki-border-light">
+            <p className="text-xs text-wiki-text-muted mb-2">
+              Journal &amp; discipline styles
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {CSL_STYLES.map((style) => (
+                <WikiButton
+                  key={style.id}
+                  variant={selectedStyle === style.id ? "primary" : "default"}
+                  onClick={() => setSelectedStyle(style.id)}
+                  className={selectedStyle === style.id ? "border-wiki-link" : ""}
+                  title={style.discipline}
+                >
+                  {style.label}
+                </WikiButton>
+              ))}
+            </div>
           </div>
         </div>
 

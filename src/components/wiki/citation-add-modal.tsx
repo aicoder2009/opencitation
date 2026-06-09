@@ -5,7 +5,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { WikiButton } from "./wiki-button";
 import { WikiNotice } from "./wiki-notice";
 import { WikiSelect } from "./wiki-select";
-import { formatCitation } from "@/lib/citation";
+import { formatCitationAny, CSL_STYLES } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import type { CitationStyle, SourceType, CitationFields } from "@/types";
 
@@ -64,7 +64,7 @@ export function CitationAddModal({
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const headingId = `modal-heading-${listId}`;
   const [input, setInput] = useState("");
-  const [selectedStyle, setSelectedStyle] = useState<CitationStyle>("apa");
+  const [selectedStyle, setSelectedStyle] = useState<string>("apa");
   const [addMore, setAddMore] = useState(false);
   const [isLooking, setIsLooking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,11 +105,20 @@ export function CitationAddModal({
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
-  // Reformat when style changes
+  // Reformat when style changes (CSL styles format asynchronously)
   useEffect(() => {
     if (!citationFields) return;
-    const formatted = formatCitation(citationFields, selectedStyle);
-    setGeneratedCitation(formatted);
+    let cancelled = false;
+    formatCitationAny(citationFields, selectedStyle)
+      .then((formatted) => {
+        if (!cancelled) setGeneratedCitation(formatted);
+      })
+      .catch(() => {
+        if (!cancelled) setGeneratedCitation(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [selectedStyle, citationFields]);
 
   const handleLookup = async () => {
@@ -143,7 +152,7 @@ export function CitationAddModal({
           ? ("preprint" as SourceType)
           : (data.suggestedSourceType as SourceType | undefined) ?? "website";
       const fields = buildCitationFields(data, autoType, "web");
-      const formatted = formatCitation(fields, selectedStyle);
+      const formatted = await formatCitationAny(fields, selectedStyle);
       setCitationFields(fields);
       setGeneratedCitation(formatted);
     } catch {
@@ -278,8 +287,11 @@ export function CitationAddModal({
             </div>
             <WikiSelect
               value={selectedStyle}
-              onChange={(v) => setSelectedStyle(v as CitationStyle)}
-              options={CITATION_STYLES}
+              onChange={(v) => setSelectedStyle(v)}
+              options={[
+                ...CITATION_STYLES,
+                ...CSL_STYLES.map((s) => ({ value: s.id, label: s.label })),
+              ]}
               className="w-32"
             />
           </div>
