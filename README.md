@@ -14,6 +14,7 @@ An open source citation manager, generator, and sharing tool. Ad-free, easy to u
 - MLA 9th Edition
 - Chicago 17th Edition
 - Harvard
+- Journal & discipline styles via the Citation Style Language: IEEE, Vancouver, AMA, ACS, Nature, APSA, Chicago (Author-Date)
 
 ### Supported Source Types
 Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV Series, TV Episodes, and Miscellaneous.
@@ -35,7 +36,7 @@ Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV 
 | UI | Custom Wikipedia-style design system |
 | Auth | Clerk |
 | Database | DynamoDB (AWS SDK v3, single-table) |
-| Testing | Vitest + Testing Library (652 tests) |
+| Testing | Vitest + Testing Library (668 tests) |
 | Desktop | Electron |
 | Extension | Chrome Manifest v3 |
 
@@ -82,7 +83,7 @@ AWS_REGION=
 npm run dev        # Start dev server
 npm run build      # Production build
 npm run lint       # ESLint
-npm run test       # Run tests (652 tests)
+npm run test       # Run tests (668 tests)
 ```
 
 ## How It Works
@@ -90,7 +91,7 @@ npm run test       # Run tests (652 tests)
 ### Citation Generation
 1. **Quick Add:** Paste a URL, DOI, or ISBN - metadata is extracted automatically
 2. **Manual Entry:** Form-based entry for full control over all fields
-3. **Style Selection:** Choose from APA, MLA, Chicago, or Harvard
+3. **Style Selection:** Choose from APA, MLA, Chicago, or Harvard — plus journal/discipline styles (IEEE, Vancouver, AMA, ACS, Nature, APSA, Chicago author-date) powered by the Citation Style Language
 
 ### Organization
 - **Lists:** Collections of citations (like a bibliography)

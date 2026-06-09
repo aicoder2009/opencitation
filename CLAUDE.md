@@ -13,7 +13,7 @@ npm run dev             # Next dev server
 npm run build           # Production build
 npm run lint            # ESLint
 npm run test            # Vitest (watch mode)
-npm run test:run        # Vitest (single run, 652 tests)
+npm run test:run        # Vitest (single run, 668 tests)
 npm run electron:dev    # Electron + Next dev together
 npm run electron:build  # Package desktop app (mac/win/linux variants available)
 ```
@@ -26,12 +26,12 @@ npm run electron:build  # Package desktop app (mac/win/linux variants available)
 - **Desktop:** Electron 34 (wraps the same Next app)
 - **PWA:** Service worker + offline store + sync manager
 - **DnD:** `@dnd-kit` for reorderable citations
-- **Testing:** Vitest + Testing Library (652 tests)
+- **Testing:** Vitest + Testing Library (668 tests)
 
 ## Architecture
 
 ### Citation Engine (`src/lib/citation/`)
-- **Styles:** APA 7th, MLA 9th, Chicago 17th, Harvard
+- **Styles:** APA 7th, MLA 9th, Chicago 17th, Harvard (built-in, synchronous formatters) + CSL styles (IEEE, Vancouver, AMA, ACS, Nature, APSA, Chicago author-date) rendered via citeproc — see `src/lib/citation/csl/`. Use `formatCitationAny` / `generateInTextCitationAny` when the style may be a CSL id.
 - **Source types (11):** Book, Journal, Website, Blog, Newspaper, Video, Image, Film, TV Series, TV Episode, Miscellaneous
 - **Access types (5):** Print, Database, Web, App, Archive
 - **Exporters:** BibTeX (`.bib`), RIS (`.ris`), plain `.txt`
