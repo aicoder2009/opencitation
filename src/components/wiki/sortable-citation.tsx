@@ -359,6 +359,7 @@ export function SortableCitation({
                   setTimeout(() => setCopiedKey(null), 1500);
                 }}
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label={copiedKey === "copy" ? "Citation copied!" : `Copy citation: ${citation.fields?.title || "Untitled"}`}
               >
                 {copiedKey === "copy" ? "[copied!]" : "[copy]"}
               </button>
@@ -376,6 +377,7 @@ export function SortableCitation({
                   }}
                   className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   title={`In-text citation (${citation.style.toUpperCase()})`}
+                  aria-label={copiedKey === "copy-in-text" ? "In-text citation copied!" : `Copy in-text citation: ${citation.fields?.title || "Untitled"}`}
                 >
                   {copiedKey === "copy-in-text" ? "[copied!]" : "[copy in-text]"}
                 </button>
@@ -383,6 +385,7 @@ export function SortableCitation({
               <button
                 onClick={startEditing}
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label={`Edit citation: ${citation.fields?.title || "Untitled"}`}
               >
                 [edit]
               </button>
@@ -390,6 +393,7 @@ export function SortableCitation({
                 <button
                   onClick={() => onShare(citation.id)}
                   className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  aria-label={`Share citation: ${citation.fields?.title || "Untitled"}`}
                 >
                   [share]
                 </button>
@@ -397,6 +401,7 @@ export function SortableCitation({
               <button
                 onClick={() => onDelete(citation.id)}
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label={`Delete citation: ${citation.fields?.title || "Untitled"}`}
               >
                 [delete]
               </button>
@@ -446,6 +451,7 @@ export function SortableCitation({
                       setEditingNotes(true);
                     }}
                     className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                    aria-label={`Edit notes for ${citation.fields?.title || "Untitled"}`}
                   >
                     [edit]
                   </button>
@@ -456,6 +462,7 @@ export function SortableCitation({
                       if (confirm(`Clear notes for "${label}"?`)) onSaveNotes(citation.id, "");
                     }}
                     className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                    aria-label={`Clear notes for ${citation.fields?.title || "Untitled"}`}
                   >
                     [clear]
                   </button>
@@ -469,6 +476,7 @@ export function SortableCitation({
                   setEditingNotes(true);
                 }}
                 className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label={`Add notes to ${citation.fields?.title || "Untitled"}`}
               >
                 [+ add notes]
               </button>
@@ -515,6 +523,7 @@ export function SortableCitation({
                         setQuotesDraft(quotesDraft.filter((_, idx) => idx !== i))
                       }
                       className="text-wiki-link text-xs hover:underline pt-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                      aria-label="Remove quote"
                     >
                       [remove]
                     </button>
@@ -526,6 +535,7 @@ export function SortableCitation({
                       setQuotesDraft([...quotesDraft, { text: "", page: "" }])
                     }
                     className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                    aria-label="Add quote"
                   >
                     + add quote
                   </button>
@@ -587,6 +597,7 @@ export function SortableCitation({
                   setEditingQuotes(true);
                 }}
                 className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label={`Add quote to ${citation.fields?.title || "Untitled"}`}
               >
                 [+ add quote]
               </button>
@@ -637,6 +648,7 @@ export function SortableCitation({
                 <button
                   onClick={() => onAddTag(citation.id, newTagInput)}
                   className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  aria-label="Add tag"
                 >
                   [add]
                 </button>
@@ -646,6 +658,7 @@ export function SortableCitation({
                     setNewTagInput("");
                   }}
                   className="text-wiki-text-muted text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  aria-label="Cancel adding tag"
                 >
                   [cancel]
                 </button>
@@ -682,6 +695,7 @@ export function SortableCitation({
               <button
                 onClick={() => setEditingTagsId(citation.id)}
                 className="text-wiki-link text-xs hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                aria-label={`+ add tag to ${citation.fields?.title || "Untitled"}`}
               >
                 [+ add tag]
               </button>
