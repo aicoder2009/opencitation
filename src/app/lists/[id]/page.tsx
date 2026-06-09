@@ -34,7 +34,7 @@ import {
   ShortcutHelp,
   useKeyboardShortcuts,
 } from "@/components/wiki/shortcut-help";
-import { formatCitation } from "@/lib/citation";
+import { formatCitationAny, CSL_STYLES } from "@/lib/citation";
 import {
   toBibTeXMultiple,
   toRISMultiple,
@@ -140,7 +140,7 @@ export default function ListDetailPage({
   const [tagColorPickerOpen, setTagColorPickerOpen] = useState<string | null>(
     null,
   );
-  const [reformatTarget, setReformatTarget] = useState<CitationStyle>("apa");
+  const [reformatTarget, setReformatTarget] = useState<string>("apa");
   const [isReformatting, setIsReformatting] = useState(false);
   const [factoid, setFactoid] = useState<string>("");
   const [isSelectMode, setIsSelectMode] = useState(false);
@@ -896,8 +896,8 @@ export default function ListDetailPage({
     try {
       const updates = await Promise.all(
         needsUpdate.map(async (c) => {
-          const formatted = formatCitation(
-            c.fields as Parameters<typeof formatCitation>[0],
+          const formatted = await formatCitationAny(
+            c.fields as Parameters<typeof formatCitationAny>[0],
             target,
           );
           const response = await fetch(
@@ -1047,10 +1047,10 @@ export default function ListDetailPage({
     }
 
     // Regenerate formatted citation
-    const style = citation.style as CitationStyle;
+    const { style } = citation;
     // Use type assertion for citation fields since we're working with partial data
-    const formatted = formatCitation(
-      updatedFields as Parameters<typeof formatCitation>[0],
+    const formatted = await formatCitationAny(
+      updatedFields as Parameters<typeof formatCitationAny>[0],
       style,
     );
 
@@ -1353,8 +1353,11 @@ export default function ListDetailPage({
                     </label>
                     <WikiSelect
                       value={reformatTarget}
-                      onChange={(v) => setReformatTarget(v as CitationStyle)}
-                      options={CITATION_STYLES.map((s) => ({ value: s, label: CITATION_STYLE_LABELS[s] }))}
+                      onChange={(v) => setReformatTarget(v)}
+                      options={[
+                        ...CITATION_STYLES.map((s) => ({ value: s as string, label: CITATION_STYLE_LABELS[s] })),
+                        ...CSL_STYLES.map((s) => ({ value: s.id, label: s.label })),
+                      ]}
                       className="w-36"
                     />
                     <WikiButton
