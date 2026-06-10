@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { WikiUserMenu } from "./wiki-user-menu";
+import { WikiCommandPalette } from "./wiki-command-palette";
 
 interface WikiLayoutProps {
   children: React.ReactNode;
@@ -111,6 +112,8 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
 
   return (
     <div className="min-h-screen bg-wiki-white">
+      <WikiCommandPalette onToggleTheme={toggle} />
+
       {/* Skip navigation — WCAG 2.4.1 */}
       <a
         href="#main-content"
@@ -188,6 +191,9 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               </Link>
               <Link href="/projects" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                 Projects
+              </Link>
+              <Link href="/search" className="text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
+                Search
               </Link>
               <div ref={docsRef} className="relative">
                 <button
@@ -319,6 +325,13 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Projects
+                </Link>
+                <Link
+                  href="/search"
+                  className="text-wiki-link hover:underline py-1 focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Search
                 </Link>
               </SignedIn>
               <a

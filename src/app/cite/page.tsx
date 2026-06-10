@@ -21,53 +21,18 @@ import { buildCitationFields } from "@/lib/citation/build-fields";
 import { saveTemplate, suggestTemplateName, type CitationTemplate } from "@/lib/templates";
 import { toBibTeX, toRIS, toRTF } from "@/lib/citation/exporters";
 import { parseAllBibTeX, type BibTeXParseResult } from "@/lib/citation/importers/bibtex";
+import { parseAllRIS, looksLikeRIS } from "@/lib/citation/importers/ris";
 import { recordCitationSave } from "@/lib/barnstar";
+import { SOURCE_TYPES, CITATION_STYLES, ACCESS_TYPES } from "@/lib/citation-options";
+import { getPreferences } from "@/lib/preferences";
 import DOMPurify from "isomorphic-dompurify";
-import type { CitationStyle, SourceType, AccessType, CitationFields } from "@/types";
+import type { SourceType, AccessType, CitationFields } from "@/types";
 import posthog from "posthog-js";
 
 interface List {
   id: string;
   name: string;
 }
-
-const SOURCE_TYPES: { value: SourceType; label: string }[] = [
-  { value: "book", label: "Book" },
-  { value: "book-chapter", label: "Book Chapter" },
-  { value: "journal", label: "Journal" },
-  { value: "website", label: "Website" },
-  { value: "blog", label: "Blog" },
-  { value: "newspaper", label: "Newspaper" },
-  { value: "video", label: "Video" },
-  { value: "image", label: "Image" },
-  { value: "film", label: "Film" },
-  { value: "tv-series", label: "TV Series" },
-  { value: "tv-episode", label: "TV Episode" },
-  { value: "song", label: "Song" },
-  { value: "album", label: "Album" },
-  { value: "podcast-episode", label: "Podcast Episode" },
-  { value: "video-game", label: "Video Game" },
-  { value: "artwork", label: "Artwork" },
-  { value: "thesis", label: "Thesis / Dissertation" },
-  { value: "conference-paper", label: "Conference Paper" },
-  { value: "dataset", label: "Dataset" },
-  { value: "software", label: "Software / Code" },
-  { value: "preprint", label: "Preprint" },
-  { value: "social-media", label: "Social Media" },
-  { value: "ai-generated", label: "AI-Generated" },
-  { value: "interview", label: "Interview" },
-  { value: "government-report", label: "Government Report" },
-  { value: "legal-case", label: "Legal Case" },
-  { value: "encyclopedia", label: "Encyclopedia" },
-  { value: "miscellaneous", label: "Miscellaneous" },
-];
-
-const CITATION_STYLES: { value: CitationStyle; label: string }[] = [
-  { value: "apa", label: "APA 7th" },
-  { value: "mla", label: "MLA 9th" },
-  { value: "chicago", label: "Chicago 17th" },
-  { value: "harvard", label: "Harvard" },
-];
 
 const NORMALIZE_REGEX = /\s+/g;
 const normalizeText = (text: string) => text.toLowerCase().replace(NORMALIZE_REGEX, " ").trim();
@@ -134,14 +99,6 @@ function researchTypeHelp(rt: ResearchType): string {
       return "Fetches article metadata from Wikipedia.";
   }
 }
-
-const ACCESS_TYPES: { value: AccessType; label: string }[] = [
-  { value: "web", label: "Web" },
-  { value: "print", label: "Print" },
-  { value: "database", label: "Database" },
-  { value: "app", label: "App" },
-  { value: "archive", label: "Archive" },
-];
 
 const STYLE_LABELS: Record<string, string> = {
   ...Object.fromEntries(CITATION_STYLES.map((s) => [s.value, s.label])),
@@ -398,6 +355,21 @@ function CitePageContent() {
   const [isResearchLoading, setIsResearchLoading] = useState(false);
   const [researchError, setResearchError] = useState<string | null>(null);
 
+  // Apply saved preferences once on mount. URL query params (handled in the
+  // effect below, which runs after this one) take precedence.
+  useEffect(() => {
+    const prefs = getPreferences();
+    if (STYLE_LABELS[prefs.defaultStyle]) {
+      setSelectedStyle(prefs.defaultStyle);
+    }
+    if (SOURCE_TYPES.some((s) => s.value === prefs.defaultSourceType)) {
+      setSelectedSourceType(prefs.defaultSourceType);
+    }
+    if (ACCESS_TYPES.some((a) => a.value === prefs.defaultAccessType)) {
+      setSelectedAccessType(prefs.defaultAccessType);
+    }
+  }, []);
+
   // Handle URL query parameters
   useEffect(() => {
     const inputParam = searchParams.get("input");
@@ -585,15 +557,17 @@ function CitePageContent() {
     setBibtexError(null);
     setBibtexResults([]);
     if (!bibtexInput.trim()) {
-      setBibtexError("Paste or upload a BibTeX entry first.");
+      setBibtexError("Paste or upload a BibTeX or RIS entry first.");
       return;
     }
 
     setIsBibtexLoading(true);
     try {
-      const entries = parseAllBibTeX(bibtexInput);
+      const entries = looksLikeRIS(bibtexInput)
+        ? parseAllRIS(bibtexInput)
+        : parseAllBibTeX(bibtexInput);
       if (entries.length === 0) {
-        setBibtexError("Could not parse any BibTeX entries. Check the syntax.");
+        setBibtexError("Could not parse any BibTeX or RIS entries. Check the syntax.");
         return;
       }
       if (entries.length === 1) {
@@ -603,7 +577,7 @@ function CitePageContent() {
       }
     } catch (err) {
       console.error(err);
-      setBibtexError("Failed to parse BibTeX.");
+      setBibtexError("Failed to parse the pasted entries.");
     } finally {
       setIsBibtexLoading(false);
     }
@@ -2189,7 +2163,7 @@ function CitePageContent() {
           tabs={[
             { id: "quick-add", label: "Quick Add", active: activeTab === "quick-add" },
             { id: "research-lookup", label: "Research Lookup", active: activeTab === "research-lookup" },
-            { id: "paste-bibtex", label: "Import BibTeX", active: activeTab === "paste-bibtex" },
+            { id: "paste-bibtex", label: "Import BibTeX / RIS", active: activeTab === "paste-bibtex" },
             { id: "manual", label: "Manual Entry", active: activeTab === "manual" },
             { id: "bulk-import", label: "Bulk Import", active: activeTab === "bulk-import" },
           ]}
@@ -2331,31 +2305,31 @@ function CitePageContent() {
           )}
           </div>
 
-          <div role="tabpanel" id="tabpanel-paste-bibtex" aria-label="Import BibTeX" hidden={activeTab !== "paste-bibtex"}>
+          <div role="tabpanel" id="tabpanel-paste-bibtex" aria-label="Import BibTeX / RIS" hidden={activeTab !== "paste-bibtex"}>
           {activeTab === "paste-bibtex" && (
             <div>
-              <h2 className="text-lg font-semibold mb-4">Import BibTeX</h2>
+              <h2 className="text-lg font-semibold mb-4">Import BibTeX or RIS</h2>
               <p className="mb-4 text-sm text-wiki-text-muted">
-                Paste a BibTeX entry or upload a <code>.bib</code> file (e.g. from Google Scholar, Zotero, or the ACL Anthology). We detect source types, parse authors, editors, pages, and more.
+                Paste BibTeX or RIS entries, or upload a <code>.bib</code> / <code>.ris</code> file (e.g. from Google Scholar, Zotero, EndNote, or Mendeley). The format is detected automatically; we parse source types, authors, editors, pages, and more.
               </p>
 
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label htmlFor="bibtex-input" className="block text-sm font-medium">
-                      BibTeX
+                      BibTeX or RIS
                     </label>
                     <WikiButton
                       onClick={() => bibtexFileInputRef.current?.click()}
                       className="text-xs"
                     >
-                      Upload .bib file
+                      Upload .bib / .ris file
                     </WikiButton>
                   </div>
                   <input
                     ref={bibtexFileInputRef}
                     type="file"
-                    accept=".bib,.bibtex,text/plain"
+                    accept=".bib,.bibtex,.ris,text/plain"
                     className="hidden"
                     onChange={handleBibtexFileUpload}
                   />
@@ -2366,7 +2340,7 @@ function CitePageContent() {
                       setBibtexInput(e.target.value);
                       setBibtexResults([]);
                     }}
-                    placeholder={`@inproceedings{smith2024,\n  title = {Example Title},\n  author = {Smith, Jane A. and Doe, John},\n  booktitle = {Proceedings of X},\n  year = {2024},\n  pages = {1--10}\n}`}
+                    placeholder={`@inproceedings{smith2024,\n  title = {Example Title},\n  author = {Smith, Jane A. and Doe, John},\n  booktitle = {Proceedings of X},\n  year = {2024},\n  pages = {1--10}\n}\n\nor\n\nTY  - JOUR\nAU  - Smith, Jane A.\nTI  - Example Title\nPY  - 2024\nER  -`}
                     rows={12}
                     className="w-full font-mono text-sm"
                   />
