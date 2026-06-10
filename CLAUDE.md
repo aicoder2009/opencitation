@@ -13,7 +13,7 @@ npm run dev             # Next dev server
 npm run build           # Production build
 npm run lint            # ESLint
 npm run test            # Vitest (watch mode)
-npm run test:run        # Vitest (single run, 668 tests)
+npm run test:run        # Vitest (single run, 695 tests)
 npm run electron:dev    # Electron + Next dev together
 npm run electron:build  # Package desktop app (mac/win/linux variants available)
 ```
@@ -26,7 +26,7 @@ npm run electron:build  # Package desktop app (mac/win/linux variants available)
 - **Desktop:** Electron 34 (wraps the same Next app)
 - **PWA:** Service worker + offline store + sync manager
 - **DnD:** `@dnd-kit` for reorderable citations
-- **Testing:** Vitest + Testing Library (668 tests)
+- **Testing:** Vitest + Testing Library (695 tests)
 
 ## Architecture
 
@@ -35,6 +35,7 @@ npm run electron:build  # Package desktop app (mac/win/linux variants available)
 - **Source types (11):** Book, Journal, Website, Blog, Newspaper, Video, Image, Film, TV Series, TV Episode, Miscellaneous
 - **Access types (5):** Print, Database, Web, App, Archive
 - **Exporters:** BibTeX (`.bib`), RIS (`.ris`), plain `.txt`
+- **Importers:** BibTeX and RIS (`src/lib/citation/importers/`) — the cite page's Import tab auto-detects the format
 - Both full citations and in-text citations are formatted here (`generateInTextCitation`)
 
 ### API Routes (`src/app/api/`)
@@ -49,6 +50,7 @@ npm run electron:build  # Package desktop app (mac/win/linux variants available)
 | `/api/lookup/bulk` | Batch lookup |
 | `/api/lists/` | Lists CRUD (+ nested citations) |
 | `/api/projects/` | Projects CRUD (+ nested lists) |
+| `/api/search/` | Search the user's projects, lists, citations (`/search` page) |
 | `/api/share/` | Public share links (`/share/[code]`) |
 | `/api/badge/` | Embeddable badge image |
 | `/api/stats/` | Public usage stats (+ `/stats/increment`) |
@@ -71,6 +73,8 @@ src/
 │   ├── cite/               # Citation generator
 │   ├── lists/              # Lists management
 │   ├── projects/           # Projects management
+│   ├── search/             # Global search across lists/projects/citations
+│   ├── settings/           # Device-local preferences (defaults, theme)
 │   ├── share/[code]/       # Public share pages
 │   ├── embed/              # Embeddable citation widget
 │   ├── home/               # Marketing / landing
@@ -81,9 +85,12 @@ src/
 │   ├── pwa/                # PWA provider, offline indicator, Safari install banner
 │   └── retro/              # Retro ASCII print animation
 ├── lib/
-│   ├── citation/           # Formatters + exporters
+│   ├── citation/           # Formatters + exporters + importers
 │   ├── db/                 # DynamoDB client, queries, offline store
 │   ├── pwa/                # Service worker utils, offline store, sync manager
+│   ├── citation-options.ts # Shared source/style/access option lists (cite + settings pages)
+│   ├── preferences.ts      # localStorage user preferences (default style, etc.)
+│   ├── fuzzy-match.ts      # Fuzzy matcher behind the ⌘K command palette
 │   ├── templates.ts        # Citation templates (prefilled fields)
 │   └── keyboard-shortcuts.ts
 └── types/                  # TypeScript definitions
@@ -101,12 +108,12 @@ Early-mid 2000s Wikipedia aesthetic: clean, information-dense, utilitarian. Gene
 1. Create formatter in `src/lib/citation/formatters/<style>.ts`
 2. Register it in `src/lib/citation/index.ts` (`formatCitation` switch + `getFormatter`) and add an in-text branch in `generateInTextCitation`
 3. Add tests in `<style>.test.ts`
-4. Add to `CITATION_STYLES` in `src/app/cite/page.tsx`
+4. Add to `CITATION_STYLES` in `src/lib/citation-options.ts`
 
 ### Adding a Source Type
-1. Add to `src/types/source-types.ts`
+1. Add to `src/types/source-types.ts` and `SOURCE_TYPES` in `src/lib/citation-options.ts`
 2. Add form fields in `src/app/cite/page.tsx` (`renderSourceFields`)
-3. Handle in all 4 formatters + exporters (BibTeX, RIS)
+3. Handle in all 4 formatters + exporters and importers (BibTeX, RIS)
 4. Add tests
 
 ### Adding a Lookup Provider

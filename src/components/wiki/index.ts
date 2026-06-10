@@ -4,5 +4,6 @@ export { WikiButton } from "./wiki-button";
 export { WikiBreadcrumbs } from "./wiki-breadcrumbs";
 export { WikiCollapsible } from "./wiki-collapsible";
 export { WikiUserMenu } from "./wiki-user-menu";
+export { WikiCommandPalette } from "./wiki-command-palette";
 export { ShareDialog } from "./share-dialog";
 export { WikiDocsSidebar } from "./docs-sidebar";

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useUser, useClerk } from "@clerk/nextjs";
 import Image from "next/image";
+import Link from "next/link";
 
 interface WikiUserMenuProps {
   size?: "sm" | "md";
@@ -98,6 +99,13 @@ export function WikiUserMenu({ size = "md" }: WikiUserMenuProps) {
 
           {/* Menu Items */}
           <div className="py-1">
+            <Link
+              href="/settings"
+              onClick={() => setIsOpen(false)}
+              className="block w-full text-left px-3 py-1.5 text-sm text-wiki-link hover:bg-wiki-offwhite hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+            >
+              Settings
+            </Link>
             <button
               onClick={() => {
                 openUserProfile();

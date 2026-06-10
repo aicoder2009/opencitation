@@ -13,6 +13,7 @@ export interface Shortcut {
 
 export const SHORTCUTS: Shortcut[] = [
   // Global shortcuts
+  { key: "k", description: "Open command palette", modifiers: ["meta"], scope: "global" },
   { key: "?", description: "Show keyboard shortcuts", scope: "global" },
   { key: "/", description: "Focus search", scope: "global" },
   { key: "Escape", description: "Close modal / Cancel editing", scope: "global" },
