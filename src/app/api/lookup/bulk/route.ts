@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlPOST } from "../url/route";
+import { POST as doiPOST } from "../doi/route";
+import { POST as isbnPOST } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
+    // Direct invocation prevents Host-header loopback SSRF
 
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
@@ -31,18 +34,18 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
+        let handler: (req: NextRequest) => Promise<NextResponse>;
         let body: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
+          handler = urlPOST;
           body = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
+          handler = doiPOST;
           body = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
+          handler = isbnPOST;
           body = { isbn: trimmedItem };
         } else {
           return {
@@ -52,13 +55,14 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        // Create synthetic NextRequest to invoke the handler directly
+        const syntheticRequest = new NextRequest(new URL('http://localhost'), {
+          method: 'POST',
           body: JSON.stringify(body),
+          headers: { "Content-Type": "application/json" }
         });
 
+        const response = await handler(syntheticRequest);
         const data = await response.json();
 
         if (response.ok && data.data) {
