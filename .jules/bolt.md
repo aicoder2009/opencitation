@@ -5,3 +5,7 @@
 ## 2024-05-18 - Concurrent Fetching with Owner IDs in Share Links
 **Learning:** In the share system, endpoints processing a share code typically suffer from waterfall latency by first loading target entity details (like a project) and then querying its associated elements (like project lists) using the entity's owner ID (`userId`). However, the `shareLink` object already contains the `userId` field (representing the owner's ID).
 **Action:** Always leverage the existing owner's ID within `shareLink` to bypass sequential dependencies and fetch parent entities (like projects) concurrently with their child elements (like user lists) using `Promise.all`.
+
+## 2024-05-19 - Derive Subset Queries In-Memory
+**Learning:** When a page needs to fetch both a global collection (like all user lists) and a specific subset of that collection (like lists belonging to a specific project), making two separate API requests (even concurrently) results in redundant backend database queries.
+**Action:** Instead of querying the backend twice, fetch only the global collection and derive the specific subset in-memory on the frontend using array filtering (e.g., `allLists.filter(list => list.projectId === projectId)`). This avoids duplicate database load.
