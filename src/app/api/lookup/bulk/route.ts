@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlPost } from "../url/route";
+import { POST as doiPost } from "../doi/route";
+import { POST as isbnPost } from "../isbn/route";
+
 
 interface LookupResult {
   input: string;
@@ -22,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
+
 
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
@@ -52,12 +56,24 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Call the route handler directly instead of performing a loopback HTTP request,
+        // which prevents Host-header Server-Side Request Forgery (SSRF) vulnerabilities.
+        const mockRequest = new NextRequest(new URL("http://localhost" + apiEndpoint), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+
+        let response;
+        if (apiEndpoint === "/api/lookup/url") {
+          response = await urlPost(mockRequest);
+        } else if (apiEndpoint === "/api/lookup/doi") {
+          response = await doiPost(mockRequest);
+        } else if (apiEndpoint === "/api/lookup/isbn") {
+          response = await isbnPost(mockRequest);
+        } else {
+          throw new Error("Unknown endpoint");
+        }
 
         const data = await response.json();
 
