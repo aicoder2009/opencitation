@@ -16,9 +16,13 @@ import { auth } from '@clerk/nextjs/server';
 import { _resetRateLimitForTests } from '@/lib/security/rate-limit';
 const mockAuth = auth as unknown as ReturnType<typeof vi.fn>;
 
-function makeRequest(body: object) {
+function makeRequest(body: object, headers: Record<string, string> = {}) {
   return new NextRequest('http://localhost/api/report-issue', {
     method: 'POST',
+    headers: {
+      origin: 'http://localhost',
+      ...headers,
+    },
     body: JSON.stringify(body),
   });
 }
@@ -143,5 +147,15 @@ describe('Report Issue API', () => {
     expect(response.status).toBe(500);
     expect(data.success).toBe(false);
     expect(data.error).toMatch(/Internal server error/i);
+  });
+
+  it('rejects cross-origin POSTs with 403', async () => {
+    const request = makeRequest(validBody, {
+      origin: 'https://evil.com',
+    });
+    const response = await POST(request);
+    expect(response.status).toBe(403);
+    const data = await response.json();
+    expect(data.success).toBe(false);
   });
 });
