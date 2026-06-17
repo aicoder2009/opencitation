@@ -12,6 +12,7 @@ import {
 import { getPostHogClient } from "@/lib/posthog-server";
 import { buildShareSegment, slugify } from "@/lib/share-utils";
 import { hashSharePassword } from "@/lib/share-password";
+import { isSameOrigin } from "@/lib/security/rate-limit";
 
 // GET /api/share - List active share links owned by the current user
 export async function GET() {
@@ -76,6 +77,10 @@ export async function POST(request: NextRequest) {
         { success: false, error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
     const body = await request.json();

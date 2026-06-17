@@ -15,9 +15,11 @@ import {
 } from "@/lib/db";
 import { parseShareSegment } from "@/lib/share-utils";
 import { verifySharePassword } from "@/lib/share-password";
+import { isSameOrigin } from "@/lib/security/rate-limit";
+import { NextRequest } from "next/server";
 
 export async function POST(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ code: string }> }
 ) {
   const { userId } = await auth();
@@ -26,6 +28,10 @@ export async function POST(
       { success: false, error: "Sign in to save" },
       { status: 401 }
     );
+  }
+
+  if (!isSameOrigin(req)) {
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
   }
 
   const { code: segment } = await params;
