@@ -6,3 +6,8 @@
 **Vulnerability:** The application was using the `marked` library to parse Markdown content into HTML (in `src/app/docs/changelog/page.tsx` and `src/lib/docs.ts`) and subsequently rendering it using `dangerouslySetInnerHTML` without proper sanitization.
 **Learning:** `marked` does not sanitize HTML by default. While this may seem safe for trusted inputs (like internal docs or GitHub releases), if malicious input manages to enter these sources, it leads directly to an XSS vulnerability.
 **Prevention:** The output of `marked` (or any markdown parser) must always be wrapped with `DOMPurify.sanitize()` (using `isomorphic-dompurify` for SSR) before being passed to `dangerouslySetInnerHTML`.
+
+## 2025-02-28 - SSRF Vulnerability in Next.js Route Handlers via Dynamic Hostnames
+**Vulnerability:** A Server-Side Request Forgery (SSRF) vulnerability was discovered in the bulk lookup API endpoint (`/api/lookup/bulk/route.ts`). The endpoint used `fetch()` with a dynamically derived hostname (`request.nextUrl.origin`) to loopback and invoke other internal Next.js Route Handler APIs.
+**Learning:** In Next.js, `request.nextUrl.origin` relies on the HTTP `Host` header sent by the client. Because the `Host` header is user-controllable, a malicious actor could spoof it, tricking the server into making loopback `fetch` requests to an arbitrary domain instead of the local application server.
+**Prevention:** Never use loopback `fetch()` requests with dynamically derived hostnames like `request.nextUrl.origin` inside Next.js server code. Instead, directly invoke the imported internal Route Handler functions (e.g., `POST()`) by constructing and passing synthetic `NextRequest` objects.
