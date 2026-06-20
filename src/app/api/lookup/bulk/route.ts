@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlLookupPost } from "../url/route";
+import { POST as doiLookupPost } from "../doi/route";
+import { POST as isbnLookupPost } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,7 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
 
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
@@ -31,19 +33,23 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
+        let handler: (req: NextRequest) => Promise<NextResponse>;
         let body: object;
+        let urlPath: string;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
+          handler = urlLookupPost;
           body = { url: trimmedItem };
+          urlPath = "/api/lookup/url";
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
+          handler = doiLookupPost;
           body = { doi: trimmedItem };
+          urlPath = "/api/lookup/doi";
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
+          handler = isbnLookupPost;
           body = { isbn: trimmedItem };
+          urlPath = "/api/lookup/isbn";
         } else {
           return {
             input: trimmedItem,
@@ -52,13 +58,15 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Create synthetic request
+        const syntheticReq = new NextRequest(new URL(urlPath, "http://localhost"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
+        // Make the API call
+        const response = await handler(syntheticReq);
         const data = await response.json();
 
         if (response.ok && data.data) {
