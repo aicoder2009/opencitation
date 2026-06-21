@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlPost } from "@/app/api/lookup/url/route";
+import { POST as doiPost } from "@/app/api/lookup/doi/route";
+import { POST as isbnPost } from "@/app/api/lookup/isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,8 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -52,16 +53,28 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Make the API call by directly invoking the route handler
+        // to prevent SSRF vulnerabilities from loopback requests.
+        const req = new NextRequest(new URL(`http://localhost${apiEndpoint}`), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
+        let response;
+        if (apiEndpoint === "/api/lookup/url") {
+          response = await urlPost(req);
+        } else if (apiEndpoint === "/api/lookup/doi") {
+          response = await doiPost(req);
+        } else if (apiEndpoint === "/api/lookup/isbn") {
+          response = await isbnPost(req);
+        } else {
+           throw new Error("Unknown endpoint");
+        }
+
         const data = await response.json();
 
-        if (response.ok && data.data) {
+        if (response.status === 200 && data.data) {
           return { input: trimmedItem, success: true, data: data.data };
         }
         return {
