@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useId } from "react";
 
 export interface DropdownItem {
   label: string;
@@ -21,6 +21,7 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
   const ref = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const menuId = useId();
 
   // Close on outside click / Escape; arrow-key navigation
   useEffect(() => {
@@ -97,6 +98,7 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
         onKeyDown={handleTriggerKeyDown}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
         disabled={disabled}
         className="px-4 py-2 text-sm border border-wiki-border-light bg-wiki-white text-wiki-text hover:bg-wiki-tab-bg active:bg-wiki-border-light focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
@@ -104,6 +106,7 @@ export function WikiDropdown({ label, items, align = "left", disabled = false }:
       </button>
       {open && (
         <div
+          id={menuId}
           role="menu"
           aria-label={label}
           className={`absolute z-20 mt-1 min-w-[200px] bg-wiki-white border border-wiki-border-light shadow-md ${
