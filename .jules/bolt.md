@@ -5,3 +5,7 @@
 ## 2024-05-18 - Concurrent Fetching with Owner IDs in Share Links
 **Learning:** In the share system, endpoints processing a share code typically suffer from waterfall latency by first loading target entity details (like a project) and then querying its associated elements (like project lists) using the entity's owner ID (`userId`). However, the `shareLink` object already contains the `userId` field (representing the owner's ID).
 **Action:** Always leverage the existing owner's ID within `shareLink` to bypass sequential dependencies and fetch parent entities (like projects) concurrently with their child elements (like user lists) using `Promise.all`.
+
+## 2024-05-19 - Derive Subset Data In-Memory to Avoid Redundant API Calls
+**Learning:** The DynamoDB implementation lacks a Global Secondary Index (GSI) for `projectId` on lists. Thus, fetching lists for a specific project currently requires the backend to fetch all of a user's lists via `getUserLists` and filter them. If the frontend needs both the global collection (all lists) and a subset (project lists), making two separate API calls (e.g., to `/api/lists` and `/api/projects/[id]/lists`) will duplicate this heavy backend database query.
+**Action:** When fetching a global collection (e.g., all lists) and a subset of that collection (e.g., project lists) simultaneously on the frontend, always derive the subset in-memory using array filtering instead of making a redundant API request. This prevents duplicate backend database queries and optimizes data fetching.
