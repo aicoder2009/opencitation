@@ -5,3 +5,7 @@
 ## 2024-05-17 - Generic Visual Text Buttons and ARIA Context
 **Learning:** Components frequently use generic visual text buttons like `[hide]`, `[show]`, `[edit]`, or `[delete]` within lists or loops. Screen readers read these buttons without surrounding visual context, confusing users.
 **Action:** Always provide a contextual `aria-label` (e.g., `aria-label="Hide ${title}"`) for generic visual text buttons so screen reader users have proper context.
+
+## 2024-05-19 - Added ARIA labels to repeating text links in lists
+**Learning:** Repetitive text link buttons like `[edit]`, `[delete]`, or `[copy]` within list items (like citations) become ambiguous for screen reader users who hear the same generic action multiple times without context (e.g., "edit what?").
+**Action:** Always add descriptive, context-aware `aria-label` attributes (e.g., `aria-label="Edit citation"`) to generic action buttons so that screen readers announce the action with its specific context, improving overall accessibility.
