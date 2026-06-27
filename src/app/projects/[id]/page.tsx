@@ -58,17 +58,15 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       setIsLoading(true);
 
       // OPTIMIZATION: Execute independent network requests and JSON parsing concurrently
-      // using Promise.all. This prevents a 3-step waterfall, reducing Time to First Byte
-      // (TTFB) and overall load time significantly on this detail page.
-      const [projectRes, listsRes, allListsRes] = await Promise.all([
+      // using Promise.all. This prevents a waterfall, reducing Time to First Byte (TTFB).
+      // We fetch all lists and derive the project's lists in-memory to avoid a redundant API call.
+      const [projectRes, allListsRes] = await Promise.all([
         fetch(`/api/projects/${projectId}`),
-        fetch(`/api/projects/${projectId}/lists`),
         fetch("/api/lists"),
       ]);
 
-      const [projectResult, listsResult, allListsResult] = await Promise.all([
+      const [projectResult, allListsResult] = await Promise.all([
         projectRes.json(),
-        listsRes.json(),
         allListsRes.json(),
       ]);
 
@@ -81,12 +79,11 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
       setEditName(projectResult.data.name);
       setEditDescription(projectResult.data.description || "");
 
-      if (listsResult.success) {
-        setLists(listsResult.data);
-      }
-
       if (allListsResult.success) {
         setAllLists(allListsResult.data);
+        // OPTIMIZATION: Derive project-specific lists in-memory from allLists
+        // instead of making a duplicate backend database query.
+        setLists(allListsResult.data.filter((list: List) => list.projectId === projectId));
       }
     } catch (err) {
       console.error("Error fetching project:", err);
