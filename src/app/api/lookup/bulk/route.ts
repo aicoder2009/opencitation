@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as lookupUrlPOST } from "../url/route";
+import { POST as lookupDoiPOST } from "../doi/route";
+import { POST as lookupIsbnPOST } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -21,9 +24,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Maximum 20 items allowed per request" }, { status: 400 });
     }
 
-    // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
+    // Process lookups concurrently for performance improvement.
+    // We invoke internal Route Handlers directly to avoid SSRF vulnerabilities
+    // via dynamic request.nextUrl.origin fetches.
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -31,19 +34,19 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
-        let body: object;
+        let handler: (req: NextRequest) => Promise<NextResponse>;
+        let reqBody: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
-          body = { url: trimmedItem };
+          handler = lookupUrlPOST;
+          reqBody = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
-          body = { doi: trimmedItem };
+          handler = lookupDoiPOST;
+          reqBody = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
-          body = { isbn: trimmedItem };
+          handler = lookupIsbnPOST;
+          reqBody = { isbn: trimmedItem };
         } else {
           return {
             input: trimmedItem,
@@ -52,13 +55,15 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Construct a synthetic request to pass to the handler
+        const syntheticRequest = new NextRequest(new URL("http://localhost"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify(reqBody),
         });
 
+        // Make the direct handler call
+        const response = await handler(syntheticRequest);
         const data = await response.json();
 
         if (response.ok && data.data) {
