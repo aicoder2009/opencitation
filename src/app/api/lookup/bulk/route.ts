@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlLookup } from "@/app/api/lookup/url/route";
+import { POST as doiLookup } from "@/app/api/lookup/doi/route";
+import { POST as isbnLookup } from "@/app/api/lookup/isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,8 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -31,18 +32,19 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let handler: (req: NextRequest) => Promise<any>;
         let body: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
+          handler = urlLookup;
           body = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
+          handler = doiLookup;
           body = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
+          handler = isbnLookup;
           body = { isbn: trimmedItem };
         } else {
           return {
@@ -52,13 +54,13 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Directly invoke the handler to prevent SSRF via Host header manipulation
+        const syntheticRequest = new NextRequest(new URL('http://localhost'), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
+        const response = await handler(syntheticRequest);
         const data = await response.json();
 
         if (response.ok && data.data) {
