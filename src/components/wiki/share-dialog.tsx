@@ -515,6 +515,7 @@ export function ShareDialog({
                   <button
                     onClick={() => setShowCreator(false)}
                     className="text-wiki-link hover:underline text-xs focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                    aria-label="Cancel sharing"
                   >
                     [cancel]
                   </button>
