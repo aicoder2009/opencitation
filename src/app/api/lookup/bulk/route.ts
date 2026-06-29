@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlHandler } from "../url/route";
+import { POST as doiHandler } from "../doi/route";
+import { POST as isbnHandler } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
+
 
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
@@ -31,19 +34,19 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
-        let body: object;
+        let handler: typeof urlHandler;
+        let handlerBody: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
-          body = { url: trimmedItem };
+          handler = urlHandler;
+          handlerBody = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
-          body = { doi: trimmedItem };
+          handler = doiHandler;
+          handlerBody = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
-          body = { isbn: trimmedItem };
+          handler = isbnHandler;
+          handlerBody = { isbn: trimmedItem };
         } else {
           return {
             input: trimmedItem,
@@ -52,13 +55,13 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+        // Direct function call to prevent SSRF
+        const req = new NextRequest(new URL('http://localhost'), {
+          method: 'POST',
+          body: JSON.stringify(handlerBody),
         });
 
+        const response = await handler(req);
         const data = await response.json();
 
         if (response.ok && data.data) {
