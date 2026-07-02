@@ -5,3 +5,7 @@
 ## 2024-05-17 - Generic Visual Text Buttons and ARIA Context
 **Learning:** Components frequently use generic visual text buttons like `[hide]`, `[show]`, `[edit]`, or `[delete]` within lists or loops. Screen readers read these buttons without surrounding visual context, confusing users.
 **Action:** Always provide a contextual `aria-label` (e.g., `aria-label="Hide ${title}"`) for generic visual text buttons so screen reader users have proper context.
+
+## 2024-05-17 - Dynamic Visual States and ARIA Labels
+**Learning:** When buttons have dynamic visual states that temporarily change their content (e.g., a `[copy]` button that briefly changes to `[copied!]`), leaving a static `aria-label` or missing it causes screen readers to misrepresent the current state.
+**Action:** Always make the `aria-label` conditionally dynamic (e.g., `aria-label={isCopied ? "Copied!" : "Copy"}`) to ensure screen readers accurately reflect the current context and visual state.
