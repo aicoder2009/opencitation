@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlLookup } from "../url/route";
+import { POST as doiLookup } from "../doi/route";
+import { POST as isbnLookup } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,8 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -31,19 +32,19 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
-        let body: object;
+        let lookupHandler: (req: NextRequest) => Promise<NextResponse>;
+        let handlerBody: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
-          body = { url: trimmedItem };
+          lookupHandler = urlLookup;
+          handlerBody = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
-          body = { doi: trimmedItem };
+          lookupHandler = doiLookup;
+          handlerBody = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
-          body = { isbn: trimmedItem };
+          lookupHandler = isbnLookup;
+          handlerBody = { isbn: trimmedItem };
         } else {
           return {
             input: trimmedItem,
@@ -52,13 +53,14 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Make the internal handler call directly to prevent SSRF
+        const syntheticRequest = new NextRequest(new URL('http://localhost'), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify(handlerBody),
         });
 
+        const response = await lookupHandler(syntheticRequest);
         const data = await response.json();
 
         if (response.ok && data.data) {
