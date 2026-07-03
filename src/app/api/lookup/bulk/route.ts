@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as lookupUrl } from "@/app/api/lookup/url/route";
+import { POST as lookupDoi } from "@/app/api/lookup/doi/route";
+import { POST as lookupIsbn } from "@/app/api/lookup/isbn/route";
 
 interface LookupResult {
   input: string;
@@ -21,9 +24,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Maximum 20 items allowed per request" }, { status: 400 });
     }
 
-    // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
+    // Process lookups concurrently using direct internal handler invocation
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -31,19 +32,19 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
-        let body: object;
+        let handler: (req: NextRequest) => Promise<NextResponse> | NextResponse;
+        let payload: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
-          body = { url: trimmedItem };
+          handler = lookupUrl as unknown as (req: NextRequest) => Promise<NextResponse> | NextResponse;
+          payload = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
-          body = { doi: trimmedItem };
+          handler = lookupDoi as unknown as (req: NextRequest) => Promise<NextResponse> | NextResponse;
+          payload = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
-          body = { isbn: trimmedItem };
+          handler = lookupIsbn as unknown as (req: NextRequest) => Promise<NextResponse> | NextResponse;
+          payload = { isbn: trimmedItem };
         } else {
           return {
             input: trimmedItem,
@@ -52,13 +53,18 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Create a synthetic NextRequest to avoid SSRF
+        const reqUrl = new URL("http://localhost");
+        const syntheticReq = new NextRequest(reqUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          headers: new Headers({
+            "Content-Type": "application/json",
+          }),
+          body: JSON.stringify(payload),
         });
 
+        // Make the API call directly
+        const response = await handler(syntheticReq);
         const data = await response.json();
 
         if (response.ok && data.data) {
