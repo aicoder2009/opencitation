@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlPOST } from "../url/route";
+import { POST as doiPOST } from "../doi/route";
+import { POST as isbnPOST } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,7 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
 
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
@@ -31,19 +33,23 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
-        let body: object;
+        let handler: (req: NextRequest) => Promise<NextResponse>;
+        let reqBody: object;
+        let endpointName: string;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
-          body = { url: trimmedItem };
+          handler = urlPOST as (req: NextRequest) => Promise<NextResponse>;
+          endpointName = "url";
+          reqBody = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
-          body = { doi: trimmedItem };
+          handler = doiPOST as (req: NextRequest) => Promise<NextResponse>;
+          endpointName = "doi";
+          reqBody = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
-          body = { isbn: trimmedItem };
+          handler = isbnPOST as (req: NextRequest) => Promise<NextResponse>;
+          endpointName = "isbn";
+          reqBody = { isbn: trimmedItem };
         } else {
           return {
             input: trimmedItem,
@@ -52,12 +58,14 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        const syntheticReq = new NextRequest(new URL(`http://localhost/api/lookup/${endpointName}`), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          headers: new Headers({ "Content-Type": "application/json" }),
+          body: JSON.stringify(reqBody)
         });
+
+        // Make the API call directly
+        const response = await handler(syntheticReq);
 
         const data = await response.json();
 
