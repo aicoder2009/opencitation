@@ -223,6 +223,43 @@ export async function getProjectLists(userId: string, projectId: string): Promis
 
 // ============ CITATIONS ============
 
+export async function batchAddCitations(
+  listId: string,
+  citationsData: {
+    fields: CitationFields;
+    style: CitationStyle;
+    formattedText: string;
+    formattedHtml: string;
+    tags?: string[];
+    notes?: string;
+    quotes?: CitationQuote[];
+    readingStatus?: ReadingStatus;
+  }[]
+): Promise<Citation[]> {
+  const now = new Date().toISOString();
+
+  const citations: Citation[] = citationsData.map((data) => ({
+    id: generateId(),
+    listId,
+    fields: data.fields,
+    style: data.style,
+    formattedText: data.formattedText,
+    formattedHtml: data.formattedHtml,
+    tags: data.tags,
+    notes: data.notes,
+    quotes: data.quotes,
+    readingStatus: data.readingStatus,
+    createdAt: now,
+    updatedAt: now,
+  }));
+
+  citations.forEach(citation => {
+    store.citations.set(`${listId}:${citation.id}`, citation);
+  });
+
+  return citations;
+}
+
 export async function addCitation(
   listId: string,
   fields: CitationFields,
