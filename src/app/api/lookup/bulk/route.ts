@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlLookupPOST } from "@/app/api/lookup/url/route";
+import { POST as doiLookupPOST } from "@/app/api/lookup/doi/route";
+import { POST as isbnLookupPOST } from "@/app/api/lookup/isbn/route";
 
 interface LookupResult {
   input: string;
@@ -22,8 +25,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -31,18 +32,18 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
+        let routeHandler: (req: NextRequest) => Promise<NextResponse>;
         let body: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
+          routeHandler = urlLookupPOST;
           body = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
+          routeHandler = doiLookupPOST;
           body = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
+          routeHandler = isbnLookupPOST;
           body = { isbn: trimmedItem };
         } else {
           return {
@@ -52,12 +53,14 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Invoke the route handler directly to prevent SSRF
+        const syntheticRequest = new NextRequest(new URL('http://localhost'), {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: new Headers({ "Content-Type": "application/json" }),
           body: JSON.stringify(body),
         });
+
+        const response = await routeHandler(syntheticRequest);
 
         const data = await response.json();
 
