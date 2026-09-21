@@ -35,11 +35,14 @@ The system has no success green, error red or warning amber, which removes a who
 | `WikiDropdown` | `aria-haspopup="menu"`, `aria-expanded`; Up/Down wrap, Home, End, Escape and Tab close and restore focus to the trigger |
 | `WikiSelect` | `role="listbox"` with `aria-selected`; Up/Down/Home/End move, Enter and Space select, Escape closes |
 | `WikiDatePicker` | future days are `disabled`, and each day's `aria-label` spells the full date plus "(selected)" or "(today)" |
-| `Modal`, `ShortcutHelp`, `WikiCommandPalette` | `role="dialog"` with `aria-modal`, a labelled heading, a focus trap, Escape to dismiss, and focus restored to the trigger |
+| `Modal`, `ShortcutHelp` | `role="dialog"` with `aria-modal`, a labelled heading, a Tab focus trap, Escape to dismiss, and focus restored to the trigger |
+| `WikiCommandPalette` | `role="dialog"` with `aria-modal` and `aria-label`; the input is a `role="combobox"` driving the result list through `aria-activedescendant`. It focuses the input on open, restores focus to the trigger on close, and dismisses on Escape — but it does **not** trap Tab, so focus can leave the dialog while it is open. Don't assume containment here; see the gap noted below. |
 | `WikiUserMenu` | `aria-expanded`, outside click and Escape dismiss |
 | `SortableCitation` | drag handle carries `aria-label="Drag to reorder"`; dnd-kit supplies keyboard reordering |
 
 Tab order always follows DOM order. `WikiLayout` provides a skip link to `#main-content`.
+
+**Known gap:** `WikiCommandPalette` is the one overlay without Tab containment. `citation-add-modal.tsx`, `shortcut-help.tsx` and `share-dialog.tsx` each implement a trap in their own `keydown` handler; the palette's `handleInputKeyDown` covers Escape, the arrows and Enter only. Tabbing out of an open palette moves focus into the page behind it. Fixing this means adding Tab handling to the palette, not changing this guideline.
 
 ## Labelling
 
