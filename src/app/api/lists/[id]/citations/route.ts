@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { getList, getListCitations, addCitation } from "@/lib/db";
 import type { CitationFields, CitationStyle } from "@/types";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { isSameOrigin } from "@/lib/security/rate-limit";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -56,6 +57,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { success: false, error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
     // Verify the list exists and belongs to the user

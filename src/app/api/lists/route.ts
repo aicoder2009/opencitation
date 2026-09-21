@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createList, getUserLists } from "@/lib/db";
 import { isListNameTaken } from "@/lib/db/validation";
+import { isSameOrigin } from "@/lib/security/rate-limit";
 
 // GET /api/lists - Get all lists for the authenticated user
 export async function GET() {
@@ -40,6 +41,10 @@ export async function POST(request: NextRequest) {
         { success: false, error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
     const body = await request.json();

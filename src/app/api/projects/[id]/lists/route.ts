@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getProject, getProjectLists, createList } from "@/lib/db";
 import { isListNameTaken } from "@/lib/db/validation";
+import { isSameOrigin } from "@/lib/security/rate-limit";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -55,6 +56,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         { success: false, error: "Unauthorized" },
         { status: 401 }
       );
+    }
+
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
     }
 
     // Verify the project exists and belongs to the user

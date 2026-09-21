@@ -6,3 +6,8 @@
 **Vulnerability:** The application was using the `marked` library to parse Markdown content into HTML (in `src/app/docs/changelog/page.tsx` and `src/lib/docs.ts`) and subsequently rendering it using `dangerouslySetInnerHTML` without proper sanitization.
 **Learning:** `marked` does not sanitize HTML by default. While this may seem safe for trusted inputs (like internal docs or GitHub releases), if malicious input manages to enter these sources, it leads directly to an XSS vulnerability.
 **Prevention:** The output of `marked` (or any markdown parser) must always be wrapped with `DOMPurify.sanitize()` (using `isomorphic-dompurify` for SSR) before being passed to `dangerouslySetInnerHTML`.
+
+## 2024-06-03 - Missing CSRF Protection on Mutating API Routes
+**Vulnerability:** Several authenticated POST endpoints (e.g., creating lists, citations, projects, and share links) were missing the `isSameOrigin` check, leaving them vulnerable to Cross-Site Request Forgery (CSRF). While `stats/increment` was protected, core mutating routes were not.
+**Learning:** Next.js Route Handlers do not automatically protect against CSRF attacks. Although Clerk provides authentication, an attacker could still forge cross-origin POST requests on behalf of an authenticated user to perform state mutations unless the Origin/Referer headers are explicitly validated against the host.
+**Prevention:** Always enforce an `isSameOrigin` validation check (or use proper CSRF tokens) on all authenticated, state-mutating API routes (POST, PUT, DELETE, PATCH). Read-only or lookup routes without state mutation typically do not require it.
