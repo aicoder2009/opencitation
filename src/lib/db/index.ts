@@ -26,6 +26,7 @@ export const {getProjectLists} = db;
 
 // ============ CITATIONS ============
 export const {addCitation} = db;
+export const {batchAddCitations} = db;
 export const {getCitation} = db;
 export const {getListCitations} = db;
 export const {updateCitation} = db;
