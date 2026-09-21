@@ -150,30 +150,60 @@ class SyncManager {
     try {
       const queue = await offlineStore.getSyncQueue();
 
-      for (const item of queue) {
-        try {
-          await this.processQueueItem(item);
-          await offlineStore.removeSyncQueueItem(item.id);
-          result.synced++;
+      // Optimize PWA synchronization using a staged parallel approach.
+      // We group operations by entity type to preserve parent-child referential integrity (projects -> lists -> citations).
+      // Within each stage, we group by unique entity IDs to avoid concurrent updates to the same entity.
+      // Expected impact: Drastically reduces the time spent syncing offline queues when coming back online.
 
-          // Mark the entity as synced
-          await this.markEntitySynced(item);
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const stages = [
+        queue.filter(i => i.entity === 'project'),
+        queue.filter(i => i.entity === 'list'),
+        queue.filter(i => i.entity === 'citation'),
+        queue.filter(i => !['project', 'list', 'citation'].includes(i.entity))
+      ];
 
-          if (item.retryCount < MAX_RETRIES) {
-            // Update retry count and try again later
-            await offlineStore.updateSyncQueueItem({
-              ...item,
-              retryCount: item.retryCount + 1,
-              lastError: errorMessage,
-            });
-          } else {
-            // Max retries reached, mark as failed
-            result.failed++;
-            result.errors.push({ itemId: item.id, error: errorMessage });
-          }
+      for (const stage of stages) {
+        if (stage.length === 0) continue;
+
+        // Group by entityId to ensure we process mutations for the exact same entity sequentially
+        const byEntityId = new Map<string, typeof stage>();
+        for (const item of stage) {
+          const arr = byEntityId.get(item.entityId) || [];
+          arr.push(item);
+          byEntityId.set(item.entityId, arr);
         }
+
+        // Each unique entity ID can be processed concurrently
+        await Promise.all(
+          Array.from(byEntityId.values()).map(async (itemsForEntity) => {
+            // Process the items for this specific entity sequentially (create -> update -> delete)
+            for (const item of itemsForEntity) {
+              try {
+                await this.processQueueItem(item);
+                await offlineStore.removeSyncQueueItem(item.id);
+                result.synced++;
+
+                // Mark the entity as synced
+                await this.markEntitySynced(item);
+              } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+                if (item.retryCount < MAX_RETRIES) {
+                  // Update retry count and try again later
+                  await offlineStore.updateSyncQueueItem({
+                    ...item,
+                    retryCount: item.retryCount + 1,
+                    lastError: errorMessage,
+                  });
+                } else {
+                  // Max retries reached, mark as failed
+                  result.failed++;
+                  result.errors.push({ itemId: item.id, error: errorMessage });
+                }
+              }
+            }
+          })
+        );
       }
 
       this.updateState({
@@ -340,9 +370,9 @@ export function useSyncManager() {
         lastSyncAt: null,
         lastError: null,
       },
-      sync: async () => ({ success: true, synced: 0, failed: 0, errors: [] }),
-      retryFailed: async () => {},
-      clearQueue: async () => {},
+      sync: () => Promise.resolve({ success: true, synced: 0, failed: 0, errors: [] }),
+      retryFailed: () => Promise.resolve(),
+      clearQueue: () => Promise.resolve(),
     };
   }
 
