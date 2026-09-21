@@ -1,0 +1,39 @@
+<!-- @dsCard height=288 -->
+<style>
+  .oc-cover { background: var(--wiki-white); }
+  .oc-cover svg { display: block; width: 960px; height: 288px; }
+  .cv-link      { fill: var(--wiki-link); }
+  .cv-brand     { fill: var(--brand-blue); }
+  .cv-ink       { fill: var(--wiki-text); }
+  .cv-mid       { fill: var(--wiki-text-muted); }
+  .cv-tint      { fill: var(--wiki-border-light); }
+  .cv-ground    { fill: var(--wiki-white); }
+  .cv-rule      { stroke: var(--wiki-border-light); stroke-width: 1; }
+  .cv-name      { fill: var(--wiki-text); font: 700 64px/0.95 var(--font-sans); }
+  .cv-tagline   { fill: var(--wiki-text-muted); font: 400 14px/1.6 var(--font-sans); }
+</style>
+<div class="oc-cover">
+  <!-- Derivation
+       Blocks: wiki-link 384px · brand-blue 96 · wiki-text 144 · wiki-text-muted 192 · wiki-border-light 144 — every width a multiple of footer-offset (48px), summing to width-container.
+       Arrangement: a strip of unequal bands full-width across the top, bleeding off the top and both sides; top-band skeleton because "OpenCitation" is one unbreakable word wider than a 440px name zone at 64px.
+       Pattern: hairline rules — the system's whole elevation model is 1px borders, not shadows — four of them at a space-card pitch (24px), their left starts stepping 0/32/32/0 so the pair reads as two hanging-indent works-cited entries, the product's own document convention.
+       Scales: pitch space-card 24px · indent 32px (the .hanging-indent 2em) · text inset 48px · every corner radius-none, no rx anywhere.
+  -->
+  <svg viewBox="0 0 960 288" role="img" aria-label="OpenCitation design system cover">
+    <rect x="0" y="0" width="960" height="288" class="cv-ground"/>
+
+    <rect x="0"   y="0" width="384" height="108" class="cv-link"/>
+    <rect x="384" y="0" width="96"  height="108" class="cv-brand"/>
+    <rect x="480" y="0" width="144" height="108" class="cv-ink"/>
+    <rect x="624" y="0" width="192" height="108" class="cv-mid"/>
+    <rect x="816" y="0" width="144" height="108" class="cv-tint"/>
+
+    <line x1="0"  y1="24.5" x2="960" y2="24.5" class="cv-rule"/>
+    <line x1="32" y1="48.5" x2="960" y2="48.5" class="cv-rule"/>
+    <line x1="32" y1="72.5" x2="960" y2="72.5" class="cv-rule"/>
+    <line x1="0"  y1="96.5" x2="960" y2="96.5" class="cv-rule"/>
+
+    <text x="48" y="200" class="cv-name">OpenCitation</text>
+    <text x="48" y="232" class="cv-tagline">A citation manager dressed as a 2005 Wikipedia article.</text>
+  </svg>
+</div>
