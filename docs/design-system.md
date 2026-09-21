@@ -1,8 +1,20 @@
 # OpenCitation Design System
 
-> **Status:** Stable · **Version:** 1.0 · **Last updated:** 2025-05
+> **Status:** Stable · **Version:** 1.1 · **Last updated:** 2026-09
 
 OpenCitation follows a deliberate early-2000s Wikipedia aesthetic — flat, information-dense, and utilitarian. Every decision in the design system serves that intent: no border-radius, no drop shadows by default, serif-adjacent sans-serif body text, and Wikipedia's signature blue as the sole interactive color.
+
+This file is the prose reference. The machine-readable system lives beside it in [`docs/design-system/`](./design-system/), extracted from the code:
+
+| Path | What |
+|---|---|
+| [`design-system/tokens.json`](./design-system/tokens.json) | Every token with its exact value, across the `light`, `dark` and `print` themes |
+| [`design-system/README.md`](./design-system/README.md) | The brand book: content fundamentals, visual foundations, iconography |
+| [`design-system/components/<Comp>/`](./design-system/components/) | Per-component guidelines and a static preview |
+| [`design-system/components/index.d.ts`](./design-system/components/index.d.ts) | The component props, transcribed from the React source |
+| [`design-system/guidelines/`](./design-system/guidelines/) | Accessibility and platform rules |
+
+When a value changes in `globals.css`, change it in `tokens.json` too — nothing generates one from the other.
 
 ---
 
@@ -112,17 +124,19 @@ Tags use a 10-step palette with automatic color assignment (hash of tag name →
 
 Manual override is available via `TagColorPicker`.
 
-#### Status-specific colors (PWA/system)
+#### Colors outside the token system
 
-These are outside the semantic token system and used only for system-level feedback:
+There are **no status colors in this product**. The offline, syncing and update-available states all render on the same `wiki-offwhite` bar, and the Safari install banner's CTA is `wiki-link` — state is carried by the icon, the wording and the available action, never by hue. Adding a success green or an error red would be the first state hue in the app.
 
-| Use | Color |
+Three values sit outside the semantic tokens, and none of them paint in-app UI:
+
+| Value | Where |
 |---|---|
-| Offline indicator | `bg-amber-500` |
-| Syncing indicator | `bg-blue-500` |
-| Update available | `bg-green-600` |
-| Apple install CTA | `#007AFF` |
-| Wikipedia-blue CTA | `#3366cc` / hover `#2a4b8d` |
+| `#3366cc` | PWA `theme_color` in `public/manifest.json`, the `themeColor` meta in `src/app/layout.tsx`, and the count chip in the `/api/badge` SVG |
+| `#f9f9f9` | PWA `background_color`, and the ground of the badge SVG |
+| `#a2a9b1` | The 1px frame of the badge SVG (authored independently of `wiki-text-muted`, which shares the value in dark) |
+
+`public/offline.html` is a standalone fallback page served by the service worker; it inlines its own colors (including `#2a4b8d`) because it renders without the app's stylesheet.
 
 ---
 
@@ -150,15 +164,19 @@ body {
 
 #### Scale
 
-| Role | Tailwind classes | Computed size |
-|---|---|---|
-| Page title | `text-2xl font-bold` | 24px / 700 |
-| Section heading | `text-lg font-semibold` | 18px / 600 |
-| Modal heading | `font-bold text-base` | 14px / 700 |
-| Body | *(base)* | 14px / 400 |
-| Label / caption | `text-sm` | 12px / 400 |
-| Citation output | `.citation-text` (13px mono) | 13px / 400 |
-| Tag label | `text-xs` | 10–11px / 400 |
+| Role | Tailwind classes | Computed size | Line height |
+|---|---|---|---|
+| Page title | `text-2xl font-bold` | 24px / 700 | 1.3333 |
+| Section heading | `text-lg font-semibold` | 18px / 600 | 1.5556 |
+| Modal heading | `font-bold text-base` | 16px / 700 | 1.5 |
+| Body | *(base)* | 14px / 400 | 1.6 |
+| Control / row text | `text-sm` | 14px / 400 | 1.4286 |
+| Label | `text-sm font-medium` | 14px / 500 | 1.4286 |
+| Caption / tag label | `text-xs` | 12px / 400 | 1.3333 |
+| Citation output | `.citation-text` | 13px mono / 400 | 1.6 |
+| Keyboard key | `kbd` | 12px mono / 400 | 1.6 |
+
+**Tailwind's steps are rem-based off a 16px root, while body copy is 14px.** So `text-sm` computes to 14px and `text-base` to 16px — they do not track the 14px base. Size a control with `text-sm` and a modal title with `text-base`, and don't assume a class name maps to a multiple of the body size.
 
 There is no display/hero type scale. The 14px base size is intentional — it matches Wikipedia's compact information density.
 
@@ -166,11 +184,11 @@ There is no display/hero type scale. The 14px base size is intentional — it ma
 
 ### Spacing
 
-Spacing is defined as CSS custom properties but consumed primarily via Tailwind's default scale.
+Spacing is consumed via Tailwind's default 0.25rem step scale. The five `--spacing-*` custom properties below are declared in the `@theme` block of `globals.css` but **no utility currently consumes them** — nothing in `src/` uses `p-card`, `space-y-field`, `py-button` or their siblings. Treat them as a declared intent, not as the values in force; the "Common usage patterns" table below is what the product actually spaces by.
 
-#### Spacing tokens
+#### Spacing tokens (declared, currently unused)
 
-| Token | Value | Semantic use |
+| Token | Value | Intended use |
 |---|---|---|
 | `--spacing-section` | `32px` | Between page-level sections |
 | `--spacing-card` | `24px` | Inside card/panel padding |
@@ -689,15 +707,11 @@ Safe-area utilities handle notched devices:
 .safe-area-top    { padding-top:    env(safe-area-inset-top,    0px); }
 ```
 
-**Offline indicator** (bottom-fixed pill):
+**Offline indicator** (full-width bar, top or bottom):
 
-| State | Color |
-|---|---|
-| Offline | `bg-amber-500` |
-| Syncing | `bg-blue-500` |
-| Update available | `bg-green-600` |
+Every state renders on the same `wiki-offwhite` bar between `wiki-border-light` rules, with the same ink. State is carried by a 20px inline SVG, a `text-sm font-medium` status line, a `text-xs` sub-line and one bracketed action — `[sync now]` when there is a queue, `[reload]` when an update is waiting. **There are no status hues**: no amber offline pill, no blue syncing pill, no green update pill. Expanded, a `wiki-border-light` top rule separates a grid of `text-xs` labels over `text-sm font-medium` values.
 
-**Safari install banner:** Uses Apple-native blue (`#007AFF`), not `wiki-link`. This is the only deliberate brand-color exception — Apple users expect iOS blue for install prompts.
+**Safari install banner:** Sits at `z-[9999]` on `bg-wiki-tab-bg` with the app icon at 57px. Its CTA is `text-wiki-link`, **not** iOS system blue — the banner follows the app's palette like everything else.
 
 ### Electron (Desktop)
 

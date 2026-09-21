@@ -1,0 +1,29 @@
+<!-- @dsCard group="Overlays" height=408 subtitle="Header, scrolling body, footer with one primary" -->
+<div class="oc" style="padding:0">
+  <div class="oc-scrim" style="padding:24px">
+    <div class="oc-dialog-box">
+      <div class="oc-dialog-head">
+        <h3 class="oc-dialog" id="oc-modal-title">Add citation</h3>
+        <button type="button" class="oc-close" aria-label="Close">&#10005;</button>
+      </div>
+      <div class="oc-dialog-body">
+        <div class="oc-col-1">
+          <label class="oc-label" for="oc-modal-list">Add to list</label>
+          <select class="oc-input" id="oc-modal-list"><option>Primary sources</option><option>Background reading</option></select>
+        </div>
+        <div class="oc-col-1">
+          <label class="oc-label" for="oc-modal-id">URL, DOI, ISBN or arXiv ID</label>
+          <input class="oc-input" id="oc-modal-id" value="arXiv:1706.03762">
+        </div>
+        <div class="oc-notice" role="status">Found: Attention is all you need. Check the fields before saving.</div>
+      </div>
+      <div class="oc-dialog-foot">
+        <button type="button" class="oc-btn">Delete draft</button>
+        <span class="oc-row">
+          <button type="button" class="oc-btn">Cancel</button>
+          <button type="button" class="oc-btn oc-btn--primary">Add citation</button>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

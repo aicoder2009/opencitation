@@ -1,0 +1,188 @@
+/* OpenCitation — preview stylesheet.
+   These classes restate, in plain CSS, the Tailwind utility combinations the
+   React components in src/components/wiki/ produce. They exist so the static
+   previews in this system render faithfully without Tailwind. They are not a
+   component library: the product's components are the React source. */
+
+.oc {
+  font: 400 14px/1.6 var(--font-sans);
+  color: var(--wiki-text);
+  background: var(--wiki-white);
+  padding: 16px;
+}
+.oc *, .oc *::before, .oc *::after { box-sizing: border-box; }
+.oc h1, .oc h2, .oc h3, .oc h4, .oc p, .oc ul, .oc ol { margin: 0; }
+.oc ul, .oc ol { padding: 0; list-style: none; }
+
+/* --- structure ------------------------------------------------------- */
+.oc-row   { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.oc-row-3 { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.oc-col   { display: flex; flex-direction: column; gap: 16px; }
+.oc-col-1 { display: flex; flex-direction: column; gap: 4px; }
+.oc-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.oc-grow  { flex: 1; min-width: 0; }
+.oc-rule  { border: 0; border-top: 1px solid var(--wiki-border-light); }
+
+/* --- type ------------------------------------------------------------ */
+.oc-title    { font: 700 24px/1.3333 var(--font-sans); }
+.oc-section  { font: 600 18px/1.5556 var(--font-sans); }
+.oc-dialog   { font: 700 16px/1.5 var(--font-sans); }
+.oc-tight    { font-size: 14px; line-height: 1.4286; }
+.oc-label    { font: 500 14px/1.4286 var(--font-sans); display: block; }
+.oc-cap      { font-size: 12px; line-height: 1.3333; }
+.oc-cap-b    { font: 500 12px/1.3333 var(--font-sans); }
+.oc-eyebrow  { font: 600 12px/1.3333 var(--font-sans); text-transform: uppercase; letter-spacing: 0.025em; color: var(--wiki-text-muted); }
+.oc-muted    { color: var(--wiki-text-muted); }
+.oc-strong   { font-weight: 500; }
+.oc-bold     { font-weight: 700; }
+.oc-citation { font: 400 13px/1.6 var(--font-mono); overflow-wrap: break-word; }
+.oc-intext   { font-style: italic; color: var(--wiki-text-muted); }
+
+/* --- links and bracketed actions ------------------------------------- */
+.oc-link { color: var(--wiki-link); text-decoration: none; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; }
+.oc-link:hover { text-decoration: underline; }
+.oc-action { color: var(--wiki-link); font-size: 14px; line-height: 1.4286; background: none; border: 0; padding: 0; cursor: pointer; }
+.oc-action:hover { text-decoration: underline; }
+.oc-action--xs { font-size: 12px; line-height: 1.3333; }
+
+/* --- buttons --------------------------------------------------------- */
+.oc-btn {
+  padding: 8px 16px;
+  font: 400 14px/1.4286 var(--font-sans);
+  border: 1px solid var(--wiki-border-light);
+  background: var(--wiki-white);
+  color: var(--wiki-text);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.oc-btn:hover { background: var(--wiki-tab-bg); }
+.oc-btn:active { background: var(--wiki-border-light); }
+.oc-btn--primary { color: var(--wiki-link); font-weight: 500; }
+.oc-btn--selected { border-color: var(--wiki-link); }
+.oc-btn[disabled], .oc-btn--disabled { opacity: 0.5; cursor: not-allowed; }
+.oc-btn[disabled]:hover, .oc-btn--disabled:hover { background: var(--wiki-white); }
+
+/* --- tabs ------------------------------------------------------------ */
+.oc-tabs { display: flex; border-bottom: 1px solid var(--wiki-border-light); }
+.oc-tab {
+  padding: 8px 16px;
+  font: 400 14px/1.4286 var(--font-sans);
+  border: 1px solid transparent;
+  border-bottom: 0;
+  margin-bottom: -1px;
+  position: relative;
+  z-index: 10;
+  background: var(--wiki-tab-bg);
+  color: var(--wiki-link);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.oc-tab:hover { background: var(--wiki-offwhite); }
+.oc-tab--active {
+  background: var(--wiki-white);
+  border-color: var(--wiki-border-light);
+  border-bottom: 1px solid var(--wiki-white);
+  color: var(--wiki-text);
+  font-weight: 500;
+}
+.oc-tab--active:hover { background: var(--wiki-white); }
+
+/* --- panels, cards, menus -------------------------------------------- */
+.oc-panel { border: 1px solid var(--wiki-border-light); background: var(--wiki-white); }
+.oc-panel-head {
+  padding: 8px 12px;
+  background: var(--wiki-tab-bg);
+  border-bottom: 1px solid var(--wiki-border-light);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.oc-panel-body { padding: 12px 16px; }
+.oc-card { border: 1px solid var(--wiki-border-light); background: var(--wiki-white); }
+.oc-card--selected { border: 2px solid var(--wiki-link); }
+.oc-card--dragging { box-shadow: var(--shadow-lg); position: relative; z-index: 10; }
+.oc-card-head { display: flex; align-items: center; gap: 8px; padding: 12px; background: var(--wiki-tab-bg); border-bottom: 1px solid var(--wiki-border-light); }
+.oc-card-body { padding: 16px; }
+.oc-well { background: var(--wiki-offwhite); border: 1px solid var(--wiki-border-light); padding: 12px; }
+.oc-menu { background: var(--wiki-white); border: 1px solid var(--wiki-border-light); box-shadow: var(--shadow-md); min-width: 200px; }
+.oc-menu-item {
+  display: block; width: 100%; text-align: left;
+  padding: 8px 12px; font-size: 14px; line-height: 1.4286;
+  background: none; border: 0; color: var(--wiki-text); cursor: pointer;
+}
+.oc-menu-item:hover { background: var(--wiki-tab-bg); }
+.oc-menu-item--active { background: var(--wiki-tab-bg); color: var(--wiki-link); font-weight: 500; }
+.oc-menu-head { padding: 6px 12px; background: var(--wiki-offwhite); border-bottom: 1px solid var(--wiki-border-light); }
+.oc-menu-sep { border-top: 1px solid var(--wiki-border-light); }
+.oc-hint { margin-left: 8px; font-size: 12px; color: var(--wiki-text-muted); }
+
+/* --- form fields ----------------------------------------------------- */
+.oc-input {
+  font: 400 14px/1.6 var(--font-sans);
+  border: 1px solid var(--wiki-border-light);
+  padding: 12px;
+  background: var(--wiki-white);
+  color: var(--wiki-text);
+  caret-color: var(--wiki-link);
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+.oc-input::placeholder { color: var(--wiki-text-muted); }
+.oc-input:focus { border-color: var(--wiki-link); outline: none; }
+.oc-input--focus { border-color: var(--wiki-link); }
+.oc-input--tight { padding: 4px 8px; font-size: 14px; line-height: 1.4286; }
+.oc-input--sm { padding: 6px 8px; font-size: 14px; line-height: 1.4286; }
+.oc-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  text-align: left; padding: 8px 12px; font-size: 14px; line-height: 1.4286;
+  border: 1px solid var(--wiki-border-light); background: var(--wiki-white);
+  color: var(--wiki-text); cursor: pointer; transition: background-color 0.2s ease;
+}
+.oc-trigger:hover { background: var(--wiki-tab-bg); }
+.oc-caret { color: var(--wiki-text-muted); margin-left: 8px; flex-shrink: 0; }
+
+/* --- tags ------------------------------------------------------------ */
+.oc-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; font-size: 12px; line-height: 1.3333; border: 1px solid; }
+.oc-swatch { width: 20px; height: 20px; border: 1px solid transparent; padding: 0; cursor: pointer; }
+.oc-swatch--active { border-color: var(--wiki-link); }
+
+/* --- notices, toast, spinner ----------------------------------------- */
+.oc-notice { padding: 8px 12px; font-size: 14px; line-height: 1.4286; background: var(--wiki-offwhite); border: 1px solid var(--wiki-border-light); border-left: 2px solid var(--wiki-border-light); color: var(--wiki-text); }
+.oc-notice--warn { border-left: 4px solid var(--wiki-border); }
+.oc-toast { border: 1px solid var(--wiki-border); background: var(--wiki-white); padding: 16px; font-size: 14px; max-width: 320px; }
+.oc-spin { animation: oc-spin 1s linear infinite; color: var(--wiki-text-muted); }
+@keyframes oc-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .oc-spin { animation-duration: 0.01ms; animation-iteration-count: 1; } }
+
+/* --- overlays -------------------------------------------------------- */
+.oc-scrim { background: var(--overlay-scrim); padding: 24px; display: flex; align-items: flex-start; justify-content: center; }
+.oc-dialog-box { background: var(--wiki-white); border: 1px solid var(--wiki-border-light); box-shadow: var(--shadow-lg); width: 100%; max-width: 576px; display: flex; flex-direction: column; }
+.oc-dialog-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--wiki-border-light); }
+.oc-dialog-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.oc-dialog-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-top: 1px solid var(--wiki-border-light); }
+.oc-close { background: none; border: 0; color: var(--wiki-text-muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 0; }
+.oc-close:hover { color: var(--wiki-text); }
+
+/* --- keys ------------------------------------------------------------ */
+.oc-kbd {
+  font: 400 12px/1.6 var(--font-mono);
+  padding: 1px 6px;
+  background: var(--wiki-tab-bg);
+  color: var(--wiki-text);
+  border: 1px solid var(--wiki-border-light);
+  border-bottom-width: 2px;
+  box-shadow: var(--shadow-kbd);
+  white-space: nowrap;
+}
+
+/* --- app chrome ------------------------------------------------------ */
+.oc-header { border-bottom: 1px solid var(--wiki-border); background: var(--wiki-white); }
+.oc-bar { max-width: 960px; margin: 0 auto; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.oc-main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+.oc-footer { border-top: 1px solid var(--wiki-border-light); margin-top: 48px; }
+.oc-footer-inner { max-width: 960px; margin: 0 auto; padding: 24px 16px; font-size: 14px; color: var(--wiki-text-muted); }
+.oc-nav { display: flex; align-items: center; gap: 16px; font-size: 14px; }
+
+/* --- focus ring ------------------------------------------------------ */
+.oc :focus-visible { outline: 1px dotted var(--wiki-text); outline-offset: 2px; }
+
+/* --- state annotation for previews ----------------------------------- */
+.oc-state { font-size: 12px; line-height: 1.3333; color: var(--wiki-text-muted); margin-bottom: 4px; }
