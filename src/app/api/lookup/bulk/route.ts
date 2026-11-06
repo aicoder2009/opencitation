@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as urlPOST } from "../url/route";
+import { POST as doiPOST } from "../doi/route";
+import { POST as isbnPOST } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -52,17 +55,30 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Create synthetic request
+        const reqUrl = new URL(`${baseUrl}${apiEndpoint}`);
+        const syntheticRequest = new NextRequest(reqUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
-        const data = await response.json();
+        // Make the API call directly
+        let response;
+        if (apiEndpoint === "/api/lookup/url") {
+          response = await urlPOST(syntheticRequest);
+        } else if (apiEndpoint === "/api/lookup/doi") {
+          response = await doiPOST(syntheticRequest);
+        } else if (apiEndpoint === "/api/lookup/isbn") {
+          response = await isbnPOST(syntheticRequest);
+        } else {
+          throw new Error("Unknown endpoint");
+        }
+
+        const data = await response.json() as Record<string, unknown>;
 
         if (response.ok && data.data) {
-          return { input: trimmedItem, success: true, data: data.data };
+          return { input: trimmedItem, success: true, data: data.data as Record<string, unknown> };
         }
         return {
           input: trimmedItem,
