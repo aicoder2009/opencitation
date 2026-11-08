@@ -69,6 +69,7 @@ export function CitationAddModal({
   const [isLooking, setIsLooking] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [lookupWarning, setLookupWarning] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [citationFields, setCitationFields] = useState<CitationFields | null>(null);
   const [generatedCitation, setGeneratedCitation] = useState<{ text: string; html: string } | null>(null);
@@ -88,6 +89,7 @@ export function CitationAddModal({
       setCitationFields(null);
       setGeneratedCitation(null);
       setLookupError(null);
+      setLookupWarning(null);
       setSaveError(null);
       setAddedCount(0);
       setShowSuccess(false);
@@ -131,6 +133,7 @@ export function CitationAddModal({
 
     setIsLooking(true);
     setLookupError(null);
+    setLookupWarning(null);
     setCitationFields(null);
     setGeneratedCitation(null);
     setSaveError(null);
@@ -155,6 +158,7 @@ export function CitationAddModal({
       const formatted = await formatCitationAny(fields, selectedStyle);
       setCitationFields(fields);
       setGeneratedCitation(formatted);
+      setLookupWarning(typeof result.warning === "string" ? result.warning : null);
     } catch {
       setLookupError("Network error. Please try again.");
     } finally {
@@ -298,6 +302,9 @@ export function CitationAddModal({
 
           {lookupError && (
             <WikiNotice variant="warn" onDismiss={() => setLookupError(null)}>{lookupError}</WikiNotice>
+          )}
+          {lookupWarning && (
+            <WikiNotice variant="warn" onDismiss={() => setLookupWarning(null)}>{lookupWarning}</WikiNotice>
           )}
 
           {/* Citation preview */}

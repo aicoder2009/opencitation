@@ -5,6 +5,8 @@ interface LookupResult {
   success: boolean;
   data?: Record<string, unknown>;
   error?: string;
+  /** Set when the URL lookup had to fall back to archived or inferred data. */
+  warning?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -62,7 +64,12 @@ export async function POST(request: NextRequest) {
         const data = await response.json();
 
         if (response.ok && data.data) {
-          return { input: trimmedItem, success: true, data: data.data };
+          return {
+            input: trimmedItem,
+            success: true,
+            data: data.data,
+            ...(typeof data.warning === "string" ? { warning: data.warning } : {}),
+          };
         }
         return {
           input: trimmedItem,

@@ -11,15 +11,15 @@ interface WikiNoticeProps {
 
 /**
  * Inline status message styled in the Wikipedia 2005 idiom: a left-edge
- * border with muted offwhite fill, no saturated state colors. The variant
- * only changes the left-border weight so info messages read lighter than
- * warnings without breaking the design system's "no state colors" rule.
+ * border with muted offwhite fill, like the article message boxes of the
+ * era. Info notices keep a thin grey edge; warnings get the thick saffron
+ * bar (`wiki-warning`), the design system's single attention hue.
  * Pass onDismiss to render a [dismiss] link that clears the message.
  */
 export function WikiNotice({ variant = "info", children, className = "", onDismiss }: WikiNoticeProps) {
   const accent =
     variant === "warn"
-      ? "border-l-4 border-l-wiki-border"
+      ? "border-l-8 border-l-wiki-warning"
       : "border-l-2 border-l-wiki-border-light";
 
   return (

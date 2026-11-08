@@ -89,6 +89,7 @@ The color system has two tiers: **semantic tokens** (used in components) and **r
 | `--color-wiki-link-hover` | `#0b3d91` | `#a3b8e5` | Hovered links |
 | `--color-wiki-link-visited` | `#0b0080` | `#b18fcf` | Visited hyperlinks |
 | `--color-wiki-link-active` | `#ba0000` | `#f87171` | Active/pressed links |
+| `--color-wiki-warning` | `#f4c430` | `#f4c430` | Left bar of warn notices only (Wikipedia message-box saffron) |
 
 #### Tailwind utility mapping
 
@@ -103,6 +104,7 @@ border-wiki-border-light → var(--color-wiki-border-light)
 text-wiki-text         → var(--color-wiki-text)
 text-wiki-text-muted   → var(--color-wiki-text-muted)
 text-wiki-link         → var(--color-wiki-link)
+border-l-wiki-warning  → var(--color-wiki-warning)
 ```
 
 #### Tag color palette
@@ -126,7 +128,7 @@ Manual override is available via `TagColorPicker`.
 
 #### Colors outside the token system
 
-There are **no status colors in this product**. The offline, syncing and update-available states all render on the same `wiki-offwhite` bar, and the Safari install banner's CTA is `wiki-link` — state is carried by the icon, the wording and the available action, never by hue. Adding a success green or an error red would be the first state hue in the app.
+There is **one attention hue in this product**: `wiki-warning`, the saffron of Wikipedia's article message boxes, drawn only as the thick left bar of `WikiNotice variant="warn"` so a warning is noticed without a fill or text color change. Nothing else carries state by hue: the offline, syncing and update-available states all render on the same `wiki-offwhite` bar, the Safari install banner's CTA is `wiki-link`, and there is still no success green or error red.
 
 Three values sit outside the semantic tokens, and none of them paint in-app UI:
 
