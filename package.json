@@ -4,6 +4,7 @@
   "private": true,
   "main": "dist-electron/main.js",
   "scripts": {
+    "quick-start": "node scripts/quick-start.mjs",
     "dev": "next dev",
     "build": "node scripts/build.mjs",
     "start": "next start",

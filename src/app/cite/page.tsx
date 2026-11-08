@@ -15,7 +15,11 @@ import { SourceTypePicker } from "@/components/wiki/source-type-picker";
 import { WikiDatePicker, type DateValue } from "@/components/wiki/wiki-date-picker";
 import { WikiSelect } from "@/components/wiki/wiki-select";
 import { TemplatePicker } from "@/components/wiki/template-picker";
-import { BarcodeScanner } from "@/components/wiki/barcode-scanner";
+import dynamic from "next/dynamic";
+const BarcodeScanner = dynamic(
+  () => import("@/components/wiki/barcode-scanner").then((m) => ({ default: m.BarcodeScanner })),
+  { ssr: false },
+);
 import { formatCitationAny, generateInTextCitationAny, CSL_STYLES } from "@/lib/citation";
 import { buildCitationFields } from "@/lib/citation/build-fields";
 import { saveTemplate, suggestTemplateName, type CitationTemplate } from "@/lib/templates";

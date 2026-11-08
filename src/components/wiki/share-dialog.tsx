@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import QRCode from "qrcode";
 import { WikiButton } from "./wiki-button";
 import { WikiNotice } from "./wiki-notice";
 import { WikiSpinner } from "./wiki-spinner";
@@ -239,6 +238,7 @@ export function ShareDialog({
     setExpandedQrCode(share.code);
     if (!qrSvgs[share.code]) {
       try {
+        const QRCode = await import("qrcode");
         const svg = await QRCode.toString(share.url, {
           type: "svg",
           margin: 0,

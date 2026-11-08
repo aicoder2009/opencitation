@@ -1,7 +1,23 @@
 # OpenCitation
 
 An open source citation manager, generator, and sharing tool. Ad-free, easy to use, with a clean Wikipedia 2005-inspired design.
+
+[![CI](https://github.com/aicoder2009/opencitation/actions/workflows/ci.yml/badge.svg)](https://github.com/aicoder2009/opencitation/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-695%20passing-brightgreen)](https://github.com/aicoder2009/opencitation)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/aicoder2009/opencitation?utm_source=oss&utm_medium=github&utm_campaign=aicoder2009%2Fopencitation&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
+## Why OpenCitation?
+
+Most citation tools are ad-heavy, locked behind paywalls, or require an account just to format a URL. OpenCitation is different:
+
+- **Free and open source** — no ads, no paywalls, no tracking beyond anonymous usage stats
+- **Works offline** — installable as a PWA or Electron desktop app; citations you've saved are always available
+- **No lock-in** — export everything as BibTeX, RIS, or plain text at any time
+- **Built for real workflows** — bulk import from BibTeX/RIS, public share links, embeddable badges, and a command palette (⌘K)
+- **Clean UI** — information-dense, Wikipedia-inspired design that gets out of your way
+
 ## Features
 
 - **Generate Citations** - Create properly formatted citations from URLs, DOIs, ISBNs, or manual entry
@@ -36,7 +52,7 @@ Books, Academic Journals, Websites, Blogs, Newspapers, Videos, Images, Film, TV 
 | UI | Custom Wikipedia-style design system |
 | Auth | Clerk |
 | Database | DynamoDB (AWS SDK v3, single-table) |
-| Testing | Vitest + Testing Library (668 tests) |
+| Testing | Vitest + Testing Library (695 tests) |
 | Desktop | Electron |
 | Extension | Chrome Manifest v3 |
 
@@ -80,10 +96,11 @@ AWS_REGION=
 ### Commands
 
 ```bash
-npm run dev        # Start dev server
-npm run build      # Production build
-npm run lint       # ESLint
-npm run test       # Run tests (668 tests)
+npm run quick-start  # First-time setup (installs deps, copies .env.example)
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run lint         # ESLint
+npm run test         # Run tests (695 tests)
 ```
 
 ## How It Works
