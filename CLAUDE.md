@@ -13,7 +13,7 @@ npm run dev             # Next dev server
 npm run build           # Production build
 npm run lint            # ESLint
 npm run test            # Vitest (watch mode)
-npm run test:run        # Vitest (single run, 695 tests)
+npm run test:run        # Vitest (single run, 758 tests)
 npm run electron:dev    # Electron + Next dev together
 npm run electron:build  # Package desktop app (mac/win/linux variants available)
 ```
@@ -26,7 +26,7 @@ npm run electron:build  # Package desktop app (mac/win/linux variants available)
 - **Desktop:** Electron 34 (wraps the same Next app)
 - **PWA:** Service worker + offline store + sync manager
 - **DnD:** `@dnd-kit` for reorderable citations
-- **Testing:** Vitest + Testing Library (695 tests)
+- **Testing:** Vitest + Testing Library (758 tests)
 
 ## Architecture
 
@@ -150,6 +150,7 @@ Full reference: `docs/design-system.md`
 | `wiki-text` | `#202122` | `#eaecf0` | All body text |
 | `wiki-text-muted` | `#54595d` | `#a2a9b1` | Captions, placeholders, secondary labels |
 | `wiki-link` | `#0645ad` | `#88a4d8` | Every interactive element |
+| `wiki-warning` | `#f4c430` | `#f4c430` | Left bar of `WikiNotice variant="warn"` only; the single attention hue |
 
 ### Typography
 - Font stack: `Arial, Helvetica, sans-serif` for all UI; `"Courier New", Courier, monospace` for citation output only (use `.citation-text` class).

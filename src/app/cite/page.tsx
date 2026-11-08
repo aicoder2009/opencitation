@@ -298,6 +298,8 @@ function CitePageContent() {
   const [citationFields, setCitationFields] = useState<CitationFields | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Caveat attached to a successful lookup (archived snapshot, inferred fields).
+  const [lookupWarning, setLookupWarning] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | null>(null);
 
   // Add to List state
@@ -322,6 +324,7 @@ function CitePageContent() {
     success: boolean;
     data?: Record<string, unknown>;
     error?: string;
+    warning?: string;
   }>>([]);
   const [isBulkLoading, setIsBulkLoading] = useState(false);
   const [bulkError, setBulkError] = useState<string | null>(null);
@@ -452,6 +455,7 @@ function CitePageContent() {
 
     setIsLoading(true);
     setError(null);
+    setLookupWarning(null);
 
     try {
       const input = rawInput.trim();
@@ -516,9 +520,11 @@ function CitePageContent() {
 
       // Save to recent citations
       saveToRecentCitations(fields.title, formatted.text, selectedStyle);
+      setLookupWarning(typeof result.warning === "string" ? result.warning : null);
 
       posthog.capture("lookup_performed", {
         lookup_type: apiEndpoint.replace("/api/lookup/", ""),
+        lookup_source: typeof result.source === "string" ? result.source : undefined,
         source_type: effectiveType,
         citation_style: selectedStyle,
       });
@@ -2228,6 +2234,9 @@ function CitePageContent() {
                 {error && (
                   <WikiNotice variant="warn" onDismiss={() => setError(null)}>{error}</WikiNotice>
                 )}
+                {lookupWarning && (
+                  <WikiNotice variant="warn" onDismiss={() => setLookupWarning(null)}>{lookupWarning}</WikiNotice>
+                )}
 
                 <WikiButton
                   variant="primary"
@@ -2612,6 +2621,9 @@ https://another-site.com/paper"
                                   <div className="mt-1 truncate">
                                     {(result.data.title as string) || "Untitled"}
                                   </div>
+                                )}
+                                {result.warning && (
+                                  <div className="mt-1 text-xs text-wiki-text-muted">{result.warning}</div>
                                 )}
                               </div>
                               <span className="text-xs text-wiki-link">Click to view</span>

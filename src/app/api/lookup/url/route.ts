@@ -6,11 +6,29 @@
  * 2. Twitter card meta tags
  * 3. Schema.org JSON-LD
  * 4. Standard HTML meta tags
+ *
+ * When a site blocks automated access (401/403, bot challenge, JS shell) the
+ * route falls back to identifiers in the URL, oEmbed, the Internet Archive
+ * and finally fields inferred from the URL — see ./fallbacks.ts.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import type { SourceType } from '@/types';
+import { SOURCE_TYPES, type SourceType } from '@/types';
 import { safeFetchText, SafeFetchError } from '@/lib/security/safe-fetch';
+import { POST as doiLookup } from '../doi/route';
+import { POST as isbnLookup } from '../isbn/route';
+import {
+  CRAWLER_USER_AGENT,
+  archiveWarning,
+  extractDoiFromUrl,
+  extractIsbnFromUrl,
+  fetchOEmbedMetadata,
+  fetchWaybackSnapshot,
+  inferFromUrl,
+  inferredWarning,
+  isChallengePage,
+  type BlockReason,
+} from './fallbacks';
 
 interface MetadataResult {
   title?: string;
@@ -49,11 +67,31 @@ interface MetadataResult {
   abstract?: string;
 }
 
+type LookupSource = 'direct' | 'doi' | 'isbn' | 'oembed' | 'crawler' | 'archive' | 'inferred';
+
 interface APIResponse {
   success: boolean;
   data?: MetadataResult;
   error?: string;
+  /** Present when the data came from a fallback and should be double-checked. */
+  warning?: string;
+  source?: LookupSource;
 }
+
+const MAX_BYTES = 5 * 1024 * 1024;
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+  'Accept-Language': 'en-US,en;q=0.5',
+  'Cache-Control': 'no-cache',
+};
+const CRAWLER_HEADERS = {
+  'User-Agent': CRAWLER_USER_AGENT,
+  'Accept': 'text/html,application/xhtml+xml',
+  'Accept-Language': 'en-US,en;q=0.5',
+};
+// Total time the fallback chain may spend once the direct fetch has failed.
+const FALLBACK_BUDGET_MS = 25_000;
 
 export async function POST(request: NextRequest): Promise<NextResponse<APIResponse>> {
   try {
@@ -85,36 +123,66 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
     // Detect the source type from the URL and grab any type-specific hints
     const detection = detectSourceTypeFromUrl(parsedUrl);
 
+    const originalUrl = parsedUrl.toString();
+
     // For arXiv URLs, short-circuit to the arXiv API which gives richer metadata
     if (detection.sourceType === 'preprint' && detection.arxivId) {
       const arxivData = await fetchArxivMetadata(detection.arxivId);
       if (arxivData) {
         return NextResponse.json({
           success: true,
+          source: 'direct',
           data: {
             ...arxivData,
             suggestedSourceType: 'preprint',
             preprintId: detection.arxivId,
             repository: 'arXiv',
-            url: arxivData.url || parsedUrl.toString(),
+            url: arxivData.url || originalUrl,
           },
+        });
+      }
+    }
+
+    // A DOI or ISBN in the URL points at a structured record that is richer
+    // than page metadata, and the registries behind them never block us.
+    // Publisher and bookseller sites are the most common 403s.
+    const doi = extractDoiFromUrl(parsedUrl);
+    if (doi) {
+      const data = await lookupViaRoute(doiLookup, 'doi', { doi });
+      if (data) {
+        const crossRefType = typeof data.type === 'string' ? data.type : undefined;
+        return NextResponse.json({
+          success: true,
+          source: 'doi',
+          data: {
+            ...(data as MetadataResult),
+            url: originalUrl,
+            suggestedSourceType: isSourceType(crossRefType) ? crossRefType : detection.sourceType,
+          },
+        });
+      }
+    }
+    const isbn = extractIsbnFromUrl(parsedUrl);
+    if (isbn) {
+      const data = await lookupViaRoute(isbnLookup, 'isbn', { isbn });
+      if (data) {
+        return NextResponse.json({
+          success: true,
+          source: 'isbn',
+          data: { ...(data as MetadataResult), url: originalUrl, suggestedSourceType: 'book' },
         });
       }
     }
 
     // Fetch the page through the SSRF-aware fetcher: protocol allowlist,
     // private/loopback/link-local IP rejection, and a 5MB response cap.
-    let fetched: { status: number; ok: boolean; text: string };
+    let fetched: { status: number; ok: boolean; text: string } | null = null;
+    let fetchFailure: 'timeout' | 'network' | null = null;
     try {
-      fetched = await safeFetchText(parsedUrl.toString(), {
+      fetched = await safeFetchText(originalUrl, {
         timeoutMs: 10_000,
-        maxBytes: 5 * 1024 * 1024,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-          'Accept-Language': 'en-US,en;q=0.5',
-          'Cache-Control': 'no-cache',
-        },
+        maxBytes: MAX_BYTES,
+        headers: BROWSER_HEADERS,
       });
     } catch (err) {
       if (err instanceof SafeFetchError) {
@@ -124,40 +192,36 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
           { status }
         );
       }
-      throw err;
+      fetchFailure = isTimeoutError(err) ? 'timeout' : 'network';
     }
 
-    if (!fetched.ok) {
-      let errorMessage = `Failed to fetch URL: ${fetched.status}`;
-      if (fetched.status === 401 || fetched.status === 403) {
-        errorMessage = 'This website requires authentication or blocks automated access. Please use Manual Entry instead.';
-      } else if (fetched.status === 404) {
-        errorMessage = 'Page not found. Please check the URL.';
-      } else if (fetched.status >= 500) {
-        errorMessage = 'The website is currently unavailable. Please try again later.';
+    if (fetched?.ok) {
+      const metadata = parseMetadata(fetched.text, originalUrl);
+      if (!isChallengePage(metadata.title, parsedUrl.hostname)) {
+        applyDetection(metadata, detection);
+        return NextResponse.json({ success: true, source: 'direct', data: metadata });
       }
+    }
+
+    // The page is gone: only an archived copy can still describe it.
+    if (fetched && (fetched.status === 404 || fetched.status === 410)) {
+      const archived = await lookupArchived(parsedUrl, detection, 'gone', FALLBACK_BUDGET_MS);
+      if (archived) return NextResponse.json(archived);
       return NextResponse.json(
-        { success: false, error: errorMessage },
+        { success: false, error: 'Page not found. Please check the URL.' },
         { status: 502 }
       );
     }
 
-    const metadata = parseMetadata(fetched.text, parsedUrl.toString());
-
-    // Merge in hostname-based type detection and hints
-    if (detection.sourceType) metadata.suggestedSourceType = detection.sourceType;
-    if (detection.handle) metadata.handle = detection.handle;
-    if (detection.platform) metadata.platform = detection.platform;
-    if (detection.postType) metadata.postType = detection.postType;
-    if (detection.channelName) metadata.channelName = detection.channelName;
-    if (detection.company) metadata.company = detection.company;
-    if (detection.modelName) metadata.modelName = detection.modelName;
-    if (detection.repository) metadata.repository = detection.repository;
-
-    return NextResponse.json({
-      success: true,
-      data: metadata,
+    // Blocked (401/403/429), a bot-challenge or login shell served with 200,
+    // a server error, or no response at all: recover what we can.
+    let reason: BlockReason = 'blocked';
+    if (fetchFailure) reason = 'unreachable';
+    else if (fetched && fetched.status >= 500) reason = 'unavailable';
+    const recovered = await recoverBlockedPage(parsedUrl, detection, reason, {
+      skipCrawlerRetry: fetchFailure === 'timeout',
     });
+    return NextResponse.json(recovered);
   } catch (error) {
     console.error('URL lookup error:', error);
 
@@ -175,6 +239,126 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       { status: 500 }
     );
   }
+}
+
+/**
+ * Run a sibling lookup route in-process and return its data on success.
+ * Any failure (including the registry being down) yields null so the URL
+ * lookup can fall back to fetching the page itself.
+ */
+async function lookupViaRoute(
+  handler: (request: NextRequest) => Promise<Response>,
+  path: string,
+  body: Record<string, string>
+): Promise<Record<string, unknown> | null> {
+  try {
+    const response = await handler(
+      new NextRequest(`http://localhost/api/lookup/${path}`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+      })
+    );
+    const json = (await response.json()) as { success?: boolean; data?: unknown };
+    return json.success && json.data && typeof json.data === 'object'
+      ? (json.data as Record<string, unknown>)
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function isSourceType(value: string | undefined): value is SourceType {
+  return value !== undefined && (SOURCE_TYPES as readonly string[]).includes(value);
+}
+
+function isTimeoutError(err: unknown): boolean {
+  return err instanceof Error && (err.name === 'AbortError' || err.name === 'TimeoutError');
+}
+
+/** Merge hostname-based type detection and hints into a result. */
+function applyDetection(metadata: MetadataResult, detection: UrlDetection): void {
+  if (detection.sourceType) metadata.suggestedSourceType = detection.sourceType;
+  if (detection.handle) metadata.handle = detection.handle;
+  if (detection.platform) metadata.platform = detection.platform;
+  if (detection.postType) metadata.postType = detection.postType;
+  if (detection.channelName) metadata.channelName = detection.channelName;
+  if (detection.company) metadata.company = detection.company;
+  if (detection.modelName) metadata.modelName = detection.modelName;
+  if (detection.repository) metadata.repository = detection.repository;
+}
+
+/**
+ * Describe a page we could not read directly, trying the richest source
+ * first: the platform's oEmbed record, a crawler-identified retry, the
+ * Internet Archive, and finally whatever the URL itself reveals.
+ */
+async function recoverBlockedPage(
+  parsedUrl: URL,
+  detection: UrlDetection,
+  reason: BlockReason,
+  options: { skipCrawlerRetry: boolean }
+): Promise<APIResponse> {
+  const originalUrl = parsedUrl.toString();
+  const deadline = Date.now() + FALLBACK_BUDGET_MS;
+  const remaining = () => Math.max(0, deadline - Date.now());
+
+  // Platforms that serve JavaScript shells usually publish oEmbed records.
+  const oembed = await fetchOEmbedMetadata(parsedUrl, Math.min(6_000, remaining()));
+  if (oembed) {
+    const data: MetadataResult = { ...oembed, url: originalUrl };
+    applyDetection(data, detection);
+    return { success: true, source: 'oembed', data };
+  }
+
+  // Some sites pre-render pages for self-identified crawlers. Skip when the
+  // first attempt timed out; a second one would most likely do the same.
+  if (!options.skipCrawlerRetry && remaining() > 1_000) {
+    try {
+      const retried = await safeFetchText(originalUrl, {
+        timeoutMs: Math.min(6_000, remaining()),
+        maxBytes: MAX_BYTES,
+        headers: CRAWLER_HEADERS,
+      });
+      if (retried.ok) {
+        const data = parseMetadata(retried.text, originalUrl);
+        if (!isChallengePage(data.title, parsedUrl.hostname)) {
+          applyDetection(data, detection);
+          return { success: true, source: 'crawler', data };
+        }
+      }
+    } catch {
+      // Fall through to the archive.
+    }
+  }
+
+  const archived = await lookupArchived(parsedUrl, detection, reason, remaining());
+  if (archived) return archived;
+
+  const inferred = inferFromUrl(parsedUrl);
+  const data: MetadataResult = { ...inferred, url: originalUrl };
+  applyDetection(data, detection);
+  return {
+    success: true,
+    source: 'inferred',
+    data,
+    warning: inferredWarning(reason, Boolean(inferred.title)),
+  };
+}
+
+async function lookupArchived(
+  parsedUrl: URL,
+  detection: UrlDetection,
+  reason: BlockReason,
+  timeoutMs: number
+): Promise<APIResponse | null> {
+  const originalUrl = parsedUrl.toString();
+  const isUsable = (html: string) =>
+    !isChallengePage(parseMetadata(html, originalUrl).title, parsedUrl.hostname);
+  const snapshot = await fetchWaybackSnapshot(originalUrl, Math.min(timeoutMs, 15_000), isUsable);
+  if (!snapshot) return null;
+  const data = parseMetadata(snapshot.html, originalUrl);
+  applyDetection(data, detection);
+  return { success: true, source: 'archive', data, warning: archiveWarning(reason, snapshot.timestamp) };
 }
 
 /**

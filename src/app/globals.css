@@ -13,6 +13,7 @@
   --color-wiki-link-hover: #0b3d91;
   --color-wiki-link-visited: #0b0080;
   --color-wiki-link-active: #ba0000;
+  --color-wiki-warning: #f4c430; /* Wikipedia message-box saffron; the single attention hue */
   --color-wiki-tab-bg: #f0f0f0;
   --color-wiki-text: #202122;
   --color-wiki-text-muted: #54595d;
@@ -43,6 +44,7 @@
   --color-wiki-link-hover: #a3b8e5;
   --color-wiki-link-visited: #b18fcf;
   --color-wiki-link-active: #f87171;
+  --color-wiki-warning: #f4c430;
   --color-wiki-tab-bg: #27292d;
   --color-wiki-text: #eaecf0;
   --color-wiki-text-muted: #a2a9b1;
