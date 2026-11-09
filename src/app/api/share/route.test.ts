@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GET, POST } from "./route";
 import { NextRequest } from "next/server";
 
+vi.mock("@/lib/security/rate-limit", () => ({
+  isSameOrigin: vi.fn(() => true),
+  rateLimit: vi.fn(() => ({ ok: true })),
+  getClientKey: vi.fn(),
+}));
+
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
