@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { POST as lookupUrl } from "../url/route";
+import { POST as lookupDoi } from "../doi/route";
+import { POST as lookupIsbn } from "../isbn/route";
 
 interface LookupResult {
   input: string;
@@ -24,8 +27,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Refactored to process lookups concurrently for performance improvement
-    const baseUrl = request.nextUrl.origin;
-
     const lookupPromises = items.map(async (item) => {
       const trimmedItem = item.trim();
       if (!trimmedItem) {
@@ -33,18 +34,18 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        let apiEndpoint: string;
+        let handler: ((req: NextRequest) => Promise<NextResponse> | NextResponse)  ;
         let body: object;
 
         // Detect input type
         if (trimmedItem.match(/^(https?:\/\/|www\.)/i)) {
-          apiEndpoint = "/api/lookup/url";
+          handler = lookupUrl;
           body = { url: trimmedItem };
         } else if (trimmedItem.match(/^10\.\d{4,}/)) {
-          apiEndpoint = "/api/lookup/doi";
+          handler = lookupDoi;
           body = { doi: trimmedItem };
         } else if (trimmedItem.match(/^(97[89])?\d{9}[\dXx]$/)) {
-          apiEndpoint = "/api/lookup/isbn";
+          handler = lookupIsbn;
           body = { isbn: trimmedItem };
         } else {
           return {
@@ -54,14 +55,15 @@ export async function POST(request: NextRequest) {
           };
         }
 
-        // Make the API call
-        const response = await fetch(`${baseUrl}${apiEndpoint}`, {
+        // Create synthetic request to avoid loopback SSRF
+        const syntheticUrl = new URL("http://localhost");
+        const syntheticRequest = new NextRequest(syntheticUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
 
-        const data = await response.json();
+        const response = await handler(syntheticRequest);
+        const data = await response.json() as { data?: Record<string, unknown>, error?: string };
 
         if (response.ok && data.data) {
           return {
