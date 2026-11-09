@@ -358,6 +358,7 @@ export function SortableCitation({
                   setCopiedKey("copy");
                   setTimeout(() => setCopiedKey(null), 1500);
                 }}
+                aria-label={copiedKey === "copy" ? "Copied full citation" : "Copy full citation"}
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 {copiedKey === "copy" ? "[copied!]" : "[copy]"}
@@ -374,6 +375,7 @@ export function SortableCitation({
                     setCopiedKey("copy-in-text");
                     setTimeout(() => setCopiedKey(null), 1500);
                   }}
+                  aria-label={copiedKey === "copy-in-text" ? "Copied in-text citation" : "Copy in-text citation"}
                   className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                   title={`In-text citation (${citation.style.toUpperCase()})`}
                 >
@@ -382,6 +384,7 @@ export function SortableCitation({
               )}
               <button
                 onClick={startEditing}
+                aria-label="Edit citation details"
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [edit]
@@ -389,6 +392,7 @@ export function SortableCitation({
               {onShare && (
                 <button
                   onClick={() => onShare(citation.id)}
+                  aria-label="Share citation"
                   className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   [share]
@@ -396,6 +400,7 @@ export function SortableCitation({
               )}
               <button
                 onClick={() => onDelete(citation.id)}
+                aria-label="Delete citation"
                 className="text-wiki-link text-sm hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               >
                 [delete]
