@@ -1,8 +1,22 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from './route';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { POST as mockUrlHandler } from '@/app/api/lookup/url/route';
+import { POST as mockDoiHandler } from '@/app/api/lookup/doi/route';
+import { POST as mockIsbnHandler } from '@/app/api/lookup/isbn/route';
 
-global.fetch = vi.fn();
+// Mock the individual route handlers directly
+vi.mock('@/app/api/lookup/url/route', () => ({
+  POST: vi.fn(),
+}));
+
+vi.mock('@/app/api/lookup/doi/route', () => ({
+  POST: vi.fn(),
+}));
+
+vi.mock('@/app/api/lookup/isbn/route', () => ({
+  POST: vi.fn(),
+}));
 
 function makeRequest(body: object) {
   return new NextRequest('http://localhost/api/lookup/bulk', {
@@ -54,47 +68,40 @@ describe('Bulk Lookup API', () => {
   });
 
   it('routes URLs to /api/lookup/url', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ data: { title: 'Example Page' } }),
-    });
+    vi.mocked(mockUrlHandler).mockResolvedValueOnce(
+      NextResponse.json({ data: { title: 'Example Page' } })
+    );
     const response = await POST(makeRequest({ items: ['https://example.com'] }));
     const data = await response.json();
     expect(data.results[0].success).toBe(true);
     expect(data.results[0].data.title).toBe('Example Page');
-    const [url] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
-    expect(url).toContain('/api/lookup/url');
+    expect(mockUrlHandler).toHaveBeenCalledTimes(1);
   });
 
   it('routes DOIs to /api/lookup/doi', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ data: { title: 'Research Article' } }),
-    });
+    vi.mocked(mockDoiHandler).mockResolvedValueOnce(
+      NextResponse.json({ data: { title: 'Research Article' } })
+    );
     const response = await POST(makeRequest({ items: ['10.1000/xyz123'] }));
     const data = await response.json();
     expect(data.results[0].success).toBe(true);
-    const [url] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
-    expect(url).toContain('/api/lookup/doi');
+    expect(mockDoiHandler).toHaveBeenCalledTimes(1);
   });
 
   it('routes ISBNs to /api/lookup/isbn', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ data: { title: 'Book Title' } }),
-    });
+    vi.mocked(mockIsbnHandler).mockResolvedValueOnce(
+      NextResponse.json({ data: { title: 'Book Title' } })
+    );
     const response = await POST(makeRequest({ items: ['9780316769174'] }));
     const data = await response.json();
     expect(data.results[0].success).toBe(true);
-    const [url] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [string];
-    expect(url).toContain('/api/lookup/isbn');
+    expect(mockIsbnHandler).toHaveBeenCalledTimes(1);
   });
 
   it('marks item as failed when sub-request fails', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ error: 'Not found' }),
-    });
+    vi.mocked(mockDoiHandler).mockResolvedValueOnce(
+      NextResponse.json({ error: 'Not found' }, { status: 404 })
+    );
     const response = await POST(makeRequest({ items: ['10.1000/nonexistent'] }));
     const data = await response.json();
     expect(data.results[0].success).toBe(false);
@@ -102,9 +109,12 @@ describe('Bulk Lookup API', () => {
   });
 
   it('returns summary counts', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { title: 'A' } }) })
-      .mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'fail' }) });
+    vi.mocked(mockUrlHandler).mockResolvedValueOnce(
+      NextResponse.json({ data: { title: 'A' } })
+    );
+    vi.mocked(mockDoiHandler).mockResolvedValueOnce(
+      NextResponse.json({ error: 'fail' }, { status: 400 })
+    );
     const response = await POST(
       makeRequest({ items: ['https://success.com', '10.1000/fail'] })
     );
@@ -115,9 +125,12 @@ describe('Bulk Lookup API', () => {
   });
 
   it('handles mixed item types in one batch', async () => {
-    (global.fetch as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { title: 'URL result' } }) })
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: { title: 'DOI result' } }) });
+    vi.mocked(mockUrlHandler).mockResolvedValueOnce(
+      NextResponse.json({ data: { title: 'URL result' } })
+    );
+    vi.mocked(mockDoiHandler).mockResolvedValueOnce(
+      NextResponse.json({ data: { title: 'DOI result' } })
+    );
     const response = await POST(
       makeRequest({ items: ['https://example.com', '10.1000/abc'] })
     );
