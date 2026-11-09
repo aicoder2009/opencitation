@@ -11,6 +11,7 @@ import {
   createList,
   createProject,
   addCitation,
+  batchAddCitations,
   reorderCitations,
 } from "@/lib/db";
 import { parseShareSegment } from "@/lib/share-utils";
@@ -111,21 +112,7 @@ export async function POST(
 
       const newList = await createList(userId, originalList.name, undefined, originalList.description);
 
-      const newCitations = await Promise.all(
-        citations.map((c) =>
-          addCitation(
-            newList.id,
-            c.fields,
-            c.style,
-            c.formattedText,
-            c.formattedHtml,
-            c.tags,
-            c.notes,
-            c.quotes,
-            c.readingStatus
-          )
-        )
-      );
+      const newCitations = await batchAddCitations(newList.id, citations);
 
       if (citations.some((c) => c.sortOrder !== undefined)) {
         await reorderCitations(newList.id, newCitations.map((c) => c.id));
@@ -155,21 +142,8 @@ export async function POST(
         originalLists.map(async (list) => {
           const citations = await getListCitations(list.id);
           const newList = await createList(userId, list.name, newProject.id, list.description);
-          const newCitations = await Promise.all(
-            citations.map((c) =>
-              addCitation(
-                newList.id,
-                c.fields,
-                c.style,
-                c.formattedText,
-                c.formattedHtml,
-                c.tags,
-                c.notes,
-                c.quotes,
-                c.readingStatus
-              )
-            )
-          );
+          const newCitations = await batchAddCitations(newList.id, citations);
+
           if (citations.some((c) => c.sortOrder !== undefined)) {
             await reorderCitations(newList.id, newCitations.map((c) => c.id));
           }

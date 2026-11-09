@@ -288,7 +288,6 @@ export async function deleteList(userId: string, listId: string): Promise<void> 
   if (citations.length > 0) {
     // DynamoDB allows a maximum of 25 items per BatchWriteItem request
     const BATCH_SIZE = 25;
-    const batches = [];
 
     for (let i = 0; i < citations.length; i += BATCH_SIZE) {
       const batch = citations.slice(i, i + BATCH_SIZE);
@@ -478,6 +477,89 @@ export async function getProjectLists(userId: string, projectId: string): Promis
 }
 
 // ============ CITATIONS ============
+
+export async function batchAddCitations(
+  listId: string,
+  citationsData: {
+    fields: CitationFields;
+    style: CitationStyle;
+    formattedText: string;
+    formattedHtml: string;
+    tags?: string[];
+    notes?: string;
+    quotes?: CitationQuote[];
+    readingStatus?: ReadingStatus;
+  }[]
+): Promise<Citation[]> {
+  const now = new Date().toISOString();
+
+  const citations: Citation[] = citationsData.map((data) => ({
+    id: generateId(),
+    listId,
+    fields: data.fields,
+    style: data.style,
+    formattedText: data.formattedText,
+    formattedHtml: data.formattedHtml,
+    tags: data.tags,
+    notes: data.notes,
+    quotes: data.quotes,
+    readingStatus: data.readingStatus,
+    createdAt: now,
+    updatedAt: now,
+  }));
+
+  if (citations.length > 0) {
+    // DynamoDB allows a maximum of 25 items per BatchWriteItem request
+    const BATCH_SIZE = 25;
+
+    for (let i = 0; i < citations.length; i += BATCH_SIZE) {
+      const batch = citations.slice(i, i + BATCH_SIZE);
+
+      let requestItems = {
+        [TABLE_NAME]: batch.map((citation) => ({
+          PutRequest: {
+            Item: {
+              PK: keys.list(listId),
+              SK: keys.citation(citation.id),
+              GSI1PK: keys.citation(citation.id),
+              GSI1SK: keys.list(listId),
+              ...citation,
+              entityType: "CITATION",
+            },
+          },
+        })),
+      };
+
+      let retries = 0;
+      const MAX_RETRIES = 3;
+
+      while (Object.keys(requestItems).length > 0 && retries <= MAX_RETRIES) {
+        const response = await docClient.send(
+          new BatchWriteCommand({
+            RequestItems: requestItems,
+          })
+        );
+
+        if (
+          response.UnprocessedItems &&
+          Object.keys(response.UnprocessedItems).length > 0
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          requestItems = response.UnprocessedItems as any;
+          retries++;
+          if (retries <= MAX_RETRIES) {
+            // Exponential backoff
+            await new Promise((resolve) => setTimeout(resolve, Math.pow(2, retries) * 100));
+          }
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  return citations;
+}
 
 export async function addCitation(
   listId: string,
