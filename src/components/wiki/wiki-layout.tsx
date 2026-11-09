@@ -151,6 +151,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                   onKeyDown={handleDocsKeyDown}
                   aria-haspopup="menu"
                   aria-expanded={docsOpen}
+                  aria-controls={docsOpen ? "docs-menu-signed-out" : undefined}
                   className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Docs
@@ -159,7 +160,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                   </svg>
                 </button>
                 {docsOpen && (
-                  <div className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
+                  <div id="docs-menu-signed-out" className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
                     <Link href="/docs" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Documentation
                     </Link>
@@ -201,6 +202,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                   onKeyDown={handleDocsKeyDown}
                   aria-haspopup="menu"
                   aria-expanded={docsOpen}
+                  aria-controls={docsOpen ? "docs-menu-signed-in" : undefined}
                   className="flex items-center gap-0.5 text-wiki-link hover:underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
                 >
                   Docs
@@ -209,7 +211,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
                   </svg>
                 </button>
                 {docsOpen && (
-                  <div className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
+                  <div id="docs-menu-signed-in" className="absolute right-0 top-full mt-1 z-20 min-w-[160px] bg-wiki-white border border-wiki-border-light shadow-md">
                     <Link href="/docs" className="block px-4 py-2 text-sm text-wiki-link hover:bg-wiki-tab-bg hover:no-underline focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text">
                       Documentation
                     </Link>
@@ -235,6 +237,8 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-1 text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
               aria-label="Toggle menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls={mobileMenuOpen ? "mobile-menu" : undefined}
             >
               <svg
                 aria-hidden="true"
@@ -265,7 +269,7 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="sm:hidden border-t border-wiki-border-light bg-wiki-offwhite">
+          <div id="mobile-menu" className="sm:hidden border-t border-wiki-border-light bg-wiki-offwhite">
             <nav className="max-w-[960px] mx-auto px-4 py-3 flex flex-col gap-2 text-sm">
               <Link
                 href="/cite"
