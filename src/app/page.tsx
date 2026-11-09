@@ -25,6 +25,7 @@ export default function LandingPage() {
   const [quickAddInput, setQuickAddInput] = useState("");
   const [recentCitations, setRecentCitations] = useState<RecentCitation[]>([]);
   const [citationCount, setCitationCount] = useState<number | null>(null);
+  const [showSupportBanner, setShowSupportBanner] = useState(true);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) router.replace("/home");
@@ -201,6 +202,34 @@ export default function LandingPage() {
   return (
     <WikiLayout hideFooter>
       <div className="mt-6">
+        {showSupportBanner && (
+          <aside className="mb-4 border border-wiki-border-light bg-wiki-warning/20 p-4" aria-label="Support OpenCitation">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm">
+                <strong>OpenCitation is free and ad-free.</strong>{" "}
+                If it has helped your work, consider a one-time $5 contribution to help keep it running.
+              </p>
+              <div className="flex shrink-0 items-center gap-3">
+                <a
+                  href="https://github.com/sponsors/aicoder2009"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-block border border-wiki-border bg-wiki-white px-3 py-1.5 text-sm font-medium text-wiki-link hover:bg-wiki-offwhite focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                >
+                  Support with $5
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setShowSupportBanner(false)}
+                  className="text-sm text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
+                  aria-label="Dismiss support message"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </aside>
+        )}
         {/* Hero Section */}
         <div className="border border-wiki-border-light bg-wiki-offwhite p-6 md:p-8 mb-6">
           <div className="text-center">

@@ -1,12 +1,14 @@
 # OpenCitation
 
-An open source citation manager, generator, and sharing tool. Ad-free, easy to use, with a clean Wikipedia 2005-inspired design.
+**A free, open-source citation manager for students, researchers, and curious minds.** Generate accurate citations, organize sources into lists and projects, and share or export your work—without ads or a paywall.
 
 [![CI](https://github.com/aicoder2009/opencitation/actions/workflows/ci.yml/badge.svg)](https://github.com/aicoder2009/opencitation/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-695%20passing-brightgreen)](https://github.com/aicoder2009/opencitation)
-[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org)
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/aicoder2009/opencitation?utm_source=oss&utm_medium=github&utm_campaign=aicoder2009%2Fopencitation&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Web App](https://img.shields.io/badge/try-opencitation.app-2a4b8d)](https://opencitation.app)
+[![Installable PWA](https://img.shields.io/badge/install-PWA-5a3fc0)](https://opencitation.app)
+[![Sponsor](https://img.shields.io/badge/support-one--time%20on%20GitHub-ea4aaa)](https://github.com/sponsors/aicoder2009)
+
+OpenCitation is free to use. If it saves you time, you can optionally support its development with a [one-time contribution](https://github.com/sponsors/aicoder2009). No subscription or paid features are required.
 
 ## Why OpenCitation?
 
