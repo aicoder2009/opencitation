@@ -6,3 +6,8 @@
 **Vulnerability:** The application was using the `marked` library to parse Markdown content into HTML (in `src/app/docs/changelog/page.tsx` and `src/lib/docs.ts`) and subsequently rendering it using `dangerouslySetInnerHTML` without proper sanitization.
 **Learning:** `marked` does not sanitize HTML by default. While this may seem safe for trusted inputs (like internal docs or GitHub releases), if malicious input manages to enter these sources, it leads directly to an XSS vulnerability.
 **Prevention:** The output of `marked` (or any markdown parser) must always be wrapped with `DOMPurify.sanitize()` (using `isomorphic-dompurify` for SSR) before being passed to `dangerouslySetInnerHTML`.
+
+## 2025-02-28 - SSRF Vulnerability in Loopback Fetch
+**Vulnerability:** The bulk lookup API (`src/app/api/lookup/bulk/route.ts`) performed a loopback fetch using `request.nextUrl.origin` (which parses the user-controllable `Host` header) to invoke internal Next.js API endpoints. This introduces a Server-Side Request Forgery (SSRF) risk.
+**Learning:** Next.js `NextRequest.nextUrl.origin` inherits from the incoming HTTP request's `Host` header, meaning it can be manipulated by attackers to force the server to make requests to arbitrary external or internal domains instead of itself.
+**Prevention:** Rather than performing network-level `fetch` calls dynamically referencing the app's own origin, import Next.js route handler functions directly and pass them a synthetic `NextRequest` object (`new NextRequest(new URL('http://localhost'), { method: 'POST', body: ... })`).
