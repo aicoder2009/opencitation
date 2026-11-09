@@ -6,3 +6,8 @@
 **Vulnerability:** The application was using the `marked` library to parse Markdown content into HTML (in `src/app/docs/changelog/page.tsx` and `src/lib/docs.ts`) and subsequently rendering it using `dangerouslySetInnerHTML` without proper sanitization.
 **Learning:** `marked` does not sanitize HTML by default. While this may seem safe for trusted inputs (like internal docs or GitHub releases), if malicious input manages to enter these sources, it leads directly to an XSS vulnerability.
 **Prevention:** The output of `marked` (or any markdown parser) must always be wrapped with `DOMPurify.sanitize()` (using `isomorphic-dompurify` for SSR) before being passed to `dangerouslySetInnerHTML`.
+
+## 2024-06-07 - SSRF via Host-header in Next.js Loopback APIs
+**Vulnerability:** Bulk API endpoint `src/app/api/lookup/bulk/route.ts` used `request.nextUrl.origin` to construct an absolute URL for a `fetch` call to other internal APIs. Since `request.nextUrl.origin` is derived from the HTTP `Host` header sent by the client, an attacker could spoof the `Host` header to cause the server to make requests to arbitrary external servers or internal IP addresses (SSRF).
+**Learning:** In Next.js App Router, API routes should never use `fetch` with URLs derived from the incoming request's `Host` header to invoke other local route handlers. The `Host` header is untrustworthy.
+**Prevention:** Instead of using `fetch` to make a loopback HTTP request, import the other route handler function (e.g., `POST` from `../url/route`) directly and invoke it as a normal asynchronous function call. Pass a synthetic `NextRequest` (e.g., `new NextRequest(new URL('http://localhost'), { method: 'POST', body: ... })`) to satisfy the handler's parameters.
