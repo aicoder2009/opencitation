@@ -15,6 +15,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SOURCE_TYPES, type SourceType } from '@/types';
 import { safeFetchText, SafeFetchError } from '@/lib/security/safe-fetch';
+import { evaluateUrlWithJev } from '@/lib/security/jev';
+import { evaluateUrlWithNova } from '@/lib/security/nova';
 import { POST as doiLookup } from '../doi/route';
 import { POST as isbnLookup } from '../isbn/route';
 import {
@@ -116,14 +118,30 @@ export async function POST(request: NextRequest): Promise<NextResponse<APIRespon
       );
     }
 
+    const originalUrl = parsedUrl.toString();
+
+    // URL Moderation check: Dedicated blocklist + Amazon Nova Micro (Bedrock) or Jev
+    const moderation =
+      process.env.MODERATION_PROVIDER === 'jev'
+        ? await evaluateUrlWithJev(originalUrl)
+        : await evaluateUrlWithNova(originalUrl);
+
+    if (moderation.blocked) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: moderation.message || `Sorry, ${originalUrl} is blocked.`,
+        },
+        { status: 400 }
+      );
+    }
+
     // SSRF is blocked downstream by safeFetchText (protocol allowlist + DNS
     // resolution + private-IP rejection). The full point of /api/lookup/url
     // is to fetch arbitrary user-supplied public URLs, so do not narrow the
     // public-host set here.
     // Detect the source type from the URL and grab any type-specific hints
     const detection = detectSourceTypeFromUrl(parsedUrl);
-
-    const originalUrl = parsedUrl.toString();
 
     // For arXiv URLs, short-circuit to the arXiv API which gives richer metadata
     if (detection.sourceType === 'preprint' && detection.arxivId) {

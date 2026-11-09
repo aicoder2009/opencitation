@@ -89,6 +89,17 @@ describe('URL Lookup API', () => {
     expect(data.error).toContain('Invalid URL format');
   });
 
+  it('should block URLs on the dedicated blocklist with formatted error message', async () => {
+    const response = await lookup('https://chatgpt.com/share/test-uuid');
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.success).toBe(false);
+    expect(data.error).toBe(
+      'Sorry, https://chatgpt.com/share/test-uuid is blocked. Reason: Interactive AI chat interface.'
+    );
+  });
+
   it('should extract metadata from HTML', async () => {
     mockSafeFetch.mockResolvedValueOnce(page(200, ARTICLE_HTML));
 
