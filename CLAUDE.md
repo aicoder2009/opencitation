@@ -150,7 +150,7 @@ Full reference: `docs/design-system.md`
 | `wiki-text` | `#202122` | `#eaecf0` | All body text |
 | `wiki-text-muted` | `#54595d` | `#a2a9b1` | Captions, placeholders, secondary labels |
 | `wiki-link` | `#0645ad` | `#88a4d8` | Every interactive element |
-| `wiki-warning` | `#f4c430` | `#f4c430` | Left bar of `WikiNotice variant="warn"` only; the single attention hue |
+| `wiki-warning` | `#f4c430` | `#f4c430` | Left bar of `WikiNotice variant="warn"`, plus the `WikiSupportBanner` fill (`/40` light, `/20` dark); the single attention hue |
 
 ### Typography
 - Font stack: `Arial, Helvetica, sans-serif` for all UI; `"Courier New", Courier, monospace` for citation output only (use `.citation-text` class).

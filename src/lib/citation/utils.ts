@@ -317,25 +317,6 @@ export function formatDateHarvard(date?: CitationDate): string {
   return `${date.year}`;
 }
 
-/**
- * Format access date for web sources
- */
-export function formatAccessDate(date?: CitationDate, style: 'apa' | 'mla' | 'chicago' | 'harvard' = 'apa'): string {
-  if (!date || !date.year) return '';
-
-  switch (style) {
-    case 'apa':
-      return `Retrieved ${formatDateAPA(date).replace(/[()]/g, '')} from`;
-    case 'mla':
-      return `Accessed ${formatDateMLA(date)}.`;
-    case 'chicago':
-      return `Accessed ${formatDateChicago(date)}.`;
-    case 'harvard':
-      return `(Accessed: ${formatDateHarvard(date)})`;
-    default:
-      return '';
-  }
-}
 
 /**
  * Escape HTML characters
@@ -360,33 +341,6 @@ export function formatUrl(url?: string): string {
   return url.replace(/\/$/, '');
 }
 
-/**
- * Format page range
- */
-export function formatPages(pages?: string, style: 'apa' | 'mla' | 'chicago' | 'harvard' = 'apa'): string {
-  if (!pages) return '';
-
-  switch (style) {
-    case 'apa':
-      return pages;
-    case 'mla':
-      return `pp. ${pages}`;
-    case 'chicago':
-      return pages;
-    case 'harvard':
-      return `pp. ${pages}`;
-    default:
-      return pages;
-  }
-}
-
-/**
- * Capitalize first letter of a string
- */
-export function capitalizeFirst(text: string): string {
-  if (!text) return '';
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
 
 /**
  * Convert title to sentence case (APA style)

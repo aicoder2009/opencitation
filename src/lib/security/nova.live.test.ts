@@ -11,7 +11,9 @@ if (fs.existsSync('.env.local')) {
   });
 }
 
-describe('Live Amazon Bedrock Nova Micro Moderation', () => {
+const shouldRunLive = process.env.RUN_LIVE_BEDROCK_TESTS === 'true';
+
+describe.skipIf(!shouldRunLive)('Live Amazon Bedrock Nova Micro Moderation', () => {
   it('correctly uses Amazon Nova Micro to identify and block an interactive AI chat interface', async () => {
     const result = await evaluateUrlWithNova('https://my-custom-assistant.ai/chat', {
       customTemplate: 'Sorry, {website url} is blocked ({reason}).',

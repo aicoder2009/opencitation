@@ -31,12 +31,6 @@ export const SHORTCUTS: Shortcut[] = [
   { key: "s", description: "Save to list", modifiers: ["ctrl"], scope: "cite" },
 ];
 
-/**
- * Get shortcuts filtered by scope
- */
-export function getShortcutsByScope(scope: Shortcut["scope"]): Shortcut[] {
-  return SHORTCUTS.filter((s) => s.scope === scope || s.scope === "global");
-}
 
 /**
  * Format shortcut key for display
@@ -74,43 +68,3 @@ export function formatShortcutKey(shortcut: Shortcut): string {
   return parts.join(" + ");
 }
 
-/**
- * Check if an event matches a shortcut
- */
-export function matchesShortcut(event: KeyboardEvent, shortcut: Shortcut): boolean {
-  // Don't trigger shortcuts when typing in input fields
-  const target = event.target as HTMLElement;
-  const isInputField =
-    target.tagName === "INPUT" ||
-    target.tagName === "TEXTAREA" ||
-    target.isContentEditable;
-
-  // Allow some shortcuts even in input fields
-  const allowInInput = ["Escape"].includes(shortcut.key);
-
-  if (isInputField && !allowInInput) {
-    return false;
-  }
-
-  // Check key match
-  if (event.key.toLowerCase() !== shortcut.key.toLowerCase()) {
-    return false;
-  }
-
-  // Check modifiers
-  const expectedCtrl = shortcut.modifiers?.includes("ctrl") || false;
-  const expectedShift = shortcut.modifiers?.includes("shift") || false;
-  const expectedAlt = shortcut.modifiers?.includes("alt") || false;
-  const expectedMeta = shortcut.modifiers?.includes("meta") || false;
-
-  if (
-    event.ctrlKey !== expectedCtrl ||
-    event.shiftKey !== expectedShift ||
-    event.altKey !== expectedAlt ||
-    event.metaKey !== expectedMeta
-  ) {
-    return false;
-  }
-
-  return true;
-}

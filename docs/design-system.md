@@ -89,7 +89,7 @@ The color system has two tiers: **semantic tokens** (used in components) and **r
 | `--color-wiki-link-hover` | `#0b3d91` | `#a3b8e5` | Hovered links |
 | `--color-wiki-link-visited` | `#0b0080` | `#b18fcf` | Visited hyperlinks |
 | `--color-wiki-link-active` | `#ba0000` | `#f87171` | Active/pressed links |
-| `--color-wiki-warning` | `#f4c430` | `#f4c430` | Left bar of warn notices only (Wikipedia message-box saffron) |
+| `--color-wiki-warning` | `#f4c430` | `#f4c430` | Left bar of warn notices (Wikipedia message-box saffron); tint of the support banner |
 
 #### Tailwind utility mapping
 
@@ -128,7 +128,7 @@ Manual override is available via `TagColorPicker`.
 
 #### Colors outside the token system
 
-There is **one attention hue in this product**: `wiki-warning`, the saffron of Wikipedia's article message boxes, drawn only as the thick left bar of `WikiNotice variant="warn"` so a warning is noticed without a fill or text color change. Nothing else carries state by hue: the offline, syncing and update-available states all render on the same `wiki-offwhite` bar, the Safari install banner's CTA is `wiki-link`, and there is still no success green or error red.
+There is **one attention hue in this product**: `wiki-warning`, the saffron of Wikipedia's article message boxes, drawn only as the thick left bar of `WikiNotice variant="warn"` so a warning is noticed without a fill or text color change. The one fill is `WikiSupportBanner`, the fundraising appeal, which borrows Wikipedia's fundraising cream as `bg-wiki-warning/40` (`/20` in dark, where links on a stronger tint fall below 4.5:1); it renders only post-mount and only from a visitor's 3rd visit (30 idle minutes starts a new one), sits outside `<main>`, and is hidden on sign-in, sign-up and `/share`. Nothing else carries state by hue: the offline, syncing and update-available states all render on the same `wiki-offwhite` bar, the Safari install banner's CTA is `wiki-link`, and there is still no success green or error red.
 
 Three values sit outside the semantic tokens, and none of them paint in-app UI:
 

@@ -6,9 +6,9 @@
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Web App](https://img.shields.io/badge/try-opencitation.app-2a4b8d)](https://opencitation.app)
 [![Installable PWA](https://img.shields.io/badge/install-PWA-5a3fc0)](https://opencitation.app)
-[![Sponsor](https://img.shields.io/badge/support-one--time%20on%20GitHub-ea4aaa)](https://github.com/sponsors/aicoder2009)
+[![Support OpenCitation](https://img.shields.io/badge/%E2%99%A5%20Support%20OpenCitation-%243%20one--time-ea4aaa?style=for-the-badge)](https://github.com/sponsors/aicoder2009/sponsorships?frequency=one-time&amount=3)
 
-OpenCitation is free to use. If it saves you time, you can optionally support its development with a [one-time contribution](https://github.com/sponsors/aicoder2009). No subscription or paid features are required.
+OpenCitation is free to use. If it saves you time, you can optionally support its development with a [one-time contribution](https://github.com/sponsors/aicoder2009?frequency=one-time). No subscription or paid features are required.
 
 ## Why OpenCitation?
 

@@ -50,7 +50,7 @@ export interface BlockMessageContext {
   reason?: string;
   category?: string;
   confidence?: number;
-  source?: 'blocklist' | 'jev';
+  source?: 'blocklist' | 'jev' | 'bedrock_nova';
 }
 
 /**

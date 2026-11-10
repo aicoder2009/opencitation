@@ -66,24 +66,6 @@ export function deleteTemplate(id: string): void {
   localStorage.setItem(TEMPLATES_KEY, JSON.stringify(updated));
 }
 
-/**
- * Update a template
- */
-export function updateTemplate(
-  id: string,
-  updates: Partial<Omit<CitationTemplate, "id" | "createdAt">>
-): CitationTemplate | null {
-  const templates = getTemplates();
-  const index = templates.findIndex((t) => t.id === id);
-
-  if (index === -1) return null;
-
-  const updated = { ...templates[index], ...updates };
-  templates[index] = updated;
-  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
-
-  return updated;
-}
 
 /**
  * Get suggested template name based on fields

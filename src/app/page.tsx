@@ -25,7 +25,6 @@ export default function LandingPage() {
   const [quickAddInput, setQuickAddInput] = useState("");
   const [recentCitations, setRecentCitations] = useState<RecentCitation[]>([]);
   const [citationCount, setCitationCount] = useState<number | null>(null);
-  const [showSupportBanner, setShowSupportBanner] = useState(true);
 
   useEffect(() => {
     if (isLoaded && isSignedIn) router.replace("/home");
@@ -202,34 +201,6 @@ export default function LandingPage() {
   return (
     <WikiLayout hideFooter>
       <div className="mt-6">
-        {showSupportBanner && (
-          <aside className="mb-4 border border-wiki-border-light bg-wiki-warning/20 p-4" aria-label="Support OpenCitation">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm">
-                <strong>OpenCitation is free and ad-free.</strong>{" "}
-                If it has helped your work, consider a one-time $5 contribution to help keep it running.
-              </p>
-              <div className="flex shrink-0 items-center gap-3">
-                <a
-                  href="https://github.com/sponsors/aicoder2009"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-block border border-wiki-border bg-wiki-white px-3 py-1.5 text-sm font-medium text-wiki-link hover:bg-wiki-offwhite focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                >
-                  Support with $5
-                </a>
-                <button
-                  type="button"
-                  onClick={() => setShowSupportBanner(false)}
-                  className="text-sm text-wiki-text-muted hover:text-wiki-text focus-visible:outline-dotted focus-visible:outline-1 focus-visible:outline-wiki-text"
-                  aria-label="Dismiss support message"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </aside>
-        )}
         {/* Hero Section */}
         <div className="border border-wiki-border-light bg-wiki-offwhite p-6 md:p-8 mb-6">
           <div className="text-center">
@@ -304,6 +275,9 @@ export default function LandingPage() {
                   <li>• MLA 9th Edition</li>
                   <li>• Chicago 17th Edition</li>
                   <li>• Harvard</li>
+                  <li>• IEEE, Vancouver, AMA</li>
+                  <li>• ACS, Nature, APSA</li>
+                  <li className="text-wiki-text-muted">Chicago author-date + more via CSL</li>
                 </ul>
               </div>
 
@@ -311,11 +285,11 @@ export default function LandingPage() {
               <div className="border border-wiki-border-light p-4">
                 <h3 className="font-bold mb-2">Source Types</h3>
                 <ul className="text-sm space-y-1">
-                  <li>• Books</li>
-                  <li>• Academic Journals</li>
-                  <li>• Websites &amp; Blogs</li>
-                  <li>• Videos, Film, TV</li>
-                  <li className="text-wiki-text-muted">+ 7 more types</li>
+                  <li>• Book, Journal, Website</li>
+                  <li>• Blog, Newspaper, Image</li>
+                  <li>• Video, Film, TV Series</li>
+                  <li>• TV Episode, Miscellaneous</li>
+                  <li className="text-wiki-text-muted">11 source types total</li>
                 </ul>
               </div>
 
@@ -323,10 +297,12 @@ export default function LandingPage() {
               <div className="border border-wiki-border-light p-4">
                 <h3 className="font-bold mb-2">Smart Lookup</h3>
                 <ul className="text-sm space-y-1">
-                  <li>• URL auto-detection</li>
-                  <li>• DOI lookup (CrossRef)</li>
-                  <li>• ISBN lookup</li>
-                  <li className="text-wiki-text-muted">Paste and generate</li>
+                  <li>• URL (OpenGraph)</li>
+                  <li>• DOI (CrossRef)</li>
+                  <li>• ISBN (Open Library)</li>
+                  <li>• PubMed (biomedical)</li>
+                  <li>• arXiv (preprints)</li>
+                  <li className="text-wiki-text-muted">Wikipedia auto-detection</li>
                 </ul>
               </div>
 
@@ -336,26 +312,32 @@ export default function LandingPage() {
                 <ul className="text-sm space-y-1">
                   <li>• Lists — group by topic</li>
                   <li>• Projects — organize lists</li>
-                  <li className="text-wiki-text-muted">Like playlists for citations</li>
+                  <li>• Tags — color-coded labels</li>
+                  <li>• Global search</li>
+                  <li className="text-wiki-text-muted">Command palette (⌘K)</li>
                 </ul>
               </div>
 
-              {/* Sharing */}
+              {/* Export & Share */}
               <div className="border border-wiki-border-light p-4">
-                <h3 className="font-bold mb-2">Sharing</h3>
-                <ul className="text-sm space-y-1">
-                  <li>• Public share links</li>
-                  <li>• View-only access</li>
-                  <li className="text-wiki-text-muted">Share with classmates</li>
-                </ul>
-              </div>
-
-              {/* Export */}
-              <div className="border border-wiki-border-light p-4">
-                <h3 className="font-bold mb-2">Export</h3>
+                <h3 className="font-bold mb-2">Export &amp; Share</h3>
                 <ul className="text-sm space-y-1">
                   <li>• Copy to clipboard</li>
-                  <li>• Download as .txt</li>
+                  <li>• BibTeX (.bib), RIS (.ris)</li>
+                  <li>• Plain text (.txt)</li>
+                  <li>• Public share links</li>
+                  <li className="text-wiki-text-muted">Embeddable badge</li>
+                </ul>
+              </div>
+
+              {/* Offline & Desktop */}
+              <div className="border border-wiki-border-light p-4">
+                <h3 className="font-bold mb-2">Offline &amp; Desktop</h3>
+                <ul className="text-sm space-y-1">
+                  <li>• Works offline (PWA)</li>
+                  <li>• Desktop app (Electron)</li>
+                  <li>• Import BibTeX or RIS</li>
+                  <li>• Citation templates</li>
                   <li className="text-wiki-text-muted">Retro print animation</li>
                 </ul>
               </div>
@@ -368,13 +350,13 @@ export default function LandingPage() {
               Try It
             </h2>
             <p className="mb-4">
-              Enter a URL, DOI, or ISBN to generate a citation:
+              Enter a URL, DOI, ISBN, PubMed ID, or arXiv ID to generate a citation:
             </p>
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <input
                 type="text"
-                placeholder="https://example.com or 10.1000/xyz or 978-0-123456-78-9"
-                aria-label="URL, DOI, or ISBN"
+                placeholder="URL, DOI, ISBN, PubMed ID, arXiv ID, or Wikipedia URL"
+                aria-label="URL, DOI, ISBN, PubMed ID, or arXiv ID"
                 className="flex-1"
                 value={quickAddInput}
                 onChange={(e) => setQuickAddInput(e.target.value)}
@@ -452,6 +434,9 @@ export default function LandingPage() {
                 <svg className="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                 Star on GitHub
               </WikiButton>
+              <WikiButton onClick={() => window.open("https://github.com/sponsors/aicoder2009", "_blank")}>
+                ♥ Support on GitHub Sponsors
+              </WikiButton>
               <WikiButton onClick={() => setShowReportIssue(true)}>
                 Report an Issue
               </WikiButton>
@@ -461,13 +446,13 @@ export default function LandingPage() {
               </WikiButton>
             </div>
             <p className="text-sm text-wiki-text-muted">
-              Built with: Next.js 16 • React 19 • Tailwind CSS • DynamoDB
+              Built with: Next.js 16 • React 19 • Tailwind CSS • DynamoDB • Electron • CSL (citeproc)
             </p>
           </section>
 
           {/* Footer */}
           <div className="border-t border-wiki-border-light pt-6 mt-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-sm mb-6">
               {/* Product */}
               <div>
                 <h4 className="font-bold mb-2">Product</h4>
@@ -475,6 +460,8 @@ export default function LandingPage() {
                   <li><Link href="/cite" className="text-wiki-link hover:underline">Cite</Link></li>
                   <li><Link href="/lists" className="text-wiki-link hover:underline">Lists</Link></li>
                   <li><Link href="/projects" className="text-wiki-link hover:underline">Projects</Link></li>
+                  <li><Link href="/search" className="text-wiki-link hover:underline">Search</Link></li>
+                  <li><Link href="/settings" className="text-wiki-link hover:underline">Settings</Link></li>
                 </ul>
               </div>
 
@@ -485,7 +472,6 @@ export default function LandingPage() {
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki" target="_blank" className="text-wiki-link hover:underline">Documentation</Link></li>
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki/API-Reference" target="_blank" className="text-wiki-link hover:underline">API Reference</Link></li>
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki/FAQ" target="_blank" className="text-wiki-link hover:underline">FAQ</Link></li>
-                  <li><Link href="/embed" className="text-wiki-link hover:underline">Embed Badge</Link></li>
                 </ul>
               </div>
 
@@ -496,6 +482,15 @@ export default function LandingPage() {
                   <li><Link href="https://github.com/aicoder2009/opencitation" target="_blank" className="text-wiki-link hover:underline">GitHub</Link></li>
                   <li><Link href="https://github.com/aicoder2009/opencitation/releases" target="_blank" className="text-wiki-link hover:underline">Changelog</Link></li>
                   <li><Link href="https://github.com/aicoder2009/opencitation/wiki/Contributing" target="_blank" className="text-wiki-link hover:underline">Contributing</Link></li>
+                </ul>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h4 className="font-bold mb-2">Support</h4>
+                <ul className="space-y-1 text-wiki-text-muted">
+                  <li><a href="https://github.com/sponsors/aicoder2009" target="_blank" className="text-wiki-link hover:underline">GitHub Sponsors</a></li>
+                  <li><Link href="/embed" className="text-wiki-link hover:underline">Embed Badge</Link></li>
                 </ul>
               </div>
 

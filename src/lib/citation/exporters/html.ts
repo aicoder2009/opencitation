@@ -1,3 +1,5 @@
+import { sanitizeCitationHtml } from "@/lib/security/sanitize-html";
+
 interface CitationLike {
   formattedHtml: string;
   formattedText: string;
@@ -14,7 +16,10 @@ function escapeHtml(s: string): string {
 export function toHTML(citations: CitationLike[], listName?: string): string {
   const title = listName || "References";
   const items = citations
-    .map((c) => `    <li>${c.formattedHtml || escapeHtml(c.formattedText)}</li>`)
+    .map((c) => {
+      const safeHtml = c.formattedHtml ? sanitizeCitationHtml(c.formattedHtml) : "";
+      return `    <li>${safeHtml || escapeHtml(c.formattedText)}</li>`;
+    })
     .join("\n");
 
   return `<!DOCTYPE html>

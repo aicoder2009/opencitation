@@ -13,28 +13,66 @@ import { toCslJson } from './to-csl-json';
 import { CSL_STYLES } from './styles';
 import localeEnUs from './styles/locale-en-us';
 
-const ITEM_ID = 'ITEM-1';
+interface CachedStyleEngine {
+  engine: CiteprocEngine;
+  activeId: string;
+  activeItem: ReturnType<typeof toCslJson> | null;
+}
 
-async function makeEngine(
+const engineCache = new Map<string, Promise<CachedStyleEngine>>();
+let itemCounter = 0;
+
+function getOrCreateStyleEngine(styleId: string): Promise<CachedStyleEngine> {
+  const cached = engineCache.get(styleId);
+  if (cached) return cached;
+
+  const styleDef = CSL_STYLES.find((s) => s.id === styleId);
+  if (!styleDef) {
+    return Promise.reject(new Error(`Unknown CSL style: "${styleId}"`));
+  }
+
+  const initPromise = styleDef.load().then((mod) => {
+    const state: CachedStyleEngine = {
+      activeId: 'ITEM-0',
+      activeItem: null,
+      engine: null as unknown as CiteprocEngine,
+    };
+    state.engine = new CSL.Engine(
+      {
+        retrieveLocale: () => localeEnUs,
+        retrieveItem: (id: string) => {
+          if (state.activeItem && id === state.activeId) {
+            return state.activeItem;
+          }
+          return toCslJson(
+            { sourceType: 'miscellaneous', accessType: 'web', title: '' },
+            id
+          );
+        },
+      },
+      mod.default,
+      'en-US'
+    );
+    return state;
+  }).catch((err) => {
+    engineCache.delete(styleId);
+    throw err;
+  });
+
+  engineCache.set(styleId, initPromise);
+  return initPromise;
+}
+
+async function prepareEngine(
   fields: CitationFields,
   styleId: string
-): Promise<CiteprocEngine> {
-  const styleDef = CSL_STYLES.find((s) => s.id === styleId);
-  if (!styleDef) throw new Error(`Unknown CSL style: "${styleId}"`);
-
-  const styleXml = (await styleDef.load()).default;
-  const item = toCslJson(fields, ITEM_ID);
-
-  const engine = new CSL.Engine(
-    {
-      retrieveLocale: () => localeEnUs,
-      retrieveItem: () => item,
-    },
-    styleXml,
-    'en-US'
-  );
-  engine.updateItems([ITEM_ID]);
-  return engine;
+): Promise<{ engine: CiteprocEngine; itemId: string }> {
+  const state = await getOrCreateStyleEngine(styleId);
+  const itemId = `ITEM-${++itemCounter}`;
+  state.activeId = itemId;
+  state.activeItem = toCslJson(fields, itemId);
+  state.engine.updateItems([itemId]);
+  return { engine: state.engine, itemId };
 }
 
 /** First bibliography entry as a raw string, or "" if none. */
@@ -69,7 +107,7 @@ export async function formatCsl(
   fields: CitationFields,
   styleId: string
 ): Promise<FormattedCitation> {
-  const engine = await makeEngine(fields, styleId);
+  const { engine } = await prepareEngine(fields, styleId);
 
   engine.setOutputFormat('html');
   const html = toInlineHtml(firstEntry(engine.makeBibliography()));
@@ -88,10 +126,10 @@ export async function inTextCsl(
   fields: CitationFields,
   styleId: string
 ): Promise<string> {
-  const engine = await makeEngine(fields, styleId);
+  const { engine, itemId } = await prepareEngine(fields, styleId);
   engine.setOutputFormat('text');
   const result = engine.processCitationCluster(
-    { citationItems: [{ id: ITEM_ID }], properties: { noteIndex: 0 } },
+    { citationItems: [{ id: itemId }], properties: { noteIndex: 0 } },
     [],
     []
   );

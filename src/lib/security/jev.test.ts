@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   checkDedicatedBlocklist,
   formatBlockMessage,
-  DEFAULT_BLOCK_MESSAGE_TEMPLATE,
   DETAILED_BLOCK_MESSAGE_TEMPLATE,
 } from './blocklist';
 import { evaluateUrlWithJev } from './jev';

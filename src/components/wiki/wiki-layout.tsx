@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 import { WikiUserMenu } from "./wiki-user-menu";
 import { WikiCommandPalette } from "./wiki-command-palette";
+import { WikiSupportBanner } from "./wiki-support-banner";
 
 interface WikiLayoutProps {
   children: React.ReactNode;
@@ -372,6 +373,9 @@ export function WikiLayout({ children, hideFooter = false }: WikiLayoutProps) {
           </div>
         )}
       </header>
+
+      {/* Outside <main> so the skip link lands on page content, not the appeal */}
+      <WikiSupportBanner />
 
       {/* Main Content */}
       <main id="main-content" className="max-w-[960px] mx-auto px-4 py-6">{children}</main>
