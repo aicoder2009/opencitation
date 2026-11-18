@@ -32,8 +32,9 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Skip Next.js internals and static files
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|avif|png|gif|svg|ttf|woff2?|ico|csv|txt|xml|json|pdf|mp3|mp4|docx?|xlsx?|zip|webmanifest)).*)',
+    // Skip Next.js internals, static files, and the PostHog proxy (/ingest must
+    // stay reachable for signed-out visitors)
+    '/((?!_next|ingest/|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|avif|png|gif|svg|ttf|woff2?|ico|csv|txt|xml|json|pdf|mp3|mp4|docx?|xlsx?|zip|webmanifest)).*)',
     // Always run for API routes
     '/(api|trpc)(.*)',
   ],
